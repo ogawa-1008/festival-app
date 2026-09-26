@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
@@ -21,6 +21,10 @@ function Battle() {
 
     const [isBattleOver, setIsBattleOver] =
         useState(false);
+
+    // stateだとレンダリングが発生しちゃうからRefで同期的に管理する処理
+    const hpRef = useRef({ player: 3, monster: 3 });
+    const isBattleOverRef = useRef(false);
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -66,7 +70,7 @@ function Battle() {
     };
 
     const handleHandSelect = (playerHand: Hand) => {
-        if (isBattleOver) return;
+        if (isBattleOverRef.current) return; // 連打を防ぐガードです
 
         const hands: Hand[] = [
             "rock",
@@ -89,8 +93,9 @@ function Battle() {
 
         if (result === "player") {
             const nextMonsterHp =
-                Math.max(0, monsterHp - 1);
+                Math.max(0, hpRef.current.monster - 1);
 
+            hpRef.current.monster = nextMonsterHp;
             setMonsterHp(nextMonsterHp);
 
             if (nextMonsterHp <= 0) {
@@ -98,6 +103,7 @@ function Battle() {
                     "モンスターを討伐した！"
                 );
 
+                isBattleOverRef.current = true;
                 setIsBattleOver(true);
 
                 setTimeout(() => {
@@ -115,8 +121,9 @@ function Battle() {
         }
 
         const nextPlayerHp =
-            Math.max(0, playerHp - 1);
+            Math.max(0, hpRef.current.player - 1);
 
+        hpRef.current.player = nextPlayerHp;
         setPlayerHp(nextPlayerHp);
 
         if (nextPlayerHp <= 0) {
@@ -124,6 +131,7 @@ function Battle() {
                 "力尽きてしまった……"
             );
 
+            isBattleOverRef.current = true;
             setIsBattleOver(true);
 
             return;
@@ -135,6 +143,9 @@ function Battle() {
     };
 
     const handleRetry = () => {
+        hpRef.current = { player: 3, monster: 3 };
+        isBattleOverRef.current = false;
+
         setPlayerHp(3);
         setMonsterHp(3);
 
