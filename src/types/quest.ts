@@ -13,4 +13,5 @@ export type Quest = {
   }[];
 
   completed: boolean;
+  goldCrown?: boolean;
 };

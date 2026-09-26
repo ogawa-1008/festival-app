@@ -12,7 +12,7 @@ function HunterRank({ rank }: HunterRankProps) {
             </div>
 
             <div className="hunter-rank-number">
-                1
+                {rank}
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
@@ -9,14 +9,21 @@ import "./Result.css";
 function Result() {
     const navigate = useNavigate();
     const { questId } = useParams();
+    const [searchParams] = useSearchParams();
 
-    const { quests, completeQuest } = useGame();
+    const { quests, resolveBattle } = useGame();
 
     const [claimed, setClaimed] = useState(false);
 
     const quest = quests.find(
         (item) => item.id === questId
     );
+
+    const outcome = searchParams.get("outcome") === "failure"
+        ? "failure"
+        : "victory";
+    const isGoldCrown = searchParams.get("crown") === "1";
+    const rewardRate = outcome === "victory" ? 1 : 0.5;
 
     if (!quest) {
         return (
@@ -40,9 +47,7 @@ function Result() {
 
         setClaimed(true);
 
-        completeQuest(quest.id);
-
-        navigate("/");
+        resolveBattle(quest.id, outcome, isGoldCrown);
     };
 
     return (
@@ -58,7 +63,7 @@ function Result() {
                         HUNTING BATTLE
                     </span>
 
-                    <h1>クエスト達成</h1>
+                    <h1>{outcome === "victory" ? "クエスト達成" : "調査結果"}</h1>
                 </header>
 
 
@@ -69,7 +74,7 @@ function Result() {
                 <section className="result-monster-area">
 
                     <div className="result-section-label">
-                        MONSTER DEFEATED
+                        {outcome === "victory" ? "MONSTER DEFEATED" : "INVESTIGATION COMPLETE"}
                     </div>
 
                     <div className="result-monster-stage">
@@ -82,11 +87,13 @@ function Result() {
                             />
                         </div>
 
-                        <img
-                            src="/images/quests/stamp-image.png"
-                            alt="QUEST CLEAR"
-                            className="result-clear-stamp"
-                        />
+                        {outcome === "victory" && (
+                            <img
+                                src="/images/quests/stamp-image.png"
+                                alt="QUEST CLEAR"
+                                className="result-clear-stamp"
+                            />
+                        )}
 
                     </div>
 
@@ -153,7 +160,7 @@ function Result() {
                                     </div>
 
                                     <div className="result-reward-amount">
-                                        × {reward.amount}
+                                        × {Math.max(1, Math.ceil(reward.amount * rewardRate))}
                                     </div>
 
                                 </div>
@@ -177,8 +184,18 @@ function Result() {
                 >
                     {claimed
                         ? "報酬を受け取りました"
-                        : "報酬を受け取る"}
+                        : outcome === "victory" ? "報酬を受け取る" : "落とし物を受け取る"}
                 </button>
+
+                {claimed && (
+                    <button
+                        type="button"
+                        className="result-claim-button"
+                        onClick={() => navigate("/")}
+                    >
+                        ホームへ戻る
+                    </button>
+                )}
 
             </div>
         </main>

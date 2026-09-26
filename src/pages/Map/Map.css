@@ -10,7 +10,13 @@
 .map-background {
   position: fixed;
   inset: 0;
-  background-image: url("/images/background/home-bg.png");
+  background:
+    radial-gradient(
+      ellipse at center top,
+      #55452f 0%,
+      #352c21 42%,
+      #211d18 100%
+    );
   background-size: cover;
   background-position: center;
   opacity: 0.7;
@@ -426,6 +432,25 @@
 .map-area-detail-content {
   padding-top: 8px;
 }
+
+.map-field-quest {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid rgba(129, 112, 78, 0.5);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.map-field-quest > span {
+  color: #a89a78;
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.map-field-quest strong { font-size: 13px; }
+.map-field-quest small { color: #cfec42; font-size: 11px; }
 
 .map-detail-row {
   min-height: 38px;

@@ -107,7 +107,12 @@ function Battle() {
                 setIsBattleOver(true);
 
                 setTimeout(() => {
-                    navigate(`/result/${quest.id}`);
+                    const goldCrown = Math.random() < 0.1;
+                    navigate(
+                        `/result/${quest.id}?outcome=victory${
+                            goldCrown ? "&crown=1" : ""
+                        }`
+                    );
                 }, 1200);
 
                 return;
@@ -142,6 +147,8 @@ function Battle() {
         );
     };
 
+<<<<<<< クエスト報酬・コレクション・特典交換機能を追加
+=======
     const handleRetry = () => {
         hpRef.current = { player: 3, monster: 3 };
         isBattleOverRef.current = false;
@@ -156,6 +163,7 @@ function Battle() {
         setIsBattleOver(false);
     };
 
+>>>>>>> main
     return (
         <main className="battle-page">
             <div className="battle-content">
@@ -230,25 +238,6 @@ function Battle() {
                 <section className="battle-message">
                     {message}
                 </section>
-
-                {playerHp <= 0 && (
-
-                    <button
-
-                        type="button"
-
-                        className="battle-retry-button"
-
-                        onClick={handleRetry}
-
-                    >
-
-                        もう一度挑戦する
-
-                    </button>
-
-                )}
-
 
                 {/* =========================
             PLAYER HP
@@ -437,9 +426,11 @@ function Battle() {
                     <button
                         type="button"
                         className="battle-retry-button"
-                        onClick={handleRetry}
+                        onClick={() =>
+                            navigate(`/result/${quest.id}?outcome=failure`)
+                        }
                     >
-                        もう一度挑戦する
+                        調査結果を見る
                     </button>
                 )}
 

@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import HunterRank from "../../components/Header/HunterRank";
 import CollaborationLogo from "../../components/Logo/CollaborationLogo";
 import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
+import { useGame } from "../../context/GameContext";
 
 import "../../components/Header/HunterRank.css";
 import "../../components/Logo/CollaborationLogo.css";
@@ -10,6 +12,8 @@ import "./Home.css";
 
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { rank } = useGame();
 
   return (
     <main className="home">
@@ -24,7 +28,7 @@ function Home() {
 
           {/* ハンターランク */}
           <div className="home-rank-area">
-            <HunterRank rank={1} />
+            <HunterRank rank={rank} />
           </div>
 
           {/* ハンバーガーメニュー */}
@@ -79,13 +83,13 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => navigate("/materials")}
                 >
-                  <span className="side-menu-item-icon">?</span>
+                  <span className="side-menu-item-icon">▤</span>
 
                   <span className="side-menu-item-text">
-                    <small>HELP</small>
-                    <strong>ヘルプ</strong>
+                    <small>INVENTORY</small>
+                    <strong>素材一覧</strong>
                   </span>
 
                   <span className="side-menu-arrow">›</span>
@@ -94,13 +98,28 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => navigate("/stamps")}
                 >
-                  <span className="side-menu-item-icon">Ⅰ</span>
+                  <span className="side-menu-item-icon">◆</span>
 
                   <span className="side-menu-item-text">
-                    <small>HOW TO PLAY</small>
-                    <strong>ゲーム説明</strong>
+                    <small>MONSTER STAMP</small>
+                    <strong>スタンプ一覧</strong>
+                  </span>
+
+                  <span className="side-menu-arrow">›</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="side-menu-item"
+                  onClick={() => navigate("/history")}
+                >
+                  <span className="side-menu-item-icon">◷</span>
+
+                  <span className="side-menu-item-text">
+                    <small>ACTIVITY</small>
+                    <strong>活動履歴</strong>
                   </span>
 
                   <span className="side-menu-arrow">›</span>

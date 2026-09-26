@@ -29,7 +29,7 @@ export const quests: Quest[] = [
     title: "砂漠のモンスターを討伐せよ！",
     description: "砂漠に現れたモンスターを討伐しよう！",
 
-    image: "/images/quest/desert-monster.png",
+    image: "/images/quests/image.png",
 
     qrCode: "QUEST_002",
 
@@ -52,7 +52,7 @@ export const quests: Quest[] = [
     title: "強大なモンスターを討伐せよ！",
     description: "強力なモンスターに挑戦しよう！",
 
-    image: "/images/quest/boss-monster.png",
+    image: "/images/quests/image.png",
 
     qrCode: "QUEST_003",
 

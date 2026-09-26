@@ -1,0 +1,21 @@
+.exchange-page { min-height: 100dvh; display: grid; place-items: center; padding: 20px 14px; color: #f2eadb; background: radial-gradient(ellipse at center top, #55452f, #171411 72%); }
+.exchange-card { width: min(100%, 390px); padding: 22px 18px; border: 2px solid #81704e; background: linear-gradient(180deg, rgba(35,30,23,.98), rgba(15,13,10,.98)); text-align: center; box-shadow: 0 8px 22px rgba(0,0,0,.55); }
+.exchange-eyebrow { color: #a89a78; font: bold 10px Georgia, serif; letter-spacing: 3px; }
+.exchange-card h1 { margin: 8px 0 12px; font-size: 23px; letter-spacing: 2px; }
+.exchange-image { width: 200px; height: 200px; object-fit: contain; border: 1px solid #756246; background: #090806; }
+.exchange-materials { margin: 18px 0; text-align: left; border-top: 1px solid #756246; }
+.exchange-materials p { display: flex; justify-content: space-between; gap: 8px; margin: 0; padding: 10px 0; border-bottom: 1px solid #514632; font-size: 13px; }
+.exchange-materials strong { color: #cfec42; white-space: nowrap; }
+.exchange-primary, .exchange-back { width: 100%; min-height: 48px; border: 2px solid #b89a68; color: #f4e7c9; background: linear-gradient(180deg, #6b4b32, #281a12); font-weight: bold; letter-spacing: 1px; }
+.exchange-primary:disabled { border-color: #555; color: #999; background: #302b27; }
+.exchange-back { margin-top: 10px; border: 1px solid #756246; color: #d7c6a4; background: transparent; }
+.exchange-complete { margin: 20px 0; padding: 18px; border: 1px solid #cfec42; background: rgba(56, 78, 24, .45); }
+.exchange-complete h2 { margin: 0; color: #cfec42; }
+.exchange-complete p { margin: 10px 0 0; font-size: 13px; line-height: 1.7; }
+.exchange-modal { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.72); }
+.exchange-modal > div { width: min(100%, 340px); padding: 24px 18px; border: 2px solid #b89a68; background: #21180f; text-align: center; }
+.exchange-modal h2 { margin: 0; }
+.exchange-modal p { color: #d7c6a4; font-size: 13px; line-height: 1.6; }
+.exchange-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.exchange-modal-actions button { min-height: 42px; border: 1px solid #756246; color: #f2eadb; background: #33291e; }
+.exchange-modal-actions button:last-child { border-color: #cfec42; background: #455719; }
