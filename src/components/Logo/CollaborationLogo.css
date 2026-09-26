@@ -1,0 +1,155 @@
+/* ========================================
+   VANTAN × MONSTER HUNTER
+======================================== */
+
+.collaboration-logo {
+  position: relative;
+
+  width: 280px;
+  height: 70px;
+
+  display: grid;
+
+  /*
+   * 左・中央・右の3エリアに分ける
+   *
+   * 1fr | × | 1fr
+   *
+   * これによりロゴサイズが変わっても
+   * ×は常に中央に固定される
+   */
+  grid-template-columns: 1fr 36px 1fr;
+
+  align-items: center;
+
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: visible;
+  margin-bottom: 60px;
+}
+
+
+/* ========================================
+   VANTANロゴ
+======================================== */
+
+.vantan-logo {
+  grid-column: 1;
+
+  justify-self: center;
+
+  width: 92px;
+  height: 42px;
+
+  object-fit: contain;
+
+  display: block;
+
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ========================================
+   中央の ×
+======================================== */
+
+.collaboration-cross {
+  grid-column: 2;
+
+  justify-self: center;
+  align-self: center;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+
+  color: #f1eadb;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 25px;
+
+  font-weight: 900;
+
+  line-height: 1;
+
+  text-align: center;
+
+  text-shadow:
+    0 2px 4px #000,
+    0 0 6px rgba(0, 0, 0, 0.9);
+
+  /*
+   * 位置を固定するため、
+   * absoluteは使わない
+   */
+}
+
+
+/* ========================================
+   MONSTER HUNTERロゴ
+======================================== */
+
+.monster-hunter-logo {
+  grid-column: 3;
+
+  justify-self: center;
+
+  width: 112px;
+  height: 58px;
+
+  object-fit: contain;
+
+  display: block;
+
+  margin: 0;
+  padding: 0;
+
+  mix-blend-mode: normal;
+}
+
+
+/* ========================================
+   小さい画面
+======================================== */
+
+@media (max-width: 380px) {
+
+  .collaboration-logo {
+    width: 255px;
+    height: 64px;
+
+    grid-template-columns: 1fr 32px 1fr;
+  }
+
+  .vantan-logo {
+    width: 80px;
+    height: 38px;
+  }
+
+  .collaboration-cross {
+    width: 32px;
+    height: 32px;
+
+    font-size: 22px;
+  }
+
+  .monster-hunter-logo {
+    width: 102px;
+    height: 53px;
+  }
+}

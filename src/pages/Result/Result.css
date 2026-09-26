@@ -1,0 +1,841 @@
+/* =========================================================
+   RESULT PAGE
+========================================================= */
+
+.result-page {
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(
+      ellipse at center top,
+      #55452f 0%,
+      #30271d 45%,
+      #171411 100%
+    );
+
+  color: #ffffff;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.result-content {
+  width: min(100%, 430px);
+  height: 100dvh;
+
+  margin: 0 auto;
+
+  padding: 16px 12px 18px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.result-header {
+  flex-shrink: 0;
+
+  width: 100%;
+
+  text-align: center;
+
+  margin-bottom: 12px;
+}
+
+.result-header-subtitle {
+  display: block;
+
+  color: #c8b48e;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  letter-spacing: 4px;
+
+  line-height: 1;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+.result-header h1 {
+  margin: 5px 0 0;
+
+  color: #f0dfb7;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 28px;
+  font-weight: bold;
+
+  letter-spacing: 3px;
+
+  line-height: 1.15;
+
+  text-shadow:
+    0 3px 5px #000;
+}
+
+
+/* =========================================================
+   MONSTER AREA
+========================================================= */
+
+.result-monster-area {
+  flex-shrink: 0;
+
+  width: 100%;
+
+  text-align: center;
+}
+
+.result-section-label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #d8c39c;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  letter-spacing: 3px;
+
+  line-height: 1;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+
+/* =========================================================
+   MONSTER STAGE
+
+   モンスターとスタンプを
+   完全に同じステージ内で重ねる
+========================================================= */
+
+.result-monster-stage {
+  position: relative;
+
+  width: 310px;
+  height: 310px;
+
+  margin: 0 auto;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   MONSTER FRAME
+========================================================= */
+
+.result-monster-frame {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 310px;
+  height: 310px;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      #4a3927 0%,
+      #181411 72%
+    );
+
+  border:
+    4px solid #5f4b32;
+
+  box-shadow:
+    inset 0 0 0 2px #9a794f,
+    inset 0 0 25px rgba(0, 0, 0, 0.8),
+    0 7px 14px rgba(0, 0, 0, 0.7);
+
+  overflow: hidden;
+
+  z-index: 1;
+}
+
+
+/* =========================================================
+   MONSTER IMAGE
+========================================================= */
+
+.result-monster-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0 6px 8px rgba(0, 0, 0, 0.8)
+    );
+}
+
+
+/* =========================================================
+   QUEST CLEAR STAMP
+========================================================= */
+
+.result-clear-stamp {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  width: 300px;
+  height: 300px;
+
+  display: block;
+
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
+
+  object-fit: contain;
+
+  transform:
+    translate(-50%, -50%)
+    rotate(-3deg);
+
+  transform-origin: center center;
+
+  opacity: 0;
+
+  z-index: 10;
+
+  pointer-events: none;
+
+  filter:
+    drop-shadow(
+      0 7px 7px rgba(0, 0, 0, 0.65)
+    );
+
+  animation:
+    quest-clear-stamp
+    0.75s
+    cubic-bezier(
+      0.18,
+      0.89,
+      0.32,
+      1.25
+    )
+    0.15s
+    forwards;
+}
+
+
+/* =========================================================
+   STAMP ANIMATION
+========================================================= */
+
+@keyframes quest-clear-stamp {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -190%)
+      rotate(-12deg)
+      scale(1.15);
+  }
+
+  45% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -45%)
+      rotate(5deg)
+      scale(1.08);
+  }
+
+  62% {
+    transform:
+      translate(-50%, -54%)
+      rotate(-2deg)
+      scale(1.02);
+  }
+
+  80% {
+    transform:
+      translate(-50%, -48%)
+      rotate(1deg)
+      scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      rotate(-3deg)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   QUEST INFORMATION
+========================================================= */
+
+.result-quest {
+  flex-shrink: 0;
+
+  width: 100%;
+  min-height: 58px;
+
+  margin-top: 15px;
+
+  padding: 8px 12px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(73, 52, 32, 0.95),
+      rgba(28, 21, 15, 0.98)
+    );
+
+  border:
+    2px solid #70583a;
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(166, 121, 71, 0.5),
+
+    0 3px 7px
+      rgba(0, 0, 0, 0.5);
+}
+
+
+/* QUEST LABEL */
+
+.result-quest-label {
+  display: block;
+
+  color: #bfa67d;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 10px;
+
+  letter-spacing: 3px;
+
+  line-height: 1;
+}
+
+
+/* QUEST TITLE */
+
+.result-quest h2 {
+  margin: 5px 0 0;
+
+  color: #f0e4cb;
+
+  font-size: 14px;
+  font-weight: bold;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+
+/* =========================================================
+   REWARD
+========================================================= */
+
+.result-reward {
+  flex-shrink: 0;
+
+  width: 100%;
+  height: 104px;
+
+  margin-top: 15px;
+
+  padding: 9px 10px;
+
+  box-sizing: border-box;
+
+  background:
+    rgba(18, 14, 10, 0.72);
+
+  border:
+    2px solid #5e4a31;
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(166, 121, 71, 0.25);
+}
+
+
+/* =========================================================
+   REWARD TITLE
+========================================================= */
+
+.result-section-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  height: 16px;
+
+  margin-bottom: 8px;
+}
+
+.result-section-title span {
+  flex: 1;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #9a7a50
+    );
+}
+
+.result-section-title span:last-child {
+  background:
+    linear-gradient(
+      90deg,
+      #9a7a50,
+      transparent
+    );
+}
+
+.result-section-title h2 {
+  margin: 0;
+
+  color: #d8c39c;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 11px;
+
+  letter-spacing: 3px;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   REWARD LIST
+========================================================= */
+
+.result-reward-list {
+  display: flex;
+
+  width: 100%;
+  height: 57px;
+
+  gap: 9px;
+}
+
+
+/* =========================================================
+   REWARD ITEM
+========================================================= */
+
+.result-reward-item {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 57px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding:
+    6px
+    8px;
+
+  box-sizing: border-box;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(75, 56, 36, 0.85),
+      rgba(30, 23, 17, 0.95)
+    );
+
+  border:
+    1px solid #6d5638;
+
+  box-shadow:
+    inset 0 0 8px rgba(0, 0, 0, 0.35);
+}
+
+
+/* =========================================================
+   REWARD IMAGE
+
+   32px → 46px
+========================================================= */
+
+.result-reward-image {
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  background:
+    #16110c;
+
+  border:
+    2px solid #7e6544;
+
+  box-shadow:
+    inset 0 0 7px rgba(0, 0, 0, 0.7);
+}
+
+.result-reward-image img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+
+/* =========================================================
+   REWARD NAME
+========================================================= */
+
+.result-reward-name {
+  min-width: 0;
+
+  margin-left: 8px;
+
+  overflow: hidden;
+
+  color: #eee2c9;
+
+  font-size: 10px;
+  font-weight: bold;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  text-shadow:
+    0 1px 2px #000;
+}
+
+
+/* =========================================================
+   REWARD AMOUNT
+========================================================= */
+
+.result-reward-amount {
+  margin-left: auto;
+
+  padding-left: 5px;
+
+  color: #d8c39c;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   CLAIM BUTTON
+========================================================= */
+
+.result-claim-button {
+  flex-shrink: 0;
+
+  width: 100%;
+  height: 50px;
+
+  margin-top: 15px;
+
+  padding:
+    8px
+    12px;
+
+  box-sizing: border-box;
+
+  border:
+    2px solid #9b835d;
+
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #684036,
+      #291713
+    );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: bold;
+
+  letter-spacing: 1px;
+
+  box-shadow:
+    0 4px 8px
+      rgba(0, 0, 0, 0.6);
+
+  cursor: pointer;
+}
+
+.result-claim-button:active {
+  transform: scale(0.97);
+}
+
+.result-claim-button:disabled {
+  opacity: 0.7;
+
+  cursor: default;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.result-error {
+  width: min(100%, 430px);
+  height: 100dvh;
+
+  margin: 0 auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.result-error h1 {
+  margin: 0;
+
+  font-size: 20px;
+}
+
+.result-error button {
+  margin-top: 20px;
+
+  padding:
+    12px
+    24px;
+
+  border:
+    2px solid #8d7652;
+
+  border-radius: 6px;
+
+  background: #2b2017;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   430px以下
+========================================================= */
+
+@media (max-width: 430px) {
+
+  .result-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .result-monster-stage {
+    width: 300px;
+    height: 300px;
+  }
+
+  .result-monster-frame {
+    width: 300px;
+    height: 300px;
+  }
+
+  .result-clear-stamp {
+    width: 200px;
+    height: 200px;
+  }
+
+  .result-reward-image {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+
+/* =========================================================
+   小さいスマートフォン
+========================================================= */
+
+@media (max-width: 360px) {
+
+  .result-content {
+    padding-top: 12px;
+  }
+
+  .result-header {
+    margin-bottom: 8px;
+  }
+
+  .result-header-subtitle {
+    font-size: 8px;
+  }
+
+  .result-header h1 {
+    font-size: 23px;
+  }
+
+  .result-section-label {
+    font-size: 8px;
+    margin-bottom: 6px;
+  }
+
+  .result-monster-stage {
+    width: 260px;
+    height: 260px;
+  }
+
+  .result-monster-frame {
+    width: 260px;
+    height: 260px;
+  }
+
+  .result-clear-stamp {
+    width: 175px;
+    height: 175px;
+  }
+
+  .result-quest {
+    min-height: 54px;
+    margin-top: 10px;
+  }
+
+  .result-quest h2 {
+    font-size: 12px;
+  }
+
+  .result-reward {
+    height: 94px;
+    margin-top: 10px;
+  }
+
+  .result-reward-list {
+    gap: 6px;
+  }
+
+  .result-reward-item {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .result-reward-image {
+    width: 38px;
+    height: 38px;
+  }
+
+  .result-reward-name {
+    margin-left: 5px;
+    font-size: 8px;
+  }
+
+  .result-reward-amount {
+    font-size: 9px;
+  }
+
+  .result-claim-button {
+    height: 46px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+}

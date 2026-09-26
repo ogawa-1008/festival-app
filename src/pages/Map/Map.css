@@ -1,0 +1,533 @@
+.map-page {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: #2b251d;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+.map-background {
+  position: fixed;
+  inset: 0;
+  background-image: url("/images/background/home-bg.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.7;
+  z-index: 0;
+}
+
+.map-content {
+  position: relative;
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 18px 16px 105px;
+  z-index: 1;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.map-header {
+  position: relative;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 14px 10px 16px;
+  box-sizing: border-box;
+  text-align: center;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(30, 27, 22, 0.96),
+      rgba(16, 15, 12, 0.92)
+    );
+
+  border-top: 2px solid #81704e;
+  border-bottom: 2px solid #81704e;
+
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.map-header::before,
+.map-header::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 80px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-left: 2px solid #81704e;
+  border-right: 2px solid #81704e;
+}
+
+.map-header::before {
+  top: 0;
+}
+
+.map-header::after {
+  bottom: 0;
+}
+
+.map-header-subtitle {
+  display: block;
+  margin-bottom: 3px;
+
+  color: #a89a78;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 3px;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+.map-header h1 {
+  position: relative;
+  margin: 0;
+
+  color: #f0eadc;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  line-height: 1.3;
+
+  text-shadow:
+    0 2px 4px #000;
+}
+
+/* =========================
+   MAP LIST
+========================= */
+
+.map-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  width: 100%;
+}
+
+/*
+  追加したラッパー
+
+  カード自体のサイズには
+  一切影響させない
+*/
+.map-area-wrapper {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* =========================
+   MAP CARD
+========================= */
+
+.map-card {
+  position: relative;
+
+  display: block;
+
+  width: 100%;
+  height: 132px;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 4px solid #555;
+  border-radius: 14px;
+
+  background: #444;
+  color: white;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 10px rgba(0, 0, 0, 0.5);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.map-card-active {
+  border-color: #c8f000;
+
+  box-shadow:
+    0 0 0 1px rgba(200, 240, 0, 0.3),
+    0 5px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* =========================
+   MAP IMAGE
+========================= */
+
+/*
+  ここが今回の重要ポイント。
+
+  inset + width:100% の組み合わせをやめて、
+  明示的に左上から100%にします。
+*/
+.map-card-image {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+
+  z-index: 1;
+
+  transition:
+    transform 0.3s ease;
+}
+
+/* =========================
+   FALLBACK
+========================= */
+
+.map-card-fallback {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5d5544,
+      #292720
+    );
+
+  color: rgba(255, 255, 255, 0.3);
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 28px;
+
+  z-index: 0;
+}
+
+/* =========================
+   IMAGE OVERLAY
+========================= */
+
+.map-card-overlay {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.6),
+      rgba(0, 0, 0, 0.12) 55%,
+      rgba(0, 0, 0, 0.55)
+    );
+
+  z-index: 1;
+
+  pointer-events: none;
+}
+
+/* =========================
+   BUILDING NAME
+========================= */
+
+.map-building-name {
+  position: absolute;
+
+  top: 16px;
+  left: 18px;
+
+  color: #fff;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 19px;
+  font-weight: 400;
+
+  text-shadow:
+    1px 2px 4px rgba(0, 0, 0, 0.9);
+
+  z-index: 2;
+}
+
+/* =========================
+   AREA NAME
+========================= */
+
+.map-area-name {
+  position: absolute;
+
+  right: 17px;
+  bottom: 14px;
+
+  color: #fff;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1px;
+
+  text-shadow:
+    1px 2px 5px rgba(0, 0, 0, 0.95);
+
+  z-index: 2;
+}
+
+/* =========================
+   CARD PRESS
+========================= */
+
+.map-card:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   HOVER
+========================= */
+
+@media (hover: hover) {
+  .map-card:hover .map-card-image {
+    transform: scale(1.04);
+  }
+}
+
+/* =========================
+   DETAIL
+========================= */
+
+.map-area-detail {
+  position: relative;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  margin-top: -2px;
+
+  padding: 16px 16px 18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(38, 33, 26, 0.98),
+      rgba(18, 16, 13, 0.98)
+    );
+
+  border-left: 4px solid #81704e;
+  border-right: 4px solid #81704e;
+  border-bottom: 4px solid #81704e;
+
+  border-radius:
+    0 0 10px 10px;
+
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.5);
+
+  animation:
+    map-detail-slide
+    0.22s
+    ease-out;
+}
+
+.map-area-detail-header {
+  text-align: center;
+
+  padding-bottom: 10px;
+
+  border-bottom:
+    1px solid
+    rgba(129, 112, 78, 0.55);
+}
+
+.map-area-detail-header span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #a89a78;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.map-area-detail-header h2 {
+  margin: 0;
+
+  color: #f0eadc;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 22px;
+  font-weight: 900;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+.map-area-detail-content {
+  padding-top: 8px;
+}
+
+.map-detail-row {
+  min-height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom:
+    1px solid
+    rgba(129, 112, 78, 0.25);
+}
+
+.map-detail-row span {
+  color: #a89a78;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.map-detail-row strong {
+  max-width: 65%;
+
+  color: #f0eadc;
+
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
+
+  font-size: 13px;
+
+  text-align: right;
+}
+
+.map-area-detail-content p {
+  margin: 12px 0 0;
+
+  padding: 10px 12px;
+
+  color: #d8d1c2;
+
+  background:
+    rgba(0, 0, 0, 0.25);
+
+  border-left:
+    3px solid #81704e;
+
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
+
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* =========================
+   DETAIL ANIMATION
+========================= */
+
+@keyframes map-detail-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   SMALL SCREEN
+========================= */
+
+@media (max-width: 380px) {
+  .map-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .map-header h1 {
+    font-size: 22px;
+  }
+
+  .map-card {
+    height: 120px;
+  }
+
+  .map-building-name {
+    font-size: 17px;
+  }
+
+  .map-area-name {
+    font-size: 21px;
+  }
+}

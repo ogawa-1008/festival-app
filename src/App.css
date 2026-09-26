@@ -1,0 +1,13 @@
+.app {
+  position: relative;
+
+  width: 100%;
+  max-width: 430px;
+
+  height: 100dvh;
+  min-height: 100dvh;
+
+  margin: 0 auto;
+
+  background: #2b251d;
+}

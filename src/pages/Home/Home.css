@@ -1,0 +1,1055 @@
+
+
+.home {
+  position: relative;
+
+  width: 100%;
+
+  min-height: 100dvh;
+
+  height: auto;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  background:
+    radial-gradient(
+      ellipse at center top,
+      #55452f 0%,
+      #352c21 42%,
+      #211d18 100%
+    );
+
+  /*
+   * スマホでスクロールしたときの
+   * 下部UIとの重なりを防ぐ
+   */
+  padding-bottom: 0;
+
+  box-sizing: border-box;
+}
+
+/* ========================================
+   HOME CONTENT
+======================================== */
+
+.home-content {
+  position: relative;
+
+  width: 100%;
+
+  /*
+   * クエストボードは absolute なので、
+   * その高さを自分で確保する
+   *
+   * クエスト③
+   * top 695px
+   * height 315px
+   * ↓
+   * 約1010px
+   *
+   * さらにボード開始位置などを考慮して
+   * 十分なスクロール領域を確保する
+   */
+  min-height: 1400px;
+
+  /*
+   * 下部固定ナビに隠れないための余白
+   */
+  padding-bottom: 140px;
+
+  box-sizing: border-box;
+
+  z-index: 1;
+}
+
+/* ========================================
+   上部横ボーダー
+======================================== */
+
+.home-top-bar {
+  position: absolute;
+
+  top: 16px;
+  left: 14px;
+  right: 14px;
+
+  height: 82px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  padding: 0 16px;
+
+  border-top: 2px solid rgba(180, 160, 120, 0.75);
+  border-bottom: 2px solid rgba(180, 160, 120, 0.75);
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(25, 21, 16, 0.78),
+      rgba(35, 29, 21, 0.62)
+    );
+
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.35);
+
+  z-index: 20;
+}
+
+
+/* ========================================
+   ボーダー内側の装飾
+======================================== */
+
+.home-top-bar::before {
+  content: "";
+
+  position: absolute;
+
+  left: 8px;
+  right: 8px;
+
+  top: 7px;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      rgba(205, 185, 140, 0.45),
+      transparent
+    );
+
+  pointer-events: none;
+}
+
+.home-top-bar::after {
+  content: "";
+
+  position: absolute;
+
+  left: 8px;
+  right: 8px;
+
+  bottom: 7px;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      rgba(205, 185, 140, 0.35),
+      transparent
+    );
+
+  pointer-events: none;
+}
+
+
+/* ========================================
+
+   ハンターランクエリア
+
+======================================== */
+
+.home-rank-area {
+
+  position: relative;
+
+  width: 132px;
+
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-start;
+
+  box-sizing: border-box;
+
+  z-index: 2;
+
+}
+
+/* ========================================
+
+   Hunter Rank本体
+
+   ボーダーの中央に配置
+
+======================================== */
+
+.home-rank-area .hunter-rank {
+
+  position: relative !important;
+
+  top: auto !important;
+
+  left: auto !important;
+
+  right: auto !important;
+
+  bottom: auto !important;
+
+  width: 118px !important;
+
+  height: 58px !important;
+
+  margin: 0 !important;
+
+  transform: none !important;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+
+  z-index: 3;
+
+}
+
+/* ========================================
+   ハンバーガーメニュー
+======================================== */
+
+.hamburger-button {
+  position: relative;
+
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 0;
+
+  border: 2px solid rgba(130, 130, 130, 0.85);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(45, 42, 37, 0.96),
+      rgba(12, 11, 10, 0.98)
+    );
+
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.08),
+    0 3px 7px rgba(0, 0, 0, 0.55);
+
+  cursor: pointer;
+
+  z-index: 5;
+}
+
+.hamburger-button span {
+  display: block;
+
+  width: 23px;
+  height: 2px;
+
+  border-radius: 2px;
+
+  background: #ded6c5;
+
+  box-shadow:
+    0 1px 2px #000;
+}
+
+.hamburger-button:active {
+  transform: scale(0.94);
+}
+
+
+/* ========================================
+   コラボロゴ
+   「クエスト一覧」が元々あった位置
+======================================== */
+
+.home-collaboration {
+  position: absolute !important;
+
+  /*
+   * 以前より上へ。
+   * ヘッダーとクエストタイトルの間に配置
+   */
+  top: 112px !important;
+
+  left: 50% !important;
+
+  transform: translateX(-50%) !important;
+
+  width: 300px !important;
+  height: 72px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  z-index: 10;
+
+  overflow: visible !important;
+}
+
+
+/*
+ * ロゴ本体
+ */
+.home-collaboration .collaboration-logo {
+  position: relative !important;
+
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+
+  width: 280px !important;
+  height: 68px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  transform: none !important;
+
+  overflow: visible !important;
+}
+
+
+/* ========================================
+   クエスト一覧
+   ロゴの下
+======================================== */
+
+.quest-list-title {
+  position: absolute;
+
+  top: 195px;
+
+  left: 0;
+  right: 0;
+
+  margin: 0;
+
+  text-align: center;
+
+  color: #f1eadb;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 23px;
+
+  font-weight: 900;
+
+  letter-spacing: 3px;
+
+  line-height: 1.3;
+
+  white-space: nowrap;
+
+  text-shadow:
+    0 2px 4px #000,
+    0 0 8px rgba(0, 0, 0, 0.9);
+
+  z-index: 10;
+
+  /* 重要 */
+  pointer-events: none;
+}
+/* ========================================
+   MENU OVERLAY
+======================================== */
+
+.menu-overlay {
+  position: fixed;
+
+  /*
+   * アプリ本体をスマホ幅に固定
+   */
+  top: 0;
+  left: 50%;
+
+  width: min(100%, 430px);
+  height: 100dvh;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  justify-content: flex-end;
+
+  box-sizing: border-box;
+
+  background: rgba(0, 0, 0, 0.72);
+
+  z-index: 200;
+
+  overflow: hidden;
+
+  animation: menu-overlay-in 0.2s ease-out;
+}
+
+@keyframes menu-overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* ========================================
+   背景クリック部分
+======================================== */
+
+.menu-overlay-close {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+
+  border: none;
+  padding: 0;
+
+  background: transparent;
+
+  cursor: default;
+}
+
+
+/* ========================================
+   スマホ用 MENU本体
+======================================== */
+
+.side-menu {
+  position: relative;
+
+  width: 82%;
+  max-width: 350px;
+  height: 100%;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+
+  padding:
+    max(22px, env(safe-area-inset-top))
+    16px
+    max(24px, env(safe-area-inset-bottom));
+
+  color: #e9ddc4;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(15, 11, 8, 0.35),
+      transparent 12%,
+      transparent 88%,
+      rgba(0, 0, 0, 0.3)
+    ),
+    linear-gradient(
+      135deg,
+      #59432c 0%,
+      #3a2a1c 30%,
+      #241b14 65%,
+      #17120e 100%
+    );
+
+  border-left: 4px solid #19130e;
+
+  box-shadow:
+    -8px 0 20px rgba(0, 0, 0, 0.8),
+    inset 8px 0 20px rgba(0, 0, 0, 0.25);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  -webkit-overflow-scrolling: touch;
+
+  animation:
+    menu-slide-in
+    0.28s
+    cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+@keyframes menu-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+
+/* ========================================
+   スマホ用 内側フレーム
+======================================== */
+
+.side-menu::before {
+  content: "";
+
+  position: absolute;
+
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+
+  border: 2px solid rgba(143, 108, 66, 0.65);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.55),
+    inset 0 0 20px rgba(0, 0, 0, 0.35);
+
+  pointer-events: none;
+}
+
+
+/* ========================================
+   タイトル
+======================================== */
+
+.side-menu-title-area {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  text-align: center;
+
+  padding:
+    8px
+    8px
+    16px;
+
+  border-bottom: 2px solid rgba(142, 111, 72, 0.7);
+}
+
+.side-menu-subtitle {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #a99570;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: clamp(7px, 2vw, 9px);
+
+  font-weight: bold;
+
+  letter-spacing: 1.5px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+.side-menu-title-area h2 {
+  margin: 0;
+
+  color: #eee1c1;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: clamp(27px, 8vw, 31px);
+
+  font-weight: 900;
+
+  letter-spacing: 5px;
+
+  line-height: 1;
+
+  text-shadow:
+    0 2px 0 #6a4d2e,
+    0 4px 5px #000;
+}
+
+
+/* ========================================
+   タイトル装飾
+======================================== */
+
+.side-menu-title-line {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 12px;
+}
+
+.side-menu-title-line span {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      #9a784d
+    );
+}
+
+.side-menu-title-line span:last-child {
+  background:
+    linear-gradient(
+      to left,
+      transparent,
+      #9a784d
+    );
+}
+
+.side-menu-title-line b {
+  flex-shrink: 0;
+
+  color: #b79763;
+
+  font-size: 8px;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+
+/* ========================================
+   メニュー一覧
+======================================== */
+
+.side-menu-list {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  margin-top: 22px;
+}
+
+
+/* ========================================
+   メニューカード
+======================================== */
+
+.side-menu-item {
+  position: relative;
+
+  width: 100%;
+  height: 68px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  box-sizing: border-box;
+
+  padding: 7px 10px;
+
+  border: 3px solid #60482d;
+
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(83, 61, 39, 0.98),
+      rgba(35, 26, 18, 0.98)
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(171, 132, 80, 0.38),
+    inset 0 0 14px rgba(0, 0, 0, 0.45),
+    0 4px 8px rgba(0, 0, 0, 0.6);
+
+  color: #eee2c7;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  overflow: hidden;
+}
+
+.side-menu-item:active {
+  transform: scale(0.97);
+
+  filter: brightness(1.15);
+}
+
+
+/* ========================================
+   アイコン
+======================================== */
+
+.side-menu-item-icon {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: 2px solid #92734b;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #685139,
+      #211811 70%
+    );
+
+  color: #e8d4ac;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 20px;
+
+  font-weight: bold;
+
+  text-shadow:
+    0 2px 3px #000;
+
+  box-shadow:
+    inset 0 0 8px rgba(0, 0, 0, 0.75),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+
+/* ========================================
+   テキスト
+======================================== */
+
+.side-menu-item-text {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  margin-left: 12px;
+
+  overflow: hidden;
+}
+
+.side-menu-item-text small {
+  color: #a8926d;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 7px;
+
+  font-weight: bold;
+
+  letter-spacing: 1.5px;
+
+  white-space: nowrap;
+}
+
+.side-menu-item-text strong {
+  margin-top: 3px;
+
+  color: #f0e4cb;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 16px;
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  white-space: nowrap;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+
+/* ========================================
+   矢印
+======================================== */
+
+.side-menu-arrow {
+  flex-shrink: 0;
+
+  margin-left: 6px;
+
+  color: #b69a6b;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 28px;
+
+  line-height: 1;
+
+  text-shadow:
+    0 2px 3px #000;
+}
+
+
+/* ========================================
+   下部装飾
+======================================== */
+
+.side-menu-footer {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 30px;
+
+  padding: 0 8px;
+}
+
+.side-menu-footer span {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      rgba(145, 112, 70, 0.7)
+    );
+}
+
+.side-menu-footer span:last-child {
+  background:
+    linear-gradient(
+      to left,
+      transparent,
+      rgba(145, 112, 70, 0.7)
+    );
+}
+
+.side-menu-footer p {
+  margin: 0;
+
+  flex-shrink: 0;
+
+  color: #8e7959;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 6px;
+
+  font-weight: bold;
+
+  letter-spacing: 1.5px;
+
+  white-space: nowrap;
+}
+
+
+/* ========================================
+   小さいスマホ
+======================================== */
+
+@media (max-width: 360px) {
+
+  .side-menu {
+    width: 88vw;
+
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .side-menu-item {
+    height: 62px;
+
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .side-menu-item-icon {
+    width: 36px;
+    height: 36px;
+
+    font-size: 18px;
+  }
+
+  .side-menu-item-text {
+    margin-left: 9px;
+  }
+
+  .side-menu-item-text small {
+    font-size: 6px;
+  }
+
+  .side-menu-item-text strong {
+    font-size: 14px;
+  }
+
+  .side-menu-arrow {
+    font-size: 24px;
+  }
+}
+
+/* =================================
+   ハンバーガーメニュー
+================================= */
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  width: min(100%, 430px);
+  height: 100dvh;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  justify-content: flex-end;
+
+  box-sizing: border-box;
+
+  background: rgba(0, 0, 0, 0.72);
+
+  z-index: 200;
+
+  overflow: hidden;
+}
+
+.menu-overlay-close {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+
+  padding: 0;
+  margin: 0;
+
+  border: none;
+  background: transparent;
+
+  cursor: default;
+}
+
+.side-menu {
+  position: relative;
+
+  width: 82%;
+  max-width: 350px;
+  height: 100%;
+
+  flex-shrink: 0;
+
+  box-sizing: border-box;
+
+  padding: 28px 16px 24px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(35, 23, 14, 0.98),
+      rgba(68, 43, 25, 0.98),
+      rgba(29, 19, 12, 0.98)
+    );
+
+  border-left: 4px solid #8c6841;
+
+  box-shadow:
+    inset 4px 0 0 rgba(20, 12, 7, 0.8),
+    inset 0 0 25px rgba(0, 0, 0, 0.7),
+    -8px 0 20px rgba(0, 0, 0, 0.55);
+
+  animation: menu-slide-in 0.28s ease-out;
+}
+
+@keyframes menu-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,1031 @@
+/* =========================
+   PAGE
+========================= */
+
+.battle-page {
+  width: 100%;
+  min-height: 100dvh;
+
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(
+      ellipse at center top,
+      #55452f 0%,
+      #30271d 45%,
+      #171411 100%
+    );
+
+  color: #fff;
+
+  overflow-x: hidden;
+}
+
+.battle-content {
+  width: min(100%, 430px);
+
+  margin: 0 auto;
+
+  box-sizing: border-box;
+
+  padding:
+    18px
+    14px
+    60px;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.battle-header {
+  width: 100%;
+
+  padding:
+    12px 10px
+    14px;
+
+  box-sizing: border-box;
+
+  text-align: center;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(35, 30, 23, 0.96),
+      rgba(15, 13, 10, 0.96)
+    );
+
+  border-top:
+    2px solid #81704e;
+
+  border-bottom:
+    2px solid #81704e;
+
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.45);
+}
+
+.battle-subtitle {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #a89a78;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 9px;
+
+  font-weight: bold;
+
+  letter-spacing: 3px;
+}
+
+.battle-header h1 {
+  margin: 0;
+
+  color: #f0eadc;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 25px;
+
+  font-weight: 900;
+
+  letter-spacing: 3px;
+
+  text-shadow:
+    0 2px 4px #000;
+}
+
+
+/* =========================
+   QUEST
+========================= */
+
+.battle-quest {
+  margin-top: 12px;
+
+  padding:
+    10px 12px;
+
+  text-align: center;
+
+  background:
+    rgba(15, 12, 9, 0.72);
+
+  border:
+    1px solid
+    rgba(129, 112, 78, 0.65);
+}
+
+.battle-quest span {
+  color: #a89a78;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 8px;
+
+  letter-spacing: 3px;
+}
+
+.battle-quest h2 {
+  margin:
+    4px 0 0;
+
+  color: #f2eadb;
+
+  font-size: 15px;
+
+  font-weight: 900;
+}
+
+
+/* =========================
+   MONSTER
+========================= */
+
+.monster-area {
+  margin-top: 14px;
+
+  text-align: center;
+}
+
+.monster-name {
+  margin-bottom: 5px;
+
+  color: #cdbb99;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 10px;
+
+  font-weight: bold;
+
+  letter-spacing: 4px;
+}
+
+
+/*
+  モンスター画像を入れる場所
+*/
+
+.monster-image-frame {
+  width: 100%;
+
+  height: 190px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(105, 84, 55, 0.35),
+      rgba(0, 0, 0, 0.75) 72%
+    );
+
+  border:
+    2px solid
+    #5e4d36;
+
+  box-shadow:
+    inset 0 0 25px
+    rgba(0, 0, 0, 0.7),
+
+    0 5px 12px
+    rgba(0, 0, 0, 0.55);
+
+  overflow: hidden;
+}
+
+.monster-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0 5px 8px
+      rgba(0, 0, 0, 0.8)
+    );
+}
+
+
+/* =========================
+   HP
+========================= */
+
+.monster-hp {
+  margin-top: 8px;
+}
+
+.monster-hp > span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #b9aa8b;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 8px;
+
+  letter-spacing: 2px;
+}
+
+.hp-bar {
+  width: 100%;
+
+  height: 13px;
+
+  padding: 2px;
+
+  box-sizing: border-box;
+
+  background: #100e0c;
+
+  border:
+    1px solid #6c5b43;
+
+  box-shadow:
+    inset 0 2px 4px
+    rgba(0, 0, 0, 0.8);
+}
+
+.hp-fill {
+  height: 100%;
+
+  transition:
+    width 0.3s ease;
+}
+
+.monster-hp-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #7d1515,
+      #d62b2b
+    );
+}
+
+.player-hp-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #1f741d,
+      #7fcf36
+    );
+}
+
+.hp-number {
+  margin-top: 3px;
+
+  color: #c9bea9;
+
+  font-size: 10px;
+
+  text-align: right;
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+.battle-message {
+  margin:
+    14px 0;
+
+  min-height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    7px 12px;
+
+  box-sizing: border-box;
+
+  color: #f2eadb;
+
+  background:
+    rgba(0, 0, 0, 0.5);
+
+  border:
+    1px solid
+    rgba(129, 112, 78, 0.65);
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  text-align: center;
+}
+
+
+/* =========================
+   PLAYER STATUS
+========================= */
+
+.player-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    8px 10px;
+
+  background:
+    rgba(20, 17, 13, 0.8);
+
+  border:
+    1px solid
+    rgba(129, 112, 78, 0.5);
+}
+
+.player-name {
+  color: #d7c6a4;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 10px;
+
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+  white-space: nowrap;
+}
+
+.player-hp {
+  flex: 1;
+}
+
+.player-hp .hp-bar {
+  height: 10px;
+}
+
+.player-hp span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #aaa;
+
+  font-size: 9px;
+
+  text-align: right;
+}
+
+
+/* =========================
+   JANKEN
+========================= */
+
+.janken-area {
+  margin-top: 18px;
+}
+
+.janken-title {
+  text-align: center;
+
+  margin-bottom: 10px;
+}
+
+.janken-title span {
+  color: #a89a78;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 8px;
+
+  letter-spacing: 3px;
+}
+
+.janken-title h2 {
+  margin: 3px 0 0;
+
+  color: #f0eadc;
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-size: 20px;
+
+  font-weight: 900;
+}
+
+
+/* =========================
+   JANKEN BUTTONS
+========================= */
+
+.janken-buttons {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 9px;
+}
+
+.janken-button {
+  min-width: 0;
+
+  padding:
+    8px 5px 9px;
+
+  border:
+    2px solid #756246;
+
+  border-radius: 8px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #33291e,
+      #18140f
+    );
+
+  color: #fff;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 7px
+    rgba(0, 0, 0, 0.55);
+
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.janken-button:active {
+  transform: scale(0.94);
+}
+
+.janken-button:disabled {
+  opacity: 0.55;
+
+  cursor: default;
+}
+
+
+/* =========================
+   JANKEN IMAGE
+========================= */
+
+.janken-image-frame {
+  width: 100%;
+
+  height: 82px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.1),
+      rgba(0, 0, 0, 0.45)
+    );
+
+  border:
+    1px solid
+    rgba(180, 160, 120, 0.35);
+}
+
+.janken-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+}
+
+.janken-button span {
+  display: block;
+
+  margin-top: 5px;
+
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
+
+  font-size: 12px;
+
+  font-weight: bold;
+}
+
+
+/* =========================
+
+   TRIANGLE
+
+========================= */
+
+.triangle-section {
+
+  margin-top: 24px;
+
+  padding:
+
+    16px 10px 18px;
+
+  box-sizing: border-box;
+
+  background:
+
+    linear-gradient(
+
+      180deg,
+
+      rgba(35, 29, 22, 0.96),
+
+      rgba(15, 13, 10, 0.96)
+
+    );
+
+  border:
+
+    2px solid #5e4d36;
+
+  box-shadow:
+
+    inset 0 0 15px
+
+    rgba(0, 0, 0, 0.65);
+
+}
+
+.triangle-title {
+
+  text-align: center;
+
+  margin-bottom: 15px;
+
+}
+
+.triangle-title span {
+
+  color: #a89a78;
+
+  font-family:
+
+    Georgia,
+
+    serif;
+
+  font-size: 8px;
+
+  letter-spacing: 3px;
+
+}
+
+.triangle-title h2 {
+
+  margin: 3px 0 0;
+
+  color: #f0eadc;
+
+  font-family:
+
+    "Hiragino Mincho ProN",
+
+    "Yu Mincho",
+
+    serif;
+
+  font-size: 19px;
+
+  font-weight: 900;
+
+}
+
+/* =========================
+
+   TRIANGLE CHART
+
+========================= */
+
+.triangle-chart {
+
+  position: relative;
+
+  width: 280px;
+
+  height: 220px;
+
+  margin: 0 auto;
+
+}
+
+/* =========================
+
+   TRIANGLE ITEMS
+
+========================= */
+
+.triangle-item {
+
+  position: absolute;
+
+  width: 76px;
+
+  height: 90px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  box-sizing: border-box;
+
+  z-index: 5;
+
+}
+
+/* =========================
+
+   TOP : ROCK
+
+========================= */
+
+.triangle-rock {
+
+  top: 0;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+}
+
+/* =========================
+
+   LEFT : SCISSORS
+
+========================= */
+
+.triangle-scissors {
+
+  left: 0;
+
+  bottom: 0;
+
+}
+
+/* =========================
+
+   RIGHT : PAPER
+
+========================= */
+
+.triangle-paper {
+
+  right: 0;
+
+  bottom: 0;
+
+}
+
+/* =========================
+
+   CIRCLE
+
+========================= */
+
+.triangle-circle {
+
+  width: 68px;
+
+  height: 68px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border-radius: 50%;
+
+  color: #fff;
+
+  font-size: 13px;
+
+  font-weight: 900;
+
+  text-shadow:
+
+    0 2px 3px
+
+    rgba(0, 0, 0, 0.8);
+
+  box-shadow:
+
+    0 4px 8px
+
+    rgba(0, 0, 0, 0.55);
+
+}
+
+/* =========================
+
+   RED : ROCK
+
+========================= */
+
+.triangle-rock .triangle-circle {
+  background:
+    linear-gradient(
+      145deg,
+      #3d9cff,
+      #004caa
+    );
+
+  border:
+    3px solid #72bdff;
+}
+
+/* =========================
+
+   BLUE : SCISSORS
+
+========================= */
+
+.triangle-scissors .triangle-circle {
+  background:
+    linear-gradient(
+      145deg,
+      #ff4141,
+      #a80000
+    );
+
+  border:
+    3px solid #ff7777;
+}
+
+/* =========================
+
+   YELLOW : PAPER
+
+========================= */
+
+.triangle-paper .triangle-circle {
+  background:
+    linear-gradient(
+      145deg,
+      #ffe94d,
+      #c99700
+    );
+
+  border:
+    3px solid #fff28a;
+
+  color: #ffffff;
+
+  text-shadow:
+    0 2px 3px
+    rgba(0, 0, 0, 0.8);
+}
+
+/* =========================
+
+   LABEL
+
+========================= */
+
+.triangle-label {
+
+  margin-top: 4px;
+
+  color: #c9bea9;
+
+  font-family:
+
+    Georgia,
+
+    serif;
+
+  font-size: 7px;
+
+  letter-spacing: 1px;
+
+  white-space: nowrap;
+
+}
+
+/* =========================
+   ARROWS
+========================= */
+
+.triangle-arrow {
+  position: absolute;
+  width: 62px;
+  height: 3px;
+  background: #d8c8a8;
+  border-radius: 3px;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* 矢印の先端 */
+.triangle-arrow::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-top: 3px solid #d8c8a8;
+  border-right: 3px solid #d8c8a8;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* グー → チョキ */
+.arrow-one {
+  left: 55px;
+  top: 91px;
+  transform: rotate(125deg);
+}
+
+/* チョキ → パー */
+.arrow-two {
+  left: 109px;
+  bottom: 48px;
+  transform: rotate(0deg);
+}
+
+/* パー → グー */
+.arrow-three {
+  right: 55px;
+  top: 91px;
+  transform: rotate(-125deg);
+}
+
+
+/* =========================
+   RETRY
+========================= */
+
+.battle-retry-button {
+  display: block;
+
+  width: 80%;
+
+  margin: 12px auto 0;
+
+  padding: 12px 16px;
+
+  box-sizing: border-box;
+
+  border:
+    2px solid #9b835d;
+
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #5a3028,
+      #291713
+    );
+
+  color: #fff;
+
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    sans-serif;
+
+  font-size: 14px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 3px 7px
+    rgba(0, 0, 0, 0.5);
+}
+
+.battle-retry-button:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+.battle-error {
+  width: min(100%, 430px);
+
+  min-height: 100dvh;
+
+  margin: 0 auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  text-align: center;
+}
+
+.battle-error h1 {
+  font-size: 20px;
+}
+
+.battle-error button {
+  margin-top: 15px;
+
+  padding:
+    12px 24px;
+}
+
+
+/* =========================
+   SMALL SCREEN
+========================= */
+
+@media (max-width: 380px) {
+
+  .battle-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .monster-image-frame {
+    height: 170px;
+  }
+
+  .janken-image-frame {
+    height: 70px;
+  }
+
+  .triangle-chart {
+    transform: scale(0.92);
+    transform-origin: top center;
+
+    margin-bottom: -15px;
+  }
+}
