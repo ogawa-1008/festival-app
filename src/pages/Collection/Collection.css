@@ -1,0 +1,50 @@
+.collection-page {
+  min-height: 100dvh;
+  color: #f2eadb;
+  background: radial-gradient(ellipse at center top, #55452f 0%, #30271d 48%, #171411 100%);
+}
+
+.collection-content {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 18px 14px 112px;
+}
+
+.collection-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  border-top: 2px solid #81704e;
+  border-bottom: 2px solid #81704e;
+  background: linear-gradient(180deg, rgba(35, 30, 23, .96), rgba(15, 13, 10, .96));
+}
+
+.collection-header span { color: #a89a78; font: bold 9px Georgia, serif; letter-spacing: 2px; }
+.collection-header h1 { margin: 3px 0 0; font-size: 20px; letter-spacing: 2px; }
+.collection-back { width: 38px; height: 38px; border: 1px solid #81704e; border-radius: 50%; color: #f2eadb; background: #1d1812; font-size: 22px; }
+
+.collection-list { display: grid; gap: 10px; margin-top: 18px; }
+.collection-row, .history-row { display: flex; align-items: center; gap: 12px; min-height: 78px; padding: 10px; border: 1px solid #756246; background: rgba(15, 13, 10, .84); }
+.collection-row img { width: 56px; height: 56px; object-fit: contain; border: 1px solid #756246; }
+.collection-row div, .history-row div { min-width: 0; flex: 1; }
+.collection-row h2, .history-row h2, .stamp-card h2 { margin: 0; font-size: 14px; }
+.collection-row p, .history-row p, .history-row time { display: block; margin: 5px 0 0; color: #c9bea9; font-size: 11px; }
+.collection-row strong { color: #cfec42; font-size: 20px; white-space: nowrap; }
+.history-row > span { color: #cfec42; font-size: 24px; }
+.collection-empty { margin: 26px 0; color: #c9bea9; text-align: center; }
+
+.stamp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.stamp-card { position: relative; min-height: 190px; padding: 10px; overflow: hidden; border: 2px solid #5e4d36; background: rgba(15, 13, 10, .84); text-align: center; opacity: .55; }
+.stamp-card-earned { border-color: #cfec42; opacity: 1; }
+.stamp-card img { width: 100%; height: 112px; object-fit: contain; filter: grayscale(1); }
+.stamp-card-earned img { filter: none; }
+.stamp-card h2 { margin-top: 8px; line-height: 1.35; }
+.stamp-earned, .stamp-locked { display: block; margin-top: 4px; font-size: 11px; font-weight: bold; }
+.stamp-earned { color: #cfec42; }
+.stamp-locked { color: #a89a78; }
+
+.history-filters { display: flex; gap: 7px; margin-top: 18px; }
+.history-filters button { flex: 1; min-height: 36px; border: 1px solid #756246; color: #d7c6a4; background: #1d1812; font-size: 12px; }
+.history-filters button.selected { border-color: #cfec42; color: #fff; background: #3c4a1a; }

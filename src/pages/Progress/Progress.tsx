@@ -1,12 +1,14 @@
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
+import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 
 import "./Progress.css";
 
 function Progress() {
-  const { materials } = useGame();
+  const { materials, weaponClaimed } = useGame();
+  const navigate = useNavigate();
 
   const handleCreateWeapon = () => {
     const hasEnoughMaterials = progressData.materials.every((material) => {
@@ -16,11 +18,10 @@ function Progress() {
     });
 
     if (!hasEnoughMaterials) {
-      console.log("まだ作成できません");
       return;
     }
 
-    console.log("武器を作成できます");
+    navigate("/exchange/weapon");
   };
 
   return (
@@ -169,7 +170,7 @@ function Progress() {
             className="create-weapon-button"
             onClick={handleCreateWeapon}
           >
-            武器を作成する
+            {weaponClaimed ? "交換済み" : "武器を作成する"}
           </button>
           
         </section>

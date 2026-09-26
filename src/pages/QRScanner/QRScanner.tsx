@@ -10,6 +10,8 @@ function QRScanner() {
   const navigate = useNavigate();
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const hasScannedRef = useRef(false);
+  const isStartingRef = useRef(false);
 
   const [isScanning, setIsScanning] =
     useState(false);
@@ -17,9 +19,38 @@ function QRScanner() {
   const [errorMessage, setErrorMessage] =
     useState("");
 
+  const stopScanner = async () => {
+    const scanner = scannerRef.current;
+
+    scannerRef.current = null;
+
+    if (!scanner) {
+      return;
+    }
+
+    try {
+      await scanner.stop();
+    } catch {
+      // すでに停止済みの場合は何もしない
+    }
+
+    try {
+      await scanner.clear();
+    } catch {
+      // アンマウント後に要素が消えていても問題ない
+    }
+  };
+
   const startCamera = async () => {
+    if (isStartingRef.current || scannerRef.current) {
+      return;
+    }
+
+    isStartingRef.current = true;
+
     try {
       setErrorMessage("");
+      hasScannedRef.current = false;
 
       const scanner = new Html5Qrcode(
         "qr-reader"
@@ -39,19 +70,23 @@ function QRScanner() {
           },
         },
         (decodedText) => {
+          if (hasScannedRef.current) {
+            return;
+          }
+
           const quest = quests.find(
             (item) =>
               item.qrCode === decodedText
           );
 
           if (quest) {
-            scanner
-              .stop()
-              .then(() => {
-                navigate(
-                  `/battle/${quest.id}`
-                );
-              });
+            hasScannedRef.current = true;
+            setIsScanning(false);
+
+            // カメラの停止完了を待つと、端末によっては
+            // 映像だけが黒いまま遷移しないことがある。
+            navigate(`/battle/${quest.id}`);
+            void stopScanner();
           } else {
             setErrorMessage(
               "このQRコードはクエスト用ではありません"
@@ -73,16 +108,15 @@ function QRScanner() {
       setErrorMessage(
         "カメラを起動できませんでした。カメラの使用を許可してください。"
       );
+      await stopScanner();
+    } finally {
+      isStartingRef.current = false;
     }
   };
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current
-          .stop()
-          .catch(() => {});
-      }
+      void stopScanner();
     };
   }, []);
 

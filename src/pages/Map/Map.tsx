@@ -2,12 +2,14 @@ import { useState } from "react";
 
 import { mapAreas } from "../../data/maps";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
+import { useGame } from "../../context/GameContext";
 
 import "./Map.css";
 
 function Map() {
   const [selectedAreaId, setSelectedAreaId] =
     useState<number | null>(null);
+  const { quests, rank } = useGame();
 
   return (
     <main className="map-page">
@@ -26,6 +28,7 @@ function Map() {
           {mapAreas.map((area) => {
             const isSelected =
               selectedAreaId === area.id;
+            const areaQuest = quests[area.id - 1];
 
             return (
               <div
@@ -98,6 +101,28 @@ function Map() {
                           {area.areaName}
                         </strong>
                       </div>
+
+                      <div className="map-detail-row">
+                        <span>RECOMMENDED HR</span>
+
+                        <strong>HR {Math.min(area.id, 3)}</strong>
+                      </div>
+
+                      {areaQuest && (
+                        <div className="map-field-quest">
+                          <span>MONSTER</span>
+                          <strong>{areaQuest.title}</strong>
+                          <small>
+                            {areaQuest.completed
+                              ? areaQuest.goldCrown
+                                ? "金冠モンスターを討伐済み"
+                                : "討伐済み"
+                              : rank >= Math.min(area.id, 3)
+                                ? "このフィールドで調査できます"
+                                : "ハンターランクを上げよう"}
+                          </small>
+                        </div>
+                      )}
 
                       <p>
                         このエリアを探索して

@@ -101,7 +101,12 @@ function Battle() {
                 setIsBattleOver(true);
 
                 setTimeout(() => {
-                    navigate(`/result/${quest.id}`);
+                    const goldCrown = Math.random() < 0.1;
+                    navigate(
+                        `/result/${quest.id}?outcome=victory${
+                            goldCrown ? "&crown=1" : ""
+                        }`
+                    );
                 }, 1200);
 
                 return;
@@ -132,17 +137,6 @@ function Battle() {
         setMessage(
             "敗北…… ダメージを受けた！"
         );
-    };
-
-    const handleRetry = () => {
-        setPlayerHp(3);
-        setMonsterHp(3);
-
-        setMessage(
-            "じゃんけんでモンスターを倒せ！"
-        );
-
-        setIsBattleOver(false);
     };
 
     return (
@@ -219,25 +213,6 @@ function Battle() {
                 <section className="battle-message">
                     {message}
                 </section>
-
-                {playerHp <= 0 && (
-
-                    <button
-
-                        type="button"
-
-                        className="battle-retry-button"
-
-                        onClick={handleRetry}
-
-                    >
-
-                        もう一度挑戦する
-
-                    </button>
-
-                )}
-
 
                 {/* =========================
             PLAYER HP
@@ -426,9 +401,11 @@ function Battle() {
                     <button
                         type="button"
                         className="battle-retry-button"
-                        onClick={handleRetry}
+                        onClick={() =>
+                            navigate(`/result/${quest.id}?outcome=failure`)
+                        }
                     >
-                        もう一度挑戦する
+                        調査結果を見る
                     </button>
                 )}
 
