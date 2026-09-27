@@ -147,8 +147,6 @@ function Battle() {
         );
     };
 
-<<<<<<< クエスト報酬・コレクション・特典交換機能を追加
-=======
     const handleRetry = () => {
         hpRef.current = { player: 3, monster: 3 };
         isBattleOverRef.current = false;
@@ -163,7 +161,6 @@ function Battle() {
         setIsBattleOver(false);
     };
 
->>>>>>> main
     return (
         <main className="battle-page">
             <div className="battle-content">

@@ -1,32 +1,55 @@
-# React + TypeScript + Vite
+# モンスターハンターフェスティバル
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+会場を歩きながらクエストに挑戦し、素材を集めて特典と交換する、モンスターハンターフェスティバル向けの体験アプリです。QRコードを起点に、狩猟・報酬の獲得・コレクションの確認までを一つの流れで楽しめます。
 
-Currently, two official plugins are available:
+## アプリ概要
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+参加者はホーム画面でクエストを選び、会場に設置されたQRコードを読み取って狩猟を開始します。バトルはじゃんけん形式です。勝利すると素材とハンターランク経験値を獲得でき、討伐済みのクエストはコレクションに記録されます。
 
-## React Compiler
+集めた素材は進行状況画面で確認できます。必要な素材がそろうと、武器のピンバッジと交換できます。交換後は画面をスタッフへ提示することで、会場での特典受け取りにつなげられます。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+ゲームの進行状況はブラウザのローカルストレージに保存されるため、同じ端末・ブラウザであれば画面を閉じても続きから利用できます。
 
-## Expanding the Oxlint configuration
+## 主な機能
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- クエスト一覧とフィールドマップの表示
+- カメラを使ったクエスト用QRコードの読み取り
+- じゃんけんによる狩猟バトル
+- 勝敗に応じた素材・経験値の獲得と討伐記録
+- 素材、討伐スタンプ、活動履歴のコレクション表示
+- 素材を消費する特典（ピンバッジ）交換
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## 画面の流れ
+
+1. ホーム画面でクエストを選ぶ
+2. QRコードを読み取る
+3. バトルでモンスターに挑戦する
+4. 結果画面で報酬を受け取る
+5. 進行状況とコレクションを確認し、条件を満たしたら特典と交換する
+
+## 開発環境
+
+- React 19
+- TypeScript
+- Vite
+- React Router
+- html5-qrcode
+
+## 起動方法
+
+Node.js と npm を用意したうえで、次のコマンドを実行します。
+
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+本番用ビルドは次のコマンドで作成します。
+
+```bash
+npm run build
+```
+
+## 利用時の注意
+
+QRコードを読み取るには、ブラウザでカメラの利用を許可してください。進行状況を最初から試したい場合は、ブラウザのサイトデータから `monster-hunter-festival-game` のローカルストレージを削除してください。
