@@ -195,6 +195,14 @@ function Battle() {
 
     return (
         <main className="battle-page">
+            {/* 残り1手 or HP1（あと1回で終わる状況）で画面の縁に赤いモヤ */}
+            {(turnsLeft === 1 || playerHp === 1) && !isBattleOver && (
+                <div
+                    className="battle-danger-overlay"
+                    aria-hidden="true"
+                />
+            )}
+
             <div className="battle-content">
 
                 {/* =========================
