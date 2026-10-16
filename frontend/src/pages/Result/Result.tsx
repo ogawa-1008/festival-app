@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
+import { getBattleRankReward, MAX_RANK_EXP } from "../../utils/hunterRank";
 
 import "./Result.css";
 
@@ -11,9 +12,11 @@ function Result() {
     const { questId } = useParams();
     const [searchParams] = useSearchParams();
 
-    const { quests, resolveBattle } = useGame();
+    const { quests, rankExp, resolveBattle } = useGame();
 
     const [claimed, setClaimed] = useState(false);
+    const claimStarted = useRef(false);
+    const [receivedExp, setReceivedExp] = useState<number | null>(null);
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -44,8 +47,16 @@ function Result() {
         );
     }
 
+    const rewardExp = outcome === "victory" && quest.completed
+        ? 0
+        : getBattleRankReward(rankExp, outcome).gainedExp;
+    const displayedExp = receivedExp ?? rewardExp;
+
     const handleClaimReward = () => {
-        if (claimed) return;
+        if (claimStarted.current) return;
+
+        claimStarted.current = true;
+        setReceivedExp(rewardExp);
 
         setClaimed(true);
 
@@ -138,6 +149,12 @@ function Result() {
                         <h2>REWARD</h2>
                         <span />
                     </div>
+
+                    <p className="result-rank-exp">
+                        {displayedExp > 0
+                            ? `HR EXP +${displayedExp}`
+                            : rankExp >= MAX_RANK_EXP ? "HR MAX" : "HR EXP +0（受取済み）"}
+                    </p>
 
                     <div className="result-reward-list">
 

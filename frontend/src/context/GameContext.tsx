@@ -9,6 +9,8 @@ import {
 
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
+import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
+import { loadSavedGame, saveGame } from "../utils/gameStorage";
 
 type MaterialStock = Record<number, number>;
 
@@ -20,13 +22,12 @@ export type Activity = {
   createdAt: string;
 };
 
-type BattleOutcome = "victory" | "failure";
-
 type GameState = {
   quests: typeof initialQuests;
   materials: MaterialStock;
   rank: number;
   rankExp: number;
+  rankProgressVersion: number;
   weaponClaimed: boolean;
   activities: Activity[];
 };
@@ -40,8 +41,6 @@ type GameContextType = GameState & {
   claimWeapon: () => boolean;
 };
 
-const storageKey = "monster-hunter-festival-game";
-
 const initialMaterials: MaterialStock = Object.fromEntries(
   progressData.materials.map((material) => [
     material.id,
@@ -52,8 +51,9 @@ const initialMaterials: MaterialStock = Object.fromEntries(
 const initialGameState: GameState = {
   quests: initialQuests,
   materials: initialMaterials,
-  rank: 1,
+  rank: 0,
   rankExp: 0,
+  rankProgressVersion: RANK_PROGRESS_VERSION,
   weaponClaimed: false,
   activities: [],
 };
@@ -64,21 +64,7 @@ function loadGameState(): GameState {
   }
 
   try {
-    const saved = window.localStorage.getItem(storageKey);
-
-    if (!saved) {
-      return initialGameState;
-    }
-
-    const parsed = JSON.parse(saved) as Partial<GameState>;
-
-    return {
-      ...initialGameState,
-      ...parsed,
-      quests: parsed.quests ?? initialGameState.quests,
-      materials: parsed.materials ?? initialGameState.materials,
-      activities: parsed.activities ?? initialGameState.activities,
-    };
+    return loadSavedGame(window.localStorage, initialGameState);
   } catch {
     return initialGameState;
   }
@@ -89,8 +75,18 @@ const GameContext = createContext<GameContextType | null>(null);
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, setGameState] = useState<GameState>(loadGameState);
 
+  const [saveFailed, setSaveFailed] = useState(false);
+
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(gameState));
+    let saved = false;
+    try {
+      saved = saveGame(window.localStorage, gameState);
+    } catch {
+      // Accessing localStorage itself may be blocked by the browser.
+    }
+    // Report the result of synchronizing React state with external storage.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSaveFailed(!saved);
   }, [gameState]);
 
   const value = useMemo<GameContextType>(() => {
@@ -111,9 +107,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...reward,
           amount: Math.max(1, Math.ceil(reward.amount * rewardRate)),
         }));
-        const gainedExp = outcome === "victory" ? 100 : 30;
-        const nextExp = current.rankExp + gainedExp;
-        const nextRank = 1 + Math.floor(nextExp / 100);
+        const { gainedExp, rank: nextRank, rankExp: nextExp } =
+          getBattleRankReward(current.rankExp, outcome);
+        const expDetail = gainedExp > 0 ? `HR EXP +${gainedExp}` : "HR MAX";
         const materials = { ...current.materials };
 
         rewards.forEach((reward) => {
@@ -129,8 +125,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
               : `${quest.title}を調査`,
           detail:
             outcome === "victory"
-              ? `HR EXP +${gainedExp}${isGoldCrown ? "・金冠を獲得" : ""}`
-              : `落とし物を発見・HR EXP +${gainedExp}`,
+              ? `${expDetail}${isGoldCrown ? "・金冠を獲得" : ""}`
+              : `落とし物を発見・${expDetail}`,
           createdAt: new Date().toISOString(),
         };
 
@@ -198,6 +194,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   return (
     <GameContext.Provider value={value}>
       {children}
+      {saveFailed && (
+        <p className="game-save-notice" role="status">
+          進行状況を保存できません。再読み込みすると進行状況が失われる場合があります。
+        </p>
+      )}
     </GameContext.Provider>
   );
 }
