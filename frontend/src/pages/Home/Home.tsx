@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import HunterRank from "../../components/Header/HunterRank";
 import CollaborationLogo from "../../components/Logo/CollaborationLogo";
 import QuestList from "../../components/Quest/QuestBoard/QuestList";
@@ -145,6 +145,26 @@ function Home() {
         <div className="home-collaboration">
           <CollaborationLogo />
         </div>
+
+        <Link to="/qr-scanner" className="home-qr-cta">
+          <svg
+            className="home-qr-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" />
+            <path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3v3h-3z" />
+          </svg>
+          <span className="home-qr-text">
+            <strong>QRコードを読み取る</strong>
+            <span>会場のQRコードからクエストに挑戦</span>
+          </span>
+          <span className="home-qr-arrow" aria-hidden="true">›</span>
+        </Link>
 
 
         {/* =================================
