@@ -2,10 +2,14 @@ import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
+import { DEFAULT_MAX_TURNS } from "../../types/quest";
 
 import "./Battle.css";
 
 type Hand = "rock" | "scissors" | "paper";
+
+// バトル終了理由（null はバトル中）
+type EndReason = "victory" | "defeated" | "timeout";
 
 function Battle() {
     const navigate = useNavigate();
@@ -13,22 +17,27 @@ function Battle() {
 
     const { quests } = useGame();
 
+    const quest = quests.find(
+        (item) => item.id === questId
+    );
+
+    const maxTurns = quest?.maxTurns ?? DEFAULT_MAX_TURNS;
+
     const [playerHp, setPlayerHp] = useState(3);
     const [monsterHp, setMonsterHp] = useState(3);
+    const [turnsLeft, setTurnsLeft] = useState(maxTurns);
 
     const [message, setMessage] =
         useState("じゃんけんでモンスターを倒せ！");
 
-    const [isBattleOver, setIsBattleOver] =
-        useState(false);
+    const [endReason, setEndReason] =
+        useState<EndReason | null>(null);
+
+    const isBattleOver = endReason !== null;
 
     // stateだとレンダリングが発生しちゃうからRefで同期的に管理する処理
-    const hpRef = useRef({ player: 3, monster: 3 });
+    const hpRef = useRef({ player: 3, monster: 3, turns: maxTurns });
     const isBattleOverRef = useRef(false);
-
-    const quest = quests.find(
-        (item) => item.id === questId
-    );
 
     if (!quest) {
         return (
@@ -86,10 +95,11 @@ function Battle() {
             enemyHand
         );
 
-        if (result === "draw") {
-            setMessage("あいこ！ もう一度！");
-            return;
-        }
+        // あいこも含めて1手として数える
+        const nextTurns = hpRef.current.turns - 1;
+
+        hpRef.current.turns = nextTurns;
+        setTurnsLeft(nextTurns);
 
         if (result === "player") {
             const nextMonsterHp =
@@ -97,47 +107,68 @@ function Battle() {
 
             hpRef.current.monster = nextMonsterHp;
             setMonsterHp(nextMonsterHp);
+        }
 
-            if (nextMonsterHp <= 0) {
-                setMessage(
-                    "モンスターを討伐した！"
-                );
+        if (result === "enemy") {
+            const nextPlayerHp =
+                Math.max(0, hpRef.current.player - 1);
 
-                isBattleOverRef.current = true;
-                setIsBattleOver(true);
+            hpRef.current.player = nextPlayerHp;
+            setPlayerHp(nextPlayerHp);
+        }
 
-                setTimeout(() => {
-                    const goldCrown = Math.random() < 0.1;
-                    navigate(
-                        `/result/${quest.id}?outcome=victory${
-                            goldCrown ? "&crown=1" : ""
-                        }`
-                    );
-                }, 1200);
-
-                return;
-            }
-
+        // 終了判定は 討伐 → 力尽きた → 手数切れ の優先順
+        if (hpRef.current.monster <= 0) {
             setMessage(
-                "勝利！ モンスターにダメージ！"
+                "モンスターを討伐した！"
             );
+
+            isBattleOverRef.current = true;
+            setEndReason("victory");
+
+            setTimeout(() => {
+                const goldCrown = Math.random() < 0.1;
+                navigate(
+                    `/result/${quest.id}?outcome=victory${
+                        goldCrown ? "&crown=1" : ""
+                    }`
+                );
+            }, 1200);
 
             return;
         }
 
-        const nextPlayerHp =
-            Math.max(0, hpRef.current.player - 1);
-
-        hpRef.current.player = nextPlayerHp;
-        setPlayerHp(nextPlayerHp);
-
-        if (nextPlayerHp <= 0) {
+        if (hpRef.current.player <= 0) {
             setMessage(
                 "力尽きてしまった……"
             );
 
             isBattleOverRef.current = true;
-            setIsBattleOver(true);
+            setEndReason("defeated");
+
+            return;
+        }
+
+        if (nextTurns <= 0) {
+            setMessage(
+                "モンスターは逃げてしまった……"
+            );
+
+            isBattleOverRef.current = true;
+            setEndReason("timeout");
+
+            return;
+        }
+
+        if (result === "draw") {
+            setMessage("あいこ！ もう一度！");
+            return;
+        }
+
+        if (result === "player") {
+            setMessage(
+                "勝利！ モンスターにダメージ！"
+            );
 
             return;
         }
@@ -148,17 +179,18 @@ function Battle() {
     };
 
     const handleRetry = () => {
-        hpRef.current = { player: 3, monster: 3 };
+        hpRef.current = { player: 3, monster: 3, turns: maxTurns };
         isBattleOverRef.current = false;
 
         setPlayerHp(3);
         setMonsterHp(3);
+        setTurnsLeft(maxTurns);
 
         setMessage(
             "じゃんけんでモンスターを倒せ！"
         );
 
-        setIsBattleOver(false);
+        setEndReason(null);
     };
 
     return (
@@ -260,6 +292,16 @@ function Battle() {
                         <span>
                             HP {playerHp} / 3
                         </span>
+                    </div>
+
+                    <div
+                        className={`battle-turns${
+                            turnsLeft <= 1 ? " battle-turns-warning" : ""
+                        }`}
+                    >
+                        <span>残り</span>
+                        <strong>{turnsLeft}</strong>
+                        <span>/ {maxTurns} 手</span>
                     </div>
 
                 </section>
@@ -419,12 +461,16 @@ function Battle() {
             RETRY
         ========================= */}
 
-                {playerHp <= 0 && (
+                {(endReason === "defeated" || endReason === "timeout") && (
                     <button
                         type="button"
                         className="battle-retry-button"
                         onClick={() =>
-                            navigate(`/result/${quest.id}?outcome=failure`)
+                            navigate(
+                                `/result/${quest.id}?outcome=failure${
+                                    endReason === "timeout" ? "&reason=timeout" : ""
+                                }`
+                            )
                         }
                     >
                         調査結果を見る

@@ -414,6 +414,33 @@
 }
 
 
+/* 残り手数 */
+
+.battle-turns {
+  display: flex;
+
+  align-items: baseline;
+
+  gap: 3px;
+
+  flex-shrink: 0;
+
+  color: #aaa;
+
+  font-size: 9px;
+}
+
+.battle-turns strong {
+  color: #f0e4cb;
+
+  font-size: 16px;
+}
+
+.battle-turns-warning strong {
+  color: #e2483d;
+}
+
+
 /* =========================
    JANKEN
 ========================= */

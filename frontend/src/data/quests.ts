@@ -21,6 +21,8 @@ export const quests: Quest[] = [
       },
     ],
 
+    maxTurns: 6,
+
     completed: false,
   },
 
@@ -44,6 +46,8 @@ export const quests: Quest[] = [
       },
     ],
 
+    maxTurns: 5,
+
     completed: false,
   },
 
@@ -66,6 +70,8 @@ export const quests: Quest[] = [
         amount: 1,
       },
     ],
+
+    maxTurns: 4,
 
     completed: false,
   },
