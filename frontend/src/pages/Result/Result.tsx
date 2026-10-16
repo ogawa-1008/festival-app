@@ -22,6 +22,8 @@ function Result() {
     const outcome = searchParams.get("outcome") === "failure"
         ? "failure"
         : "victory";
+    const isTimeout = outcome === "failure"
+        && searchParams.get("reason") === "timeout";
     const isGoldCrown = searchParams.get("crown") === "1";
     const rewardRate = outcome === "victory" ? 1 : 0.5;
 
@@ -113,6 +115,14 @@ function Result() {
                     <h2>
                         {quest.title}
                     </h2>
+
+                    {isTimeout && (
+                        <p className="result-timeout-message">
+                            モンスターに逃げられてしまった……
+                            <br />
+                            もう一度挑戦してみよう！
+                        </p>
+                    )}
 
                 </section>
 

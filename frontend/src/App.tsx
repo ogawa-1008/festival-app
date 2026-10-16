@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  useParams,
 } from "react-router-dom";
 
 import Home from "./pages/Home/Home";
@@ -16,6 +17,13 @@ import Exchange from "./pages/Exchange/Exchange.tsx";
 import { GameProvider } from "./context/GameContext";
 
 import "./App.css";
+
+// クエストが変わったら Battle を作り直し、HP・残り手数を初期化する
+function BattleRoute() {
+  const { questId } = useParams();
+
+  return <Battle key={questId} />;
+}
 
 function App() {
   return (
@@ -42,7 +50,7 @@ function App() {
 
             <Route
               path="/battle/:questId"
-              element={<Battle />}
+              element={<BattleRoute />}
             />
 
             <Route
