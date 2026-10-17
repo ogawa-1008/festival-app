@@ -19,7 +19,8 @@
 
   color: #ffffff;
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 
@@ -40,7 +41,8 @@
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 
@@ -449,7 +451,7 @@
   flex-shrink: 0;
 
   width: 100%;
-  height: 104px;
+  height: auto;
 
   margin-top: 15px;
 
@@ -841,7 +843,7 @@
   }
 
   .result-reward {
-    height: 94px;
+    height: auto;
     margin-top: 10px;
   }
 
@@ -872,5 +874,98 @@
     height: 46px;
     margin-top: 10px;
     font-size: 12px;
+  }
+}
+.result-exp-panel {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #8d7a55;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #30291f, #171512);
+}
+
+.result-exp-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-exp-heading strong {
+  color: #f4ead7;
+  font-size: 22px;
+}
+
+.result-rank-exp {
+  color: #f4d58b;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.result-exp-track {
+  position: relative;
+  height: 14px;
+  border: 1px solid #8d7a55;
+  border-radius: 999px;
+  background: #171512;
+  overflow: hidden;
+}
+
+.result-exp-fill,
+.result-exp-added {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  border-radius: inherit;
+}
+
+.result-exp-fill {
+  background: linear-gradient(90deg, #a77e38, #f4d58b);
+}
+
+.result-exp-added {
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #7cad8c, #d3edac);
+}
+
+.result-exp-panel.is-animating .result-exp-fill {
+  border-radius: 999px 0 0 999px;
+}
+
+.result-exp-numbers {
+  margin-top: 6px;
+  color: #e8dcc3;
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-exp-status {
+  min-height: 18px;
+  margin: 8px 0 0;
+  color: #cdbd9d;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.result-exp-panel.is-rank-up {
+  border-color: #f4d58b;
+  box-shadow: inset 0 0 12px rgba(244, 213, 139, 0.16);
+}
+
+.result-exp-panel.is-rank-up .result-exp-status {
+  color: #f4d58b;
+  font-weight: bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-clear-stamp {
+    animation: none;
+    opacity: 1;
   }
 }
