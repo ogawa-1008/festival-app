@@ -9,6 +9,7 @@ import {
 
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
+import { useStorageSync } from "./useStorageSync";
 
 type MaterialStock = Record<number, number>;
 
@@ -99,32 +100,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [gameState]);
 
   // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== storageKey && event.key !== null) return;
+  useStorageSync(storageKey, () => {
+    const next = loadGameState();
 
-      setGameState(loadGameState());
-    };
-
-    // スマホでは背景タブの storage イベントが遅れるため、表示に戻った時点でも読み直す
-    const handleVisible = () => {
-      if (document.visibilityState === "visible") {
-        setGameState(loadGameState());
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener("pageshow", handleVisible);
-    window.addEventListener("focus", handleVisible);
-    document.addEventListener("visibilitychange", handleVisible);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("pageshow", handleVisible);
-      window.removeEventListener("focus", handleVisible);
-      document.removeEventListener("visibilitychange", handleVisible);
-    };
-  }, []);
+    // 中身が変わっていなければ何もしない（表示に戻るたびの再描画を防ぐ）
+    setGameState((current) =>
+      JSON.stringify(current) === JSON.stringify(next) ? current : next
+    );
+  });
 
   const value = useMemo<GameContextType>(() => {
     const resolveBattle = (

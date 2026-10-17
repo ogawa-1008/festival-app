@@ -2,7 +2,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -17,6 +16,7 @@ import {
   type Hand,
   type RoundResult,
 } from "../utils/battleSession";
+import { useStorageSync } from "./useStorageSync";
 
 // "battle" | "result": その画面へ進む
 // "confirm": 進める前に確認が必要（questId は対象になる既存セッションのクエスト）
@@ -33,9 +33,6 @@ type StartResult =
       isElsewhere: boolean;
     };
 
-// "ok": この画面を表示してよい / "conflict": 別タブのセッションなので、このタブでは表示しない
-type AccessResult = "ok" | "conflict";
-
 type BattleSessionContextType = {
   session: BattleSession | null;
   // このタブで開いていたセッションが別タブに引き継がれた
@@ -45,7 +42,6 @@ type BattleSessionContextType = {
     maxTurns: number,
     options?: { force?: boolean }
   ) => StartResult;
-  checkAccess: (questId: string | undefined) => AccessResult;
   registerScreen: () => () => void;
   playHand: (
     hand: Hand
@@ -149,49 +145,25 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
     return null;
   }, [readLatest]);
 
-  useEffect(() => {
-    const syncFromStorage = () => {
-      const next = loadSession(sessionRef.current);
-      const previous = sessionRef.current;
+  useStorageSync(storageKey, () => {
+    const next = loadSession(sessionRef.current);
+    const previous = sessionRef.current;
 
-      // 画面を開いている間に持ち主が別タブへ移ったら、このタブの画面は終了させる
-      if (
-        screenCountRef.current > 0 &&
-        previous?.ownerTabId === tabId &&
-        next?.ownerTabId !== tabId
-      ) {
-        setTakenOver(true);
-      }
+    // 中身が変わっていなければ何もしない（表示に戻るたびの再描画を防ぐ）
+    if (JSON.stringify(next) === JSON.stringify(previous)) return;
 
-      sessionRef.current = next;
-      setSession(next);
-    };
+    // 画面を開いている間に持ち主が別タブへ移ったら、このタブの画面は終了させる
+    if (
+      screenCountRef.current > 0 &&
+      previous?.ownerTabId === tabId &&
+      next?.ownerTabId !== tabId
+    ) {
+      setTakenOver(true);
+    }
 
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== storageKey && event.key !== null) return;
-
-      syncFromStorage();
-    };
-
-    // スマホでは背景タブの storage イベントが遅れるため、表示に戻った時点でも読み直す
-    const handleVisible = () => {
-      if (document.visibilityState === "visible") {
-        syncFromStorage();
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener("pageshow", handleVisible);
-    window.addEventListener("focus", handleVisible);
-    document.addEventListener("visibilitychange", handleVisible);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("pageshow", handleVisible);
-      window.removeEventListener("focus", handleVisible);
-      document.removeEventListener("visibilitychange", handleVisible);
-    };
-  }, []);
+    sessionRef.current = next;
+    setSession(next);
+  });
 
   const adopt = useCallback(
     (current: BattleSession) => {
@@ -261,21 +233,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
     [readLatest, adopt, update]
   );
 
-  const checkAccess = useCallback(
-    (questId: string | undefined): AccessResult => {
-      const current = readLatest();
-
-      // セッションなし・別クエスト・受け取り済みは各画面の判定に任せる
-      if (!current || current.questId !== questId || current.claimed) {
-        return "ok";
-      }
-
-      // URL直打ちでは引き継がない（引き継ぐにはQRを読み取って確認する）
-      return current.ownerTabId === tabId ? "ok" : "conflict";
-    },
-    [readLatest]
-  );
-
   const registerScreen = useCallback(() => {
     screenCountRef.current += 1;
 
@@ -323,7 +280,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       session,
       takenOver,
       startBattle,
-      checkAccess,
       registerScreen,
       playHand,
       claimReward,
@@ -332,7 +288,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       session,
       takenOver,
       startBattle,
-      checkAccess,
       registerScreen,
       playHand,
       claimReward,

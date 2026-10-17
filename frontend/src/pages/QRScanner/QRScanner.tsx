@@ -34,6 +34,13 @@ function QRScanner() {
         (location.state as { message?: string } | null)?.message ?? ""
     );
 
+  // 案内は1回だけ表示する（再読み込み・戻る操作で古い案内が出ないよう履歴から消す）
+  useEffect(() => {
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
+
   const stopScanner = async () => {
     const scanner = scannerRef.current;
 
