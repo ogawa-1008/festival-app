@@ -3,14 +3,17 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
+import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
 import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
+import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage";
 
 type MaterialStock = Record<number, number>;
 
@@ -22,13 +25,12 @@ export type Activity = {
   createdAt: string;
 };
 
-type BattleOutcome = "victory" | "failure";
-
 type GameState = {
   quests: typeof initialQuests;
   materials: MaterialStock;
   rank: number;
   rankExp: number;
+  rankProgressVersion: number;
   weaponClaimed: boolean;
   activities: Activity[];
 };
@@ -42,8 +44,6 @@ type GameContextType = GameState & {
   claimWeapon: () => boolean;
 };
 
-const storageKey = "monster-hunter-festival-game";
-
 const initialMaterials: MaterialStock = Object.fromEntries(
   progressData.materials.map((material) => [
     material.id,
@@ -54,8 +54,9 @@ const initialMaterials: MaterialStock = Object.fromEntries(
 const initialGameState: GameState = {
   quests: initialQuests,
   materials: initialMaterials,
-  rank: 1,
+  rank: 0,
   rankExp: 0,
+  rankProgressVersion: RANK_PROGRESS_VERSION,
   weaponClaimed: false,
   activities: [],
 };
@@ -66,23 +67,21 @@ function loadGameState(): GameState {
   }
 
   try {
-    const saved = window.localStorage.getItem(storageKey);
-
-    if (!saved) {
-      return initialGameState;
-    }
-
-    const parsed = JSON.parse(saved) as Partial<GameState>;
-
-    return {
-      ...initialGameState,
-      ...parsed,
-      quests: parsed.quests ?? initialGameState.quests,
-      materials: parsed.materials ?? initialGameState.materials,
-      activities: parsed.activities ?? initialGameState.activities,
-    };
+    return loadSavedGame(window.localStorage, initialGameState);
   } catch {
     return initialGameState;
+  }
+}
+
+function saveGameState(gameState: GameState): boolean {
+  try {
+    const storage = window.localStorage;
+    // 同じ内容を別タブへ書き戻し続けないようにする。
+    return storage.getItem(GAME_STORAGE_KEY) === JSON.stringify(gameState)
+      || saveGame(storage, gameState);
+  } catch {
+    // Accessing localStorage itself may be blocked by the browser.
+    return false;
   }
 }
 
@@ -91,17 +90,27 @@ const GameContext = createContext<GameContextType | null>(null);
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, setGameState] = useState<GameState>(loadGameState);
 
-  useEffect(() => {
-    const serialized = JSON.stringify(gameState);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const pendingSave = useRef<GameState | null>(null);
 
-    // 別タブから読み込んだ内容と同じなら書き戻さない（タブ間で保存し合うのを防ぐ）
-    if (window.localStorage.getItem(storageKey) !== serialized) {
-      window.localStorage.setItem(storageKey, serialized);
-    }
+  useEffect(() => {
+    const saved = saveGameState(gameState);
+    pendingSave.current = saved ? null : gameState;
+    // Report the result of synchronizing React state with external storage.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSaveFailed(!saved);
   }, [gameState]);
 
   // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
-  useStorageSync(storageKey, () => {
+  useStorageSync(GAME_STORAGE_KEY, () => {
+    // 未保存の進行は保持し、同期で読み直す前に保存を再試行する。
+    if (pendingSave.current) {
+      const saved = saveGameState(pendingSave.current);
+      if (saved) pendingSave.current = null;
+      setSaveFailed(!saved);
+      return;
+    }
+
     const next = loadGameState();
 
     // 中身が変わっていなければ何もしない（表示に戻るたびの再描画を防ぐ）
@@ -129,9 +138,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...reward,
           amount: Math.max(1, Math.ceil(reward.amount * rewardRate)),
         }));
-        const gainedExp = getRewardExp(quest, outcome);
-        const nextExp = current.rankExp + gainedExp;
-        const nextRank = 1 + Math.floor(nextExp / 100);
+        // EXP はクエストごとの報酬（調査は3割）。ランクの上限処理は getBattleRankReward に任せる
+        const { gainedExp, rank: nextRank, rankExp: nextExp } =
+          getBattleRankReward(current.rankExp, getRewardExp(quest.id, outcome));
+        const expDetail = gainedExp > 0 ? `HR EXP +${gainedExp}` : "HR MAX";
         const materials = { ...current.materials };
 
         rewards.forEach((reward) => {
@@ -147,8 +157,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
               : `${quest.title}を調査`,
           detail:
             outcome === "victory"
-              ? `HR EXP +${gainedExp}${isGoldCrown ? "・金冠を獲得" : ""}`
-              : `落とし物を発見・HR EXP +${gainedExp}`,
+              ? `${expDetail}${isGoldCrown ? "・金冠を獲得" : ""}`
+              : `落とし物を発見・${expDetail}`,
           createdAt: new Date().toISOString(),
         };
 
@@ -216,6 +226,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   return (
     <GameContext.Provider value={value}>
       {children}
+      {saveFailed && (
+        <p className="game-save-notice" role="status">
+          進行状況を保存できません。再読み込みすると進行状況が失われる場合があります。
+        </p>
+      )}
     </GameContext.Provider>
   );
 }

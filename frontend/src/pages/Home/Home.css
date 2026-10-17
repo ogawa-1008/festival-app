@@ -68,6 +68,7 @@
 
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 
   box-sizing: border-box;
 
@@ -151,7 +152,8 @@
 
   position: relative;
 
-  width: 132px;
+  flex: 1;
+  min-width: 0;
 
   height: 100%;
 
@@ -168,47 +170,12 @@
 }
 
 /* ========================================
-
-   Hunter Rank本体
-
-   ボーダーの中央に配置
-
-======================================== */
-
-.home-rank-area .hunter-rank {
-
-  position: relative !important;
-
-  top: auto !important;
-
-  left: auto !important;
-
-  right: auto !important;
-
-  bottom: auto !important;
-
-  width: 118px !important;
-
-  height: 58px !important;
-
-  margin: 0 !important;
-
-  transform: none !important;
-
-  flex-shrink: 0;
-
-  box-sizing: border-box;
-
-  z-index: 3;
-
-}
-
-/* ========================================
    ハンバーガーメニュー
 ======================================== */
 
 .hamburger-button {
   position: relative;
+  flex-shrink: 0;
 
   width: 52px;
   height: 52px;

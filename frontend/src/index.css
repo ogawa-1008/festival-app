@@ -44,3 +44,19 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
 }
+.game-save-notice {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, calc(100% - 32px));
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #b79763;
+  border-radius: 6px;
+  background: #302417;
+  color: #fff4cf;
+  font-size: 13px;
+  z-index: 300;
+}

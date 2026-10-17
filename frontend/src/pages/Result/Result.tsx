@@ -1,9 +1,14 @@
+import { useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import { progressData } from "../../data/progress";
+import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
+import { getRewardExp } from "../../utils/questReward";
+
+import { useExpRewardAnimation } from "./useExpRewardAnimation";
 
 import "./Result.css";
 
@@ -16,9 +21,12 @@ function Result() {
     const notice =
         (location.state as { notice?: string } | null)?.notice ?? null;
 
-    const { quests, resolveBattle } = useGame();
+    const { quests, rankExp, resolveBattle } = useGame();
     const { session, claimReward } = useBattleSession();
     const screenStatus = useSessionScreen(questId);
+    const [receipt, setReceipt] = useState<{ fromExp: number; gainedExp: number } | null>(null);
+    const { frame, animateReward } = useExpRewardAnimation();
+    const expPanel = useRef<HTMLDivElement>(null);
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -64,12 +72,29 @@ function Result() {
     const isGoldCrown = session.goldCrown;
     const rewardRate = outcome === "victory" ? 1 : 0.5;
     const claimed = session.claimed;
+    const rewardExp = getBattleRankReward(
+        rankExp,
+        getRewardExp(quest.id, outcome)
+    ).gainedExp;
+    const displayedExp = receipt?.gainedExp ?? (claimed ? 0 : rewardExp);
+    const progress = frame ?? getRankProgress(rankExp);
+    const beforeRank = receipt ? getRankProgress(receipt.fromExp).rank : progress.rank;
+    const rankedUp = claimed && !frame?.isAnimating && progress.rank > beforeRank;
+    const expStatus = !claimed ? "報酬を受け取るとEXPが加算されます"
+        : frame?.isAnimating ? "EXPを加算中…"
+        : rankedUp ? `RANK UP! HR ${beforeRank} → ${progress.rank}`
+        : progress.isMax ? "ハンターランク上限に到達"
+        : displayedExp > 0 ? `${displayedExp} EXPを獲得しました` : "受取済みの報酬です";
 
     const handleClaimReward = () => {
         // 受け取り済みなら false（再読み込み・戻る操作での二重受け取りを防ぐ）
         if (!claimReward()) return;
 
+        setReceipt({ fromExp: rankExp, gainedExp: rewardExp });
+        animateReward(rankExp, rewardExp);
+
         resolveBattle(quest.id, outcome, isGoldCrown);
+        expPanel.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
     };
 
     return (
@@ -163,6 +188,42 @@ function Result() {
                         <span />
                         <h2>REWARD</h2>
                         <span />
+                    </div>
+
+                    <div className={`result-exp-panel${frame?.isAnimating ? " is-animating" : ""}${rankedUp ? " is-rank-up" : ""}`} ref={expPanel}>
+                        <div className="result-exp-heading">
+                            <strong>HR {progress.rank}</strong>
+                            <span className="result-rank-exp">
+                                {displayedExp > 0
+                                    ? `+${claimed ? frame?.addedExp ?? displayedExp : displayedExp} EXP`
+                                    : progress.isMax ? "HR MAX" : "+0 EXP（受取済み）"}
+                            </span>
+                        </div>
+                        <div
+                            className="result-exp-track"
+                            role="progressbar"
+                            aria-label="ハンターランク経験値"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={Math.round(progress.progressPercent * 100) / 100}
+                            aria-valuetext={progress.isMax ? "HR100、上限に到達" : `HR${progress.rank}、${progress.progressExp} / ${progress.requiredExp} EXP`}
+                        >
+                            <div className="result-exp-fill" style={{ transform: `scaleX(${(frame?.isAnimating ? frame.goldProgressPercent : progress.progressPercent) / 100})` }} />
+                            {frame?.isAnimating && (
+                                <div
+                                    className="result-exp-added"
+                                    aria-hidden="true"
+                                    style={{
+                                        transform: `translateX(${frame.baseProgressPercent}%) scaleX(${Math.max(0, frame.progressPercent - frame.baseProgressPercent) / 100})`,
+                                        opacity: frame.addedOpacity,
+                                    }}
+                                />
+                            )}
+                        </div>
+                        <div className="result-exp-numbers">
+                            {progress.isMax ? "MAX" : `${progress.progressExp} / ${progress.requiredExp} EXP`}
+                        </div>
+                        <p className="result-exp-status" role="status">{expStatus}</p>
                     </div>
 
                     <div className="result-reward-list">

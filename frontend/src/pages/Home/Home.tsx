@@ -13,7 +13,7 @@ import "./Home.css";
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { rank } = useGame();
+  const { rankExp } = useGame();
 
   return (
     <main className="home">
@@ -28,7 +28,7 @@ function Home() {
 
           {/* ハンターランク */}
           <div className="home-rank-area">
-            <HunterRank rank={rank} />
+            <HunterRank rankExp={rankExp} />
           </div>
 
           {/* ハンバーガーメニュー */}
