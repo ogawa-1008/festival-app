@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -35,6 +36,8 @@ type GameState = {
 };
 
 type GameContextType = GameState & {
+  requiresUpdate: boolean;
+  canUpdateGame: () => boolean;
   resolveBattle: (
     questId: string,
     outcome: BattleOutcome,
@@ -75,11 +78,15 @@ function loadGameState(): GameState {
 function saveGameState(gameState: GameState): boolean {
   try {
     const storage = window.localStorage;
+    if (
+      gameState.rankProgressVersion > RANK_PROGRESS_VERSION
+      || loadSavedGame(storage, initialGameState).rankProgressVersion > RANK_PROGRESS_VERSION
+    ) return false;
     // 同じ内容を別タブへ書き戻し続けないようにする。
     return storage.getItem(GAME_STORAGE_KEY) === JSON.stringify(gameState)
       || saveGame(storage, gameState);
   } catch {
-    // Accessing localStorage itself may be blocked by the browser.
+    // ブラウザによっては localStorage 自体へのアクセスが拒否される。
     return false;
   }
 }
@@ -91,17 +98,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const [saveFailed, setSaveFailed] = useState(false);
   const pendingSave = useRef<GameState | null>(null);
+  const requiresUpdate = gameState.rankProgressVersion > RANK_PROGRESS_VERSION;
+
+  // 操作直前にも確認し、storage イベントが届く前の受取・交換を防ぐ。
+  const canUpdateGame = useCallback(() => {
+    if (requiresUpdate) return false;
+    const latest = loadGameState();
+    if (latest.rankProgressVersion > RANK_PROGRESS_VERSION) {
+      pendingSave.current = null;
+      setSaveFailed(false);
+      setGameState(latest);
+      return false;
+    }
+    return true;
+  }, [requiresUpdate]);
 
   useEffect(() => {
+    // 現在の状態を保存する前に、保存先のデータが新しい形式か確認する。
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!canUpdateGame()) return;
     const saved = saveGameState(gameState);
     pendingSave.current = saved ? null : gameState;
-    // Report the result of synchronizing React state with external storage.
+    // 保存の成否を画面に反映する。
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaveFailed(!saved);
-  }, [gameState]);
+  }, [gameState, canUpdateGame]);
 
   // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
   useStorageSync(GAME_STORAGE_KEY, () => {
+    // 将来版を検出したら、未保存の旧形式データも書き戻さない。
+    if (!canUpdateGame()) return;
     // 未保存の進行は保持し、同期で読み直す前に保存を再試行する。
     if (pendingSave.current) {
       const saved = saveGameState(pendingSave.current);
@@ -124,7 +150,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       outcome: BattleOutcome,
       isGoldCrown = false
     ) => {
+      if (!canUpdateGame()) return;
       setGameState((current) => {
+        if (current.rankProgressVersion > RANK_PROGRESS_VERSION) return current;
         const quest = current.quests.find((item) => item.id === questId);
 
         // 討伐済みでも周回で再討伐した分の報酬は受け取れる
@@ -138,7 +166,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           amount: Math.max(1, Math.ceil(reward.amount * rewardRate)),
         }));
         const { gainedExp, rank: nextRank, rankExp: nextExp } =
-          getBattleRankReward(current.rankExp, outcome);
+          getBattleRankReward(current.rankExp, outcome === "victory" ? 100 : 30);
         const expDetail = gainedExp > 0 ? `HR EXP +${gainedExp}` : "HR MAX";
         const materials = { ...current.materials };
 
@@ -176,6 +204,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
 
     const claimWeapon = () => {
+      if (!canUpdateGame()) return false;
       const canClaim =
         !gameState.weaponClaimed &&
         progressData.materials.every(
@@ -188,7 +217,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
 
       setGameState((current) => {
-        if (current.weaponClaimed) {
+        if (current.weaponClaimed || current.rankProgressVersion > RANK_PROGRESS_VERSION) {
           return current;
         }
 
@@ -218,13 +247,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return true;
     };
 
-    return { ...gameState, resolveBattle, claimWeapon };
-  }, [gameState]);
+    return { ...gameState, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon };
+  }, [gameState, requiresUpdate, canUpdateGame]);
 
   return (
     <GameContext.Provider value={value}>
       {children}
-      {saveFailed && (
+      {requiresUpdate && (
+        <div className="game-save-notice" role="alert">
+          新しいバージョンの進行状況があります。続けるには再読み込みしてください。
+          <button type="button" onClick={() => window.location.reload()}>再読み込み</button>
+        </div>
+      )}
+      {saveFailed && !requiresUpdate && (
         <p className="game-save-notice" role="status">
           進行状況を保存できません。再読み込みすると進行状況が失われる場合があります。
         </p>

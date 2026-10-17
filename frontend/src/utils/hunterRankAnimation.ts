@@ -1,13 +1,13 @@
-import { getRankProgress, getTotalExpForRank } from "./hunterRank.ts";
+import { getBattleRankReward, getRankProgress, getTotalExpForRank } from "./hunterRank.ts";
 
 const FILL_DURATION_MS = 650;
 const COLOR_SETTLE_MS = 350;
 const RANK_UP_HOLD_MS = 200;
 
-// Only display values are animated. Saved EXP is updated when the reward is claimed.
+// 演出は表示値だけを変える。保存するEXPは報酬受取時に更新する。
 export function getExpAnimationFrame(fromExp: number, gainedExp: number, elapsedMs: number) {
   const before = getRankProgress(fromExp);
-  const after = getRankProgress(before.rankExp + Math.max(0, gainedExp));
+  const after = getBattleRankReward(before.rankExp, gainedExp);
   let cursor = before.rankExp;
   let elapsed = Math.max(0, elapsedMs);
 

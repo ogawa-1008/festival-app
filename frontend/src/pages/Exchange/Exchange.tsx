@@ -8,7 +8,7 @@ import "./Exchange.css";
 
 function Exchange() {
   const navigate = useNavigate();
-  const { materials, weaponClaimed, claimWeapon } = useGame();
+  const { materials, weaponClaimed, requiresUpdate, claimWeapon } = useGame();
   const [isConfirming, setIsConfirming] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
 
@@ -52,7 +52,7 @@ function Exchange() {
             <button
               type="button"
               className="exchange-primary"
-              disabled={!hasEnoughMaterials}
+              disabled={!hasEnoughMaterials || requiresUpdate}
               onClick={() => setIsConfirming(true)}
             >
               {hasEnoughMaterials ? "特典と交換する" : "素材が不足しています"}
@@ -72,7 +72,7 @@ function Exchange() {
             <p>素材を消費すると、同じ特典はもう交換できません。</p>
             <div className="exchange-modal-actions">
               <button type="button" onClick={() => setIsConfirming(false)}>キャンセル</button>
-              <button type="button" onClick={handleExchange}>交換する</button>
+              <button type="button" onClick={handleExchange} disabled={requiresUpdate}>交換する</button>
             </div>
           </div>
         </div>

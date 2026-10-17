@@ -53,11 +53,25 @@ export function getRankProgress(totalExp: number) {
 }
 
 export function restoreRankState(saved: Record<string, unknown>): RankState {
+  if (
+    isValidExp(saved.rankProgressVersion)
+    && saved.rankProgressVersion > RANK_PROGRESS_VERSION
+    && isValidExp(saved.rank)
+    && isValidExp(saved.rankExp)
+  ) {
+    // 新しいバージョンの保存形式なので、旧形式へ変換せず値を保持する。
+    return {
+      rank: saved.rank,
+      rankExp: saved.rankExp,
+      rankProgressVersion: saved.rankProgressVersion,
+    };
+  }
+
   let totalExp = 0;
   if (saved.rankProgressVersion === RANK_PROGRESS_VERSION) {
     totalExp = isValidExp(saved.rankExp) ? saved.rankExp : 0;
   } else if (saved.rankProgressVersion === 2 && isValidExp(saved.rankExp)) {
-    // Preserve HR and relative progress when the former requirement exceeds 500.
+    // 旧必要EXPが500を超える場合も、HRと次のHRまでの進捗率を維持する。
     const oldExp = Math.min(saved.rankExp, 109000);
     let oldRank = 0;
     let oldStart = 0;
@@ -71,11 +85,11 @@ export function restoreRankState(saved: Record<string, unknown>): RankState {
       remainder * getRequiredRankExp(oldRank) / oldRequired
     );
   } else if (saved.rankProgressVersion === 1 && isValidExp(saved.rankExp)) {
-    // Version 1 used 100 EXP per HR. Preserve HR and earned remainder EXP.
+    // バージョン1では各HRに100 EXPが必要だった。HRと端数EXPを維持する。
     const oldExp = Math.min(saved.rankExp, 10000);
     totalExp = getTotalExpForRank(Math.floor(oldExp / 100)) + oldExp % 100;
   } else if (saved.rankProgressVersion == null && isValidExp(saved.rank) && isValidExp(saved.rankExp)) {
-    // The original prototype started at HR1; its saved HR takes precedence.
+    // 初期プロトタイプはHR1から始まるため、保存済みのHRを優先する。
     totalExp = getTotalExpForRank(Math.min(saved.rank, MAX_RANK)) + saved.rankExp % 100;
   }
 
@@ -83,9 +97,10 @@ export function restoreRankState(saved: Record<string, unknown>): RankState {
   return { rank, rankExp, rankProgressVersion };
 }
 
-export function getBattleRankReward(totalExp: number, outcome: BattleOutcome) {
+export function getBattleRankReward(totalExp: number, baseExp: number) {
   const current = getRankProgress(totalExp);
-  const next = getRankProgress(current.rankExp + (outcome === "victory" ? 100 : 30));
+  const rewardExp = Number.isFinite(baseExp) ? Math.max(0, Math.floor(baseExp)) : 0;
+  const next = getRankProgress(current.rankExp + Math.min(rewardExp, MAX_RANK_EXP - current.rankExp));
 
   return { ...next, gainedExp: next.rankExp - current.rankExp };
 }
