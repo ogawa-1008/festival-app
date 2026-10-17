@@ -3,6 +3,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
+import { SESSION_CONFLICT_MESSAGE } from "../../context/useSessionScreen";
 import { quests } from "../../data/quests";
 import { DEFAULT_MAX_TURNS } from "../../types/quest";
 
@@ -92,16 +93,32 @@ function QRScanner() {
             hasScannedRef.current = true;
             setIsScanning(false);
 
-            // QRを読み取った証拠としてバトルセッションを開始する
-            startBattle(
-              quest.id,
-              quest.maxTurns ?? DEFAULT_MAX_TURNS
-            );
+            const maxTurns = quest.maxTurns ?? DEFAULT_MAX_TURNS;
 
-            // カメラの停止完了を待つと、端末によっては
-            // 映像だけが黒いまま遷移しないことがある。
-            navigate(`/battle/${quest.id}`);
-            void stopScanner();
+            // QRを読み取った証拠としてバトルセッションを開始する
+            void (async () => {
+              let start = await startBattle(quest.id, maxTurns);
+
+              // 別タブでバトル・リザルト画面を開いている場合は破棄してよいか確認する
+              if (start.type === "conflict") {
+                if (!window.confirm(SESSION_CONFLICT_MESSAGE)) {
+                  navigate("/");
+                  void stopScanner();
+                  return;
+                }
+
+                start = await startBattle(quest.id, maxTurns, { force: true });
+              }
+
+              // カメラの停止完了を待つと、端末によっては
+              // 映像だけが黒いまま遷移しないことがある。
+              navigate(
+                start.type === "result"
+                  ? `/result/${start.questId}`
+                  : `/battle/${quest.id}`
+              );
+              void stopScanner();
+            })();
           } else {
             setErrorMessage(
               "このQRコードはクエスト用ではありません"

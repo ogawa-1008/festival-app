@@ -2,6 +2,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
+import { useSessionScreen } from "../../context/useSessionScreen";
 import { progressData } from "../../data/progress";
 
 import "./Result.css";
@@ -12,6 +13,7 @@ function Result() {
 
     const { quests, resolveBattle } = useGame();
     const { session, claimReward } = useBattleSession();
+    const isReady = useSessionScreen(questId);
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -33,6 +35,11 @@ function Result() {
                 </div>
             </main>
         );
+    }
+
+    // 別タブで開いているかの確認中は何も表示しない
+    if (!isReady) {
+        return null;
     }
 
     if (

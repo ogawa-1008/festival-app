@@ -15,6 +15,8 @@ export type BattleSession = {
   endReason: EndReason | null;
   goldCrown: boolean;
   claimed: boolean;
+  // このセッションを操作できるタブ（複数タブでの二重操作を防ぐ）
+  ownerTabId: string;
   startedAt: number;
 };
 
@@ -26,7 +28,11 @@ const HANDS: Hand[] = ["rock", "scissors", "paper"];
 
 const END_REASONS: EndReason[] = ["victory", "defeated", "timeout"];
 
-export function createSession(questId: string, maxTurns: number): BattleSession {
+export function createSession(
+  questId: string,
+  maxTurns: number,
+  ownerTabId: string
+): BattleSession {
   return {
     questId,
     playerHp: BATTLE_MAX_HP,
@@ -36,6 +42,7 @@ export function createSession(questId: string, maxTurns: number): BattleSession 
     endReason: null,
     goldCrown: false,
     claimed: false,
+    ownerTabId,
     startedAt: Date.now(),
   };
 }
@@ -111,6 +118,7 @@ export function parseSession(value: unknown): BattleSession | null {
     !(data.endReason === null || END_REASONS.includes(data.endReason as EndReason)) ||
     typeof data.goldCrown !== "boolean" ||
     typeof data.claimed !== "boolean" ||
+    typeof data.ownerTabId !== "string" ||
     typeof data.startedAt !== "number"
   ) {
     return null;
@@ -125,6 +133,7 @@ export function parseSession(value: unknown): BattleSession | null {
     endReason: data.endReason as EndReason | null,
     goldCrown: data.goldCrown,
     claimed: data.claimed,
+    ownerTabId: data.ownerTabId,
     startedAt: data.startedAt,
   };
 }

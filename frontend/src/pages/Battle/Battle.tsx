@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
-import { DEFAULT_MAX_TURNS } from "../../types/quest";
+import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     BATTLE_MAX_HP,
     type EndReason,
@@ -25,13 +25,12 @@ function Battle() {
     const { questId } = useParams();
 
     const { quests } = useGame();
-    const { session, startBattle, playHand } = useBattleSession();
+    const { session, playHand } = useBattleSession();
+    const isReady = useSessionScreen(questId);
 
     const quest = quests.find(
         (item) => item.id === questId
     );
-
-    const maxTurns = quest?.maxTurns ?? DEFAULT_MAX_TURNS;
 
     // 再読み込み時はセッションの状態からメッセージを復元する
     const [message, setMessage] = useState(() =>
@@ -43,14 +42,14 @@ function Battle() {
 
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
-        if (endReason !== "victory" || session?.claimed) return;
+        if (!isReady || endReason !== "victory" || session?.claimed) return;
 
         const timerId = setTimeout(() => {
             navigate(`/result/${questId}`);
         }, 1200);
 
         return () => clearTimeout(timerId);
-    }, [endReason, session?.claimed, navigate, questId]);
+    }, [isReady, endReason, session?.claimed, navigate, questId]);
 
     if (!quest) {
         return (
@@ -67,6 +66,11 @@ function Battle() {
                 </div>
             </main>
         );
+    }
+
+    // 別タブで開いているかの確認中は何も表示しない
+    if (!isReady) {
+        return null;
     }
 
     // QRを読み取らずにURLを直接開いた場合は読み取り画面へ戻す
@@ -115,12 +119,6 @@ function Battle() {
         setMessage(
             "敗北…… ダメージを受けた！"
         );
-    };
-
-    const handleRetry = () => {
-        startBattle(quest.id, maxTurns);
-
-        setMessage(START_MESSAGE);
     };
 
     return (
