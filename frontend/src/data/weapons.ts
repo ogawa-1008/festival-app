@@ -5,9 +5,12 @@ export type Weapon = {
   attackBonus: number;
 };
 
+// 交換ページで交換できる武器（今は1本だけ）
+export const AGITO_WEAPON_ID = "agito";
+
 export const weapons: Weapon[] = [
   {
-    id: "agito",
+    id: AGITO_WEAPON_ID,
     name: "アギト",
     attackBonus: 1,
   },

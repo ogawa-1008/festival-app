@@ -277,8 +277,7 @@ function Battle() {
                             <div
                                 className="hp-fill monster-hp-fill"
                                 style={{
-                                    width: `${(monsterHp / session.monsterMaxHp) * 100
-                                        }%`,
+                                    width: `${Math.min(100, (monsterHp / session.monsterMaxHp) * 100)}%`,
                                 }}
                             />
                         </div>
@@ -320,8 +319,7 @@ function Battle() {
                             <div
                                 className="hp-fill player-hp-fill"
                                 style={{
-                                    width: `${(playerHp / session.playerMaxHp) * 100
-                                        }%`,
+                                    width: `${Math.min(100, (playerHp / session.playerMaxHp) * 100)}%`,
                                 }}
                             />
                         </div>

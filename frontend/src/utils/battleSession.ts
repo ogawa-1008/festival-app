@@ -44,9 +44,10 @@ export type BattleStats = {
   monsterAttack: number;
 };
 
-// ステータス導入前に保存されたセッションの値（当時は HP 3・ダメージ 1 固定）
-const LEGACY_MAX_HP = 3;
-const LEGACY_ATTACK = 1;
+// ステータス項目が無いセッション（導入前に保存されたもの）を補う値。当時は HP 3・ダメージ 1 固定
+// ※新しくクエストを作るときの既定値（types/quest.ts の DEFAULT_*）とは別物
+const LEGACY_SESSION_MAX_HP = 3;
+const LEGACY_SESSION_ATTACK = 1;
 
 // 手を出してから次の手を出せるまでの時間（ターン帯を表示する時間）
 export const TURN_COOLDOWN_MS = 1500;
@@ -208,10 +209,17 @@ export function parseSession(value: unknown): BattleSession | null {
     turnsLeft: data.turnsLeft,
     maxTurns: data.maxTurns,
     // ステータス導入前に保存されたセッションには無いため、当時の値で補う
-    playerMaxHp: readPositive(data.playerMaxHp, LEGACY_MAX_HP),
-    playerAttack: readPositive(data.playerAttack, LEGACY_ATTACK),
-    monsterMaxHp: readPositive(data.monsterMaxHp, LEGACY_MAX_HP),
-    monsterAttack: readPositive(data.monsterAttack, LEGACY_ATTACK),
+    // 古い画面が保存し直して項目が消えた場合も、最大HPが今のHPを下回らないようにする
+    playerMaxHp: Math.max(
+      readPositive(data.playerMaxHp, LEGACY_SESSION_MAX_HP),
+      data.playerHp
+    ),
+    playerAttack: readPositive(data.playerAttack, LEGACY_SESSION_ATTACK),
+    monsterMaxHp: Math.max(
+      readPositive(data.monsterMaxHp, LEGACY_SESSION_MAX_HP),
+      data.monsterHp
+    ),
+    monsterAttack: readPositive(data.monsterAttack, LEGACY_SESSION_ATTACK),
     endReason: data.endReason as EndReason | null,
     goldCrown: data.goldCrown,
     claimed: data.claimed,

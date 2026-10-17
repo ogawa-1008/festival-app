@@ -1,4 +1,4 @@
-// 未設定のクエスト（保存済みデータ含む）で使う既定値
+// クエストの定義で未設定の項目に使う既定値
 export const DEFAULT_MAX_TURNS = 5;
 export const DEFAULT_MONSTER_HP = 3;
 export const DEFAULT_MONSTER_ATTACK = 3;

@@ -5,12 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { quests } from "../../data/quests";
 import { useGame } from "../../context/GameContext";
-import {
-  DEFAULT_MAX_TURNS,
-  DEFAULT_MONSTER_ATTACK,
-  DEFAULT_MONSTER_HP,
-} from "../../types/quest";
-import { getPlayerStats } from "../../utils/playerStats";
+import { getBattleStats } from "../../utils/battleStats";
 
 import "./QRScanner.css";
 
@@ -26,6 +21,13 @@ function QRScanner() {
 
   const { startBattle } = useBattleSession();
   const { weaponClaimed } = useGame();
+
+  // カメラ起動後に別タブで武器を交換しても、読み取った時点の値を使えるよう最新値を持つ
+  const weaponClaimedRef = useRef(weaponClaimed);
+
+  useEffect(() => {
+    weaponClaimedRef.current = weaponClaimed;
+  }, [weaponClaimed]);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
@@ -113,14 +115,9 @@ function QRScanner() {
             setIsScanning(false);
 
             // 交換済みの武器を反映した、このバトルのステータス
-            const player = getPlayerStats({ weaponClaimed });
-            const stats = {
-              maxTurns: quest.maxTurns ?? DEFAULT_MAX_TURNS,
-              playerMaxHp: player.maxHp,
-              playerAttack: player.attack,
-              monsterMaxHp: quest.monsterHp ?? DEFAULT_MONSTER_HP,
-              monsterAttack: quest.monsterAttack ?? DEFAULT_MONSTER_ATTACK,
-            };
+            const stats = getBattleStats(quest, {
+              weaponClaimed: weaponClaimedRef.current,
+            });
 
             // QRを読み取った証拠としてバトルセッションを開始する
             let start = startBattle(quest.id, stats);

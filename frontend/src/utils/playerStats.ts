@@ -1,4 +1,4 @@
-import { weapons } from "../data/weapons";
+import { AGITO_WEAPON_ID, weapons } from "../data/weapons";
 
 // バトル開始時のプレイヤーの最大HP
 export const PLAYER_MAX_HP = 10;
@@ -14,7 +14,7 @@ export type PlayerStats = {
 // 交換済みの武器ID。今は武器が1本だけなので weaponClaimed から求める
 // （武器を増やすときは、交換済みの武器を GameState に一覧で記録する形にする）
 function getClaimedWeaponIds(state: { weaponClaimed: boolean }) {
-  return state.weaponClaimed ? ["agito"] : [];
+  return state.weaponClaimed ? [AGITO_WEAPON_ID] : [];
 }
 
 export function getPlayerStats(state: { weaponClaimed: boolean }): PlayerStats {
