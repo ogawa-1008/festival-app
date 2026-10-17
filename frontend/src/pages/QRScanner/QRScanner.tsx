@@ -11,6 +11,9 @@ import "./QRScanner.css";
 const SESSION_CONFLICT_MESSAGE =
   "別のタブでバトル中、またはリザルト画面を開いています。\n前回のバトルを破棄して、新しくバトルを始めますか？";
 
+const getReplaceMessage = (title: string) =>
+  `「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
+
 function QRScanner() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -101,9 +104,17 @@ function QRScanner() {
             void (async () => {
               let start = await startBattle(quest.id, maxTurns);
 
-              // 別タブでバトル・リザルト画面を開いている場合は破棄してよいか確認する
-              if (start.type === "conflict") {
-                if (!window.confirm(SESSION_CONFLICT_MESSAGE)) {
+              // 別タブで開いている・別クエストが戦闘中の場合は破棄してよいか確認する
+              if (start.type === "conflict" || start.type === "replace") {
+                const replacedId = start.type === "replace" ? start.questId : null;
+                const message = replacedId === null
+                  ? SESSION_CONFLICT_MESSAGE
+                  : getReplaceMessage(
+                    quests.find((item) => item.id === replacedId)?.title
+                      ?? "前回のクエスト"
+                  );
+
+                if (!window.confirm(message)) {
                   navigate("/");
                   void stopScanner();
                   return;

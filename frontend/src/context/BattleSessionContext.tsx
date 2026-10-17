@@ -19,10 +19,12 @@ import {
 } from "../utils/battleSession";
 
 // "battle" | "result": その画面へ進む / "conflict": 別タブで開いているので確認が必要
+// "replace": 別クエストが戦闘中なので、破棄してよいか確認が必要
 type StartResult =
   | { type: "battle"; questId: string }
   | { type: "result"; questId: string }
-  | { type: "conflict" };
+  | { type: "conflict" }
+  | { type: "replace"; questId: string };
 
 // "ok": この画面を表示してよい / "conflict": 別タブで開いているので確認が必要
 type AccessResult = "ok" | "conflict";
@@ -53,9 +55,12 @@ const PING_TIMEOUT_MS = 300;
 // ページを読み込むたびに変わるタブID（再読み込み後は持ち主タブが応答しないので引き継げる）
 const tabId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
-function loadSession(): BattleSession | null {
+// 読み込めない環境では fallback を返す
+function loadSession(
+  fallback: BattleSession | null = null
+): BattleSession | null {
   if (typeof window === "undefined") {
-    return null;
+    return fallback;
   }
 
   try {
@@ -63,7 +68,7 @@ function loadSession(): BattleSession | null {
 
     return saved ? parseSession(JSON.parse(saved)) : null;
   } catch {
-    return null;
+    return fallback;
   }
 }
 
@@ -103,19 +108,22 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // 別タブでの変更を反映し続けるため、操作の直前に localStorage から読み直す
-  const readLatest = useCallback(() => {
-    if (typeof window === "undefined") {
-      return sessionRef.current;
+  const readLatest = useCallback(() => loadSession(sessionRef.current), []);
+
+  // このタブが持ち主のセッションを返す。別タブに引き継がれていれば画面を終了させて null
+  const readOwned = useCallback(() => {
+    const current = readLatest();
+
+    if (current?.ownerTabId === tabId) {
+      return current;
     }
 
-    try {
-      const saved = window.localStorage.getItem(storageKey);
+    sessionRef.current = current;
+    setSession(current);
+    setTakenOver(true);
 
-      return saved ? parseSession(JSON.parse(saved)) : null;
-    } catch {
-      return sessionRef.current;
-    }
-  }, []);
+    return null;
+  }, [readLatest]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -242,9 +250,12 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
           return { type: "battle", questId } as const;
         }
+
+        // 別クエストが戦闘中なら、破棄してよいか確認してから上書きする
+        return { type: "replace", questId: current.questId } as const;
       }
 
-      // それ以外（受け取り済み・別クエストの戦闘中・破棄を選んだ場合）は上書きする
+      // それ以外（受け取り済み・破棄を選んだ場合）は上書きする
       update(createSession(questId, maxTurns, tabId));
 
       return { type: "battle", questId } as const;
@@ -286,18 +297,10 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
   const playHand = useCallback(
     (hand: Hand) => {
-      const current = readLatest();
-
       // 別タブに引き継がれたセッションは操作させない
-      if (current?.ownerTabId !== tabId) {
-        sessionRef.current = current;
-        setSession(current);
-        setTakenOver(true);
+      const current = readOwned();
 
-        return null;
-      }
-
-      if (current.endReason !== null) {
+      if (!current || current.endReason !== null) {
         return null;
       }
 
@@ -307,28 +310,20 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
       return round;
     },
-    [readLatest, update]
+    [readOwned, update]
   );
 
   const claimReward = useCallback(() => {
-    const current = readLatest();
+    const current = readOwned();
 
-    if (current?.ownerTabId !== tabId) {
-      sessionRef.current = current;
-      setSession(current);
-      setTakenOver(true);
-
-      return false;
-    }
-
-    if (current.endReason === null || current.claimed) {
+    if (!current || current.endReason === null || current.claimed) {
       return false;
     }
 
     update({ ...current, claimed: true });
 
     return true;
-  }, [readLatest, update]);
+  }, [readOwned, update]);
 
   const value = useMemo<BattleSessionContextType>(
     () => ({

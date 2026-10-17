@@ -19,7 +19,7 @@ import { BattleSessionProvider } from "./context/BattleSessionContext";
 
 import "./App.css";
 
-// クエストが変わったら Battle を作り直し、HP・残り手数を初期化する
+// クエストが変わったら Battle を作り直し、表示メッセージなど画面内の状態を初期化する
 function BattleRoute() {
   const { questId } = useParams();
 
