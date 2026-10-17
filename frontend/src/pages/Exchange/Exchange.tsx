@@ -11,7 +11,6 @@ function Exchange() {
   const navigate = useNavigate();
   const { materials, weaponClaimed, requiresUpdate, claimWeapon } = useGame();
   const [isConfirming, setIsConfirming] = useState(false);
-  const [isClaimed, setIsClaimed] = useState(false);
   // 「交換完了」を見せている間（キャンセル不可）
   const [isFinishing, setIsFinishing] = useState(false);
   const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -29,10 +28,10 @@ function Exchange() {
     if (!claimWeapon()) return false;
 
     setIsFinishing(true);
+    // 交換済みの表示は weaponClaimed で切り替わる。ここでは確認画面を閉じるだけ
     finishTimerRef.current = setTimeout(() => {
       setIsConfirming(false);
       setIsFinishing(false);
-      setIsClaimed(true);
     }, 900);
 
     return true;
@@ -49,7 +48,7 @@ function Exchange() {
           className="exchange-image"
         />
 
-        {isClaimed || weaponClaimed ? (
+        {weaponClaimed ? (
           <div className="exchange-complete">
             <h2>交換済みです</h2>
             <p>運営スタッフにこの画面を提示して、ピンバッジを受け取ってください。</p>

@@ -17,9 +17,6 @@
 
   overflow: hidden;
 
-  /* つまみの移動量を枠の幅（cqw）から求める */
-  container-type: inline-size;
-
   user-select: none;
   -webkit-user-select: none;
 }
@@ -31,10 +28,8 @@
   bottom: var(--track-padding);
   left: var(--track-padding);
 
-  width: calc(
-    var(--knob-size)
-      + (100% - var(--knob-size) - var(--track-padding) * 2) * var(--swipe-progress)
-  );
+  /* --swipe-offset はつまみの移動量（px）。JS で測った値なので古いブラウザでも動く */
+  width: calc(var(--knob-size) + var(--swipe-offset));
 
   border-radius: 999px;
 
@@ -87,14 +82,31 @@
   /* スライド中に画面がスクロールしないようにする */
   touch-action: none;
 
-  transform: translateX(
-    calc((100cqw - var(--knob-size) - var(--track-padding) * 2) * var(--swipe-progress))
-  );
+  transform: translateX(var(--swipe-offset));
 
   transition: transform 0.25s ease-out;
 }
 
-.swipe-confirm-knob:focus-visible {
+/* キーボード・読み上げ機能用の標準スライダー。画面には出さない */
+.swipe-confirm-input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  margin: 0;
+
+  opacity: 0;
+
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
+
+  pointer-events: none;
+}
+
+/* 見えないスライダーにフォーカスがあるときは、つまみに枠を出す */
+.swipe-confirm-focused .swipe-confirm-knob {
   outline: 3px solid #f6e3b4;
   outline-offset: 2px;
 }
