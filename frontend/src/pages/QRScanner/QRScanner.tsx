@@ -1,13 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { quests } from "../../data/quests";
+import { DEFAULT_MAX_TURNS } from "../../types/quest";
 
 import "./QRScanner.css";
 
+const getTakeOverMessage = (title: string) =>
+  `別のタブで開いていた「${title}」のバトル・リザルトがあります。\nこのタブで続きから引き継ぎますか？`;
+
+const getDiscardMessage = (title: string, isElsewhere: boolean) =>
+  `${isElsewhere ? "別のタブで開いていた" : ""}「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
+
 function QRScanner() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { startBattle } = useBattleSession();
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
@@ -16,8 +27,19 @@ function QRScanner() {
   const [isScanning, setIsScanning] =
     useState(false);
 
+  // バトル画面から差し戻された場合はその理由を表示する
   const [errorMessage, setErrorMessage] =
-    useState("");
+    useState(
+      () =>
+        (location.state as { message?: string } | null)?.message ?? ""
+    );
+
+  // 案内は1回だけ表示する（再読み込み・戻る操作で古い案内が出ないよう履歴から消す）
+  useEffect(() => {
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const stopScanner = async () => {
     const scanner = scannerRef.current;
@@ -83,9 +105,47 @@ function QRScanner() {
             hasScannedRef.current = true;
             setIsScanning(false);
 
+            const maxTurns = quest.maxTurns ?? DEFAULT_MAX_TURNS;
+
+            // QRを読み取った証拠としてバトルセッションを開始する
+            let start = startBattle(quest.id, maxTurns);
+
+            // 別タブのセッション・別クエストが戦闘中の場合は確認する
+            if (start.type === "confirm") {
+              const previousId = start.questId;
+              const title =
+                quests.find((item) => item.id === previousId)?.title
+                  ?? "前回のクエスト";
+              const message = start.mode === "takeover"
+                ? getTakeOverMessage(title)
+                : getDiscardMessage(title, start.isElsewhere);
+
+              if (!window.confirm(message)) {
+                navigate("/");
+                void stopScanner();
+                return;
+              }
+
+              start = startBattle(quest.id, maxTurns, { force: true });
+            }
+
             // カメラの停止完了を待つと、端末によっては
             // 映像だけが黒いまま遷移しないことがある。
-            navigate(`/battle/${quest.id}`);
+            if (start.type === "result") {
+              const pendingTitle =
+                quests.find((item) => item.id === start.questId)?.title;
+
+              // 別クエストのQRを読んだのに前のリザルトへ進む理由を伝える
+              navigate(`/result/${start.questId}`, {
+                state: start.questId !== quest.id && pendingTitle
+                  ? {
+                      notice: `「${pendingTitle}」の報酬を受け取ってから、次のバトルを始められます`,
+                    }
+                  : null,
+              });
+            } else {
+              navigate(`/battle/${quest.id}`);
+            }
             void stopScanner();
           } else {
             setErrorMessage(

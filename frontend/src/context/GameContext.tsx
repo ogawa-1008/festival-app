@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -10,7 +11,8 @@ import {
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
 import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
-import { loadSavedGame, saveGame } from "../utils/gameStorage";
+import { useStorageSync } from "./useStorageSync";
+import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage";
 
 type MaterialStock = Record<number, number>;
 
@@ -70,24 +72,51 @@ function loadGameState(): GameState {
   }
 }
 
+function saveGameState(gameState: GameState): boolean {
+  try {
+    const storage = window.localStorage;
+    // 同じ内容を別タブへ書き戻し続けないようにする。
+    return storage.getItem(GAME_STORAGE_KEY) === JSON.stringify(gameState)
+      || saveGame(storage, gameState);
+  } catch {
+    // Accessing localStorage itself may be blocked by the browser.
+    return false;
+  }
+}
+
 const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, setGameState] = useState<GameState>(loadGameState);
 
   const [saveFailed, setSaveFailed] = useState(false);
+  const pendingSave = useRef<GameState | null>(null);
 
   useEffect(() => {
-    let saved = false;
-    try {
-      saved = saveGame(window.localStorage, gameState);
-    } catch {
-      // Accessing localStorage itself may be blocked by the browser.
-    }
+    const saved = saveGameState(gameState);
+    pendingSave.current = saved ? null : gameState;
     // Report the result of synchronizing React state with external storage.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaveFailed(!saved);
   }, [gameState]);
+
+  // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
+  useStorageSync(GAME_STORAGE_KEY, () => {
+    // 未保存の進行は保持し、同期で読み直す前に保存を再試行する。
+    if (pendingSave.current) {
+      const saved = saveGameState(pendingSave.current);
+      if (saved) pendingSave.current = null;
+      setSaveFailed(!saved);
+      return;
+    }
+
+    const next = loadGameState();
+
+    // 中身が変わっていなければ何もしない（表示に戻るたびの再描画を防ぐ）
+    setGameState((current) =>
+      JSON.stringify(current) === JSON.stringify(next) ? current : next
+    );
+  });
 
   const value = useMemo<GameContextType>(() => {
     const resolveBattle = (
@@ -98,7 +127,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setGameState((current) => {
         const quest = current.quests.find((item) => item.id === questId);
 
-        if (!quest || (outcome === "victory" && quest.completed)) {
+        // 討伐済みでも周回で再討伐した分の報酬は受け取れる
+        if (!quest) {
           return current;
         }
 
@@ -134,7 +164,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...current,
           quests: current.quests.map((item) =>
             item.id === questId && outcome === "victory"
-              ? { ...item, completed: true, goldCrown: isGoldCrown }
+              ? { ...item, completed: true, goldCrown: item.goldCrown || isGoldCrown }
               : item
           ),
           materials,
