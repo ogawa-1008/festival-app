@@ -24,6 +24,18 @@ const CONFIRM_THRESHOLD = 0.9;
 // キーボード・読み上げ機能は10段階で右端まで進む
 const KEY_STEPS = 10;
 
+// スライダーの値を変えるキー（押しっぱなしの連打を無視する対象）
+const SLIDER_KEYS = [
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowUp",
+  "ArrowDown",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End",
+];
+
 // 右端までスライドして離すと確定するボタン（誤操作防止）
 // 操作と読み上げは画面に見えない標準のスライダーが受け持ち、見えているつまみは指・マウス用
 function SwipeToConfirm({
@@ -69,6 +81,13 @@ function SwipeToConfirm({
 
     measure();
 
+    // ResizeObserver が無い古いブラウザでは、画面サイズの変化で測り直す
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+
+      return () => window.removeEventListener("resize", measure);
+    }
+
     const observer = new ResizeObserver(measure);
 
     observer.observe(track);
@@ -80,6 +99,8 @@ function SwipeToConfirm({
     // 確定は1回だけ。呼び出し側が失敗を返したら戻す
     setIsConfirmed(true);
     setProgress(1);
+    // 確定後はスライダーが無効になり blur が届かないことがあるため、ここでフォーカス表示を消す
+    setIsFocused(false);
 
     if (!onConfirm()) {
       setIsConfirmed(false);
@@ -143,10 +164,17 @@ function SwipeToConfirm({
   };
 
   // キーボード・読み上げ機能からの操作。右端（100）に達したら確定する
+  // End / PageUp などで一気に進まないよう、1回の操作で進めるのは1段階まで
   const handleRangeChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (isLocked) return;
 
-    const next = Number(event.target.value) / 100;
+    const currentStep = Math.round(progressRef.current * KEY_STEPS);
+    const requestedStep = Math.round((Number(event.target.value) / 100) * KEY_STEPS);
+    const nextStep = Math.min(
+      currentStep + 1,
+      Math.max(currentStep - 1, requestedStep)
+    );
+    const next = Math.min(KEY_STEPS, Math.max(0, nextStep)) / KEY_STEPS;
 
     if (next >= 1) {
       confirm();
@@ -155,9 +183,9 @@ function SwipeToConfirm({
     }
   };
 
-  // キーの押しっぱなし（自動連打）では進めない。Enter でも確定しない
+  // スライダーを動かすキーの押しっぱなし（自動連打）では進めない。Enter でも確定しない
   const handleRangeKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.repeat) event.preventDefault();
+    if (event.repeat && SLIDER_KEYS.includes(event.key)) event.preventDefault();
   };
 
   // 途中でフォーカスが外れたら戻す

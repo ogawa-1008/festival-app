@@ -82,7 +82,9 @@ function Exchange() {
       {isConfirming && (
         <div className="exchange-modal" role="dialog" aria-modal="true" aria-labelledby="exchange-title">
           <div>
-            <h2 id="exchange-title">交換しますか？</h2>
+            <h2 id="exchange-title">
+              {isFinishing ? "交換が完了しました" : "交換しますか？"}
+            </h2>
             <p>素材を消費すると、同じ特典はもう交換できません。</p>
             <div className="exchange-modal-actions">
               <SwipeToConfirm
