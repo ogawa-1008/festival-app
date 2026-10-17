@@ -129,10 +129,8 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
   }, [readLatest]);
 
   useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== storageKey && event.key !== null) return;
-
-      const next = loadSession();
+    const syncFromStorage = () => {
+      const next = loadSession(sessionRef.current);
       const previous = sessionRef.current;
 
       // 画面を開いている間に持ち主が別タブへ移ったら、このタブの画面は終了させる
@@ -148,9 +146,30 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       setSession(next);
     };
 
-    window.addEventListener("storage", handleStorage);
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== storageKey && event.key !== null) return;
 
-    return () => window.removeEventListener("storage", handleStorage);
+      syncFromStorage();
+    };
+
+    // スマホでは背景タブの storage イベントが遅れるため、表示に戻った時点でも読み直す
+    const handleVisible = () => {
+      if (document.visibilityState === "visible") {
+        syncFromStorage();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("pageshow", handleVisible);
+    window.addEventListener("focus", handleVisible);
+    document.addEventListener("visibilitychange", handleVisible);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("pageshow", handleVisible);
+      window.removeEventListener("focus", handleVisible);
+      document.removeEventListener("visibilitychange", handleVisible);
+    };
   }, []);
 
   // 子画面の effect は Provider の effect より先に走るため、チャンネルは初回利用時に作る
@@ -365,6 +384,11 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       {children}
     </BattleSessionContext.Provider>
   );
+}
+
+// このタブが持ち主のセッションか（未受け取りのバトル・リザルトは持ち主のタブでのみ表示する）
+export function isOwnedByThisTab(session: BattleSession | null) {
+  return session?.ownerTabId === tabId;
 }
 
 export function useBattleSession() {

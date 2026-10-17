@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useBattleSession } from "./BattleSessionContext";
+import { isOwnedByThisTab, useBattleSession } from "./BattleSessionContext";
 
 // "checking": 確認中 / "ready": 表示してよい / "elsewhere": 別タブで開いているので表示しない
 type ScreenStatus = "checking" | "ready" | "elsewhere";
@@ -10,7 +10,8 @@ type ScreenStatus = "checking" | "ready" | "elsewhere";
 // 別タブで開いている場合は確認を出さずに弾く（破棄の確認はQR読み取り後に行う）
 export function useSessionScreen(questId: string | undefined): ScreenStatus {
   const navigate = useNavigate();
-  const { takenOver, checkAccess, registerScreen } = useBattleSession();
+  const { session, takenOver, checkAccess, registerScreen } =
+    useBattleSession();
 
   const [status, setStatus] = useState<ScreenStatus>("checking");
 
@@ -31,12 +32,20 @@ export function useSessionScreen(questId: string | undefined): ScreenStatus {
     };
   }, [questId, checkAccess]);
 
-  // 別タブで新しいバトルが始まったら、このタブの画面はホームへ戻す
+  // 未受け取りのバトル・リザルトを別タブが持っている（引き継がれた）か
+  const isHeldElsewhere =
+    status === "ready" &&
+    session !== null &&
+    session.questId === questId &&
+    !session.claimed &&
+    !isOwnedByThisTab(session);
+
+  // 別タブに引き継がれたら、このタブの画面はホームへ戻す（同じ画面を2つのタブで開かせない）
   useEffect(() => {
-    if (takenOver) {
+    if (takenOver || isHeldElsewhere) {
       navigate("/", { replace: true });
     }
-  }, [takenOver, navigate]);
+  }, [takenOver, isHeldElsewhere, navigate]);
 
-  return takenOver ? "checking" : status;
+  return takenOver || isHeldElsewhere ? "checking" : status;
 }
