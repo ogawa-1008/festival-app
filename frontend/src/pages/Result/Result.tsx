@@ -21,7 +21,7 @@ function Result() {
     const notice =
         (location.state as { notice?: string } | null)?.notice ?? null;
 
-    const { quests, rankExp, resolveBattle } = useGame();
+    const { quests, rankExp, requiresUpdate, canUpdateGame, resolveBattle } = useGame();
     const { session, claimReward } = useBattleSession();
     const screenStatus = useSessionScreen(questId);
     const [receipt, setReceipt] = useState<{ fromExp: number; gainedExp: number } | null>(null);
@@ -87,6 +87,7 @@ function Result() {
         : displayedExp > 0 ? `${displayedExp} EXPを獲得しました` : "受取済みの報酬です";
 
     const handleClaimReward = () => {
+        if (!canUpdateGame()) return;
         // 受け取り済みなら false（再読み込み・戻る操作での二重受け取りを防ぐ）
         if (!claimReward()) return;
 
@@ -102,7 +103,7 @@ function Result() {
             <div className="result-content">
 
                 {/* =========================
-            HEADER
+            ヘッダー
         ========================= */}
 
                 <header className="result-header">
@@ -115,7 +116,7 @@ function Result() {
 
 
                 {/* =========================
-            MONSTER + STAMP
+            モンスターと討伐スタンプ
         ========================= */}
 
                 <section className="result-monster-area">
@@ -148,7 +149,7 @@ function Result() {
 
 
                 {/* =========================
-            QUEST
+            クエスト情報
         ========================= */}
 
                 <section className="result-quest">
@@ -179,7 +180,7 @@ function Result() {
 
 
                 {/* =========================
-            REWARD
+            報酬
         ========================= */}
 
                 <section className="result-reward">
@@ -270,14 +271,14 @@ function Result() {
 
 
                 {/* =========================
-            CLAIM BUTTON
+            報酬受取ボタン
         ========================= */}
 
                 <button
                     type="button"
                     className="result-claim-button"
                     onClick={handleClaimReward}
-                    disabled={claimed}
+                    disabled={claimed || requiresUpdate}
                 >
                     {claimed
                         ? "報酬を受け取りました"
