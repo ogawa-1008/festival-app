@@ -15,56 +15,66 @@ import Collection from "./pages/Collection/Collection.tsx";
 import Exchange from "./pages/Exchange/Exchange.tsx";
 
 import { GameProvider } from "./context/GameContext";
+import { BattleSessionProvider } from "./context/BattleSessionContext";
 
 import "./App.css";
 
-// クエストが変わったら Battle を作り直し、HP・残り手数を初期化する
+// クエストが変わったら Battle を作り直し、表示メッセージなど画面内の状態を初期化する
 function BattleRoute() {
   const { questId } = useParams();
 
   return <Battle key={questId} />;
 }
 
+// クエストが変わったら Result を作り直し、前のクエストの入場チェック結果を引き継がない
+function ResultRoute() {
+  const { questId } = useParams();
+
+  return <Result key={questId} />;
+}
+
 function App() {
   return (
     <GameProvider>
-      <BrowserRouter>
-        <div className="app">
-          <Routes>
-            <Route path="/" element={<Home />} />
+      <BattleSessionProvider>
+        <BrowserRouter>
+          <div className="app">
+            <Routes>
+              <Route path="/" element={<Home />} />
 
-            <Route
-              path="/map"
-              element={<Map />}
-            />
+              <Route
+                path="/map"
+                element={<Map />}
+              />
 
-            <Route
-              path="/progress"
-              element={<Progress />}
-            />
+              <Route
+                path="/progress"
+                element={<Progress />}
+              />
 
-            <Route
-              path="/qr-scanner"
-              element={<QRScanner />}
-            />
+              <Route
+                path="/qr-scanner"
+                element={<QRScanner />}
+              />
 
-            <Route
-              path="/battle/:questId"
-              element={<BattleRoute />}
-            />
+              <Route
+                path="/battle/:questId"
+                element={<BattleRoute />}
+              />
 
-            <Route
-              path="/result/:questId"
-              element={<Result />}
-            />
+              <Route
+                path="/result/:questId"
+                element={<ResultRoute />}
+              />
 
-            <Route path="/materials" element={<Collection view="materials" />} />
-            <Route path="/stamps" element={<Collection view="stamps" />} />
-            <Route path="/history" element={<Collection view="history" />} />
-            <Route path="/exchange/weapon" element={<Exchange />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
+              <Route path="/materials" element={<Collection view="materials" />} />
+              <Route path="/stamps" element={<Collection view="stamps" />} />
+              <Route path="/history" element={<Collection view="history" />} />
+              <Route path="/exchange/weapon" element={<Exchange />} />
+            </Routes>
+          </div>
+        </BrowserRouter>
+      </BattleSessionProvider>
     </GameProvider>
   );
 }

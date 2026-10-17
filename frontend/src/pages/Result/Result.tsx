@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
+import { useSessionScreen } from "../../context/useSessionScreen";
 import { progressData } from "../../data/progress";
 
 import "./Result.css";
@@ -9,23 +10,20 @@ import "./Result.css";
 function Result() {
     const navigate = useNavigate();
     const { questId } = useParams();
-    const [searchParams] = useSearchParams();
+    const location = useLocation();
+
+    // 別クエストのQRを読んで、このリザルトへ案内された場合の説明
+    const notice =
+        (location.state as { notice?: string } | null)?.notice ?? null;
 
     const { quests, resolveBattle } = useGame();
-
-    const [claimed, setClaimed] = useState(false);
+    const { session, claimReward } = useBattleSession();
+    const screenStatus = useSessionScreen(questId);
 
     const quest = quests.find(
         (item) => item.id === questId
     );
 
-    const outcome = searchParams.get("outcome") === "failure"
-        ? "failure"
-        : "victory";
-    const isTimeout = outcome === "failure"
-        && searchParams.get("reason") === "timeout";
-    const isGoldCrown = searchParams.get("crown") === "1";
-    const rewardRate = outcome === "victory" ? 1 : 0.5;
 
     if (!quest) {
         return (
@@ -44,10 +42,32 @@ function Result() {
         );
     }
 
-    const handleClaimReward = () => {
-        if (claimed) return;
+    // 別タブで開いているかの確認中は何も表示しない
+    if (screenStatus === "checking") {
+        return null;
+    }
 
-        setClaimed(true);
+    // 別タブで開いているリザルトはこのタブでは表示しない
+    if (
+        screenStatus === "elsewhere"
+        || !session
+        || session.questId !== quest.id
+        || session.endReason === null
+    ) {
+        return <Navigate to="/" replace />;
+    }
+
+    const outcome = session.endReason === "victory"
+        ? "victory"
+        : "failure";
+    const isTimeout = session.endReason === "timeout";
+    const isGoldCrown = session.goldCrown;
+    const rewardRate = outcome === "victory" ? 1 : 0.5;
+    const claimed = session.claimed;
+
+    const handleClaimReward = () => {
+        // 受け取り済みなら false（再読み込み・戻る操作での二重受け取りを防ぐ）
+        if (!claimReward()) return;
 
         resolveBattle(quest.id, outcome, isGoldCrown);
     };
@@ -115,6 +135,12 @@ function Result() {
                     <h2>
                         {quest.title}
                     </h2>
+
+                    {notice && !claimed && (
+                        <p className="result-notice">
+                            {notice}
+                        </p>
+                    )}
 
                     {isTimeout && (
                         <p className="result-timeout-message">

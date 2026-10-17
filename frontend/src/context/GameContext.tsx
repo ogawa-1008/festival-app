@@ -9,6 +9,7 @@ import {
 
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
+import { useStorageSync } from "./useStorageSync";
 
 type MaterialStock = Record<number, number>;
 
@@ -90,8 +91,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, setGameState] = useState<GameState>(loadGameState);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(gameState));
+    const serialized = JSON.stringify(gameState);
+
+    // 別タブから読み込んだ内容と同じなら書き戻さない（タブ間で保存し合うのを防ぐ）
+    if (window.localStorage.getItem(storageKey) !== serialized) {
+      window.localStorage.setItem(storageKey, serialized);
+    }
   }, [gameState]);
+
+  // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
+  useStorageSync(storageKey, () => {
+    const next = loadGameState();
+
+    // 中身が変わっていなければ何もしない（表示に戻るたびの再描画を防ぐ）
+    setGameState((current) =>
+      JSON.stringify(current) === JSON.stringify(next) ? current : next
+    );
+  });
 
   const value = useMemo<GameContextType>(() => {
     const resolveBattle = (
@@ -102,7 +118,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setGameState((current) => {
         const quest = current.quests.find((item) => item.id === questId);
 
-        if (!quest || (outcome === "victory" && quest.completed)) {
+        // 討伐済みでも周回で再討伐した分の報酬は受け取れる
+        if (!quest) {
           return current;
         }
 
@@ -138,7 +155,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...current,
           quests: current.quests.map((item) =>
             item.id === questId && outcome === "victory"
-              ? { ...item, completed: true, goldCrown: isGoldCrown }
+              ? { ...item, completed: true, goldCrown: item.goldCrown || isGoldCrown }
               : item
           ),
           materials,

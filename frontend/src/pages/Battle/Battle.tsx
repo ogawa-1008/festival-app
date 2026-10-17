@@ -1,43 +1,55 @@
-import { useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
-import { DEFAULT_MAX_TURNS } from "../../types/quest";
+import { useSessionScreen } from "../../context/useSessionScreen";
+import {
+    BATTLE_MAX_HP,
+    type EndReason,
+    type Hand,
+} from "../../utils/battleSession";
 
 import "./Battle.css";
 
-type Hand = "rock" | "scissors" | "paper";
+const START_MESSAGE = "じゃんけんでモンスターを倒せ！";
 
-// バトル終了理由（null はバトル中）
-type EndReason = "victory" | "defeated" | "timeout";
+const END_MESSAGES: Record<EndReason, string> = {
+    victory: "モンスターを討伐した！",
+    defeated: "力尽きてしまった……",
+    timeout: "モンスターは逃げてしまった……",
+};
 
 function Battle() {
     const navigate = useNavigate();
     const { questId } = useParams();
 
     const { quests } = useGame();
+    const { session, playHand } = useBattleSession();
+    const screenStatus = useSessionScreen(questId);
 
     const quest = quests.find(
         (item) => item.id === questId
     );
 
-    const maxTurns = quest?.maxTurns ?? DEFAULT_MAX_TURNS;
+    // 再読み込み時はセッションの状態からメッセージを復元する
+    const [message, setMessage] = useState(() =>
+        session?.endReason ? END_MESSAGES[session.endReason] : START_MESSAGE
+    );
 
-    const [playerHp, setPlayerHp] = useState(3);
-    const [monsterHp, setMonsterHp] = useState(3);
-    const [turnsLeft, setTurnsLeft] = useState(maxTurns);
+    const isOwnSession = session !== null && session.questId === questId;
+    const endReason = isOwnSession ? session.endReason : null;
 
-    const [message, setMessage] =
-        useState("じゃんけんでモンスターを倒せ！");
+    // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
+    useEffect(() => {
+        if (screenStatus !== "ready" || endReason !== "victory" || session?.claimed) return;
 
-    const [endReason, setEndReason] =
-        useState<EndReason | null>(null);
+        const timerId = setTimeout(() => {
+            navigate(`/result/${questId}`);
+        }, 1200);
 
-    const isBattleOver = endReason !== null;
-
-    // stateだとレンダリングが発生しちゃうからRefで同期的に管理する処理
-    const hpRef = useRef({ player: 3, monster: 3, turns: maxTurns });
-    const isBattleOverRef = useRef(false);
+        return () => clearTimeout(timerId);
+    }, [screenStatus, endReason, session?.claimed, navigate, questId]);
 
     if (!quest) {
         return (
@@ -56,116 +68,51 @@ function Battle() {
         );
     }
 
-    const judgeWinner = (
-        player: Hand,
-        enemy: Hand
-    ) => {
-        if (player === enemy) {
-            return "draw";
-        }
+    // 別タブで開いているかの確認中は何も表示しない
+    if (screenStatus === "checking") {
+        return null;
+    }
 
-        if (
-            (player === "rock" &&
-                enemy === "scissors") ||
-            (player === "scissors" &&
-                enemy === "paper") ||
-            (player === "paper" &&
-                enemy === "rock")
-        ) {
-            return "player";
-        }
+    // QRを読み取らずにURLを直接開いた場合・別タブでバトル中の場合は読み取り画面へ戻す
+    if (!isOwnSession || screenStatus === "elsewhere") {
+        return (
+            <Navigate
+                to="/qr-scanner"
+                replace
+                state={{
+                    message: screenStatus === "elsewhere"
+                        ? "このバトルは別のタブで開いています。\nこのタブで続けるにはQRコードを読み取ってください"
+                        : "QRコードを読み取ってください",
+                }}
+            />
+        );
+    }
 
-        return "enemy";
-    };
+    // 報酬受け取り済みの1戦には戻れない
+    if (session.claimed) {
+        return <Navigate to="/" replace />;
+    }
+
+    const { playerHp, monsterHp, turnsLeft } = session;
+    const isBattleOver = endReason !== null;
 
     const handleHandSelect = (playerHand: Hand) => {
-        if (isBattleOverRef.current) return; // 連打を防ぐガードです
+        // 終了済みなら null が返る（連打を防ぐガード）
+        const round = playHand(playerHand);
 
-        const hands: Hand[] = [
-            "rock",
-            "scissors",
-            "paper",
-        ];
+        if (!round) return;
 
-        const enemyHand =
-            hands[Math.floor(Math.random() * hands.length)];
-
-        const result = judgeWinner(
-            playerHand,
-            enemyHand
-        );
-
-        // あいこも含めて1手として数える
-        const nextTurns = hpRef.current.turns - 1;
-
-        hpRef.current.turns = nextTurns;
-        setTurnsLeft(nextTurns);
-
-        if (result === "player") {
-            const nextMonsterHp =
-                Math.max(0, hpRef.current.monster - 1);
-
-            hpRef.current.monster = nextMonsterHp;
-            setMonsterHp(nextMonsterHp);
-        }
-
-        if (result === "enemy") {
-            const nextPlayerHp =
-                Math.max(0, hpRef.current.player - 1);
-
-            hpRef.current.player = nextPlayerHp;
-            setPlayerHp(nextPlayerHp);
-        }
-
-        // 終了判定は 討伐 → 力尽きた → 手数切れ の優先順
-        if (hpRef.current.monster <= 0) {
-            setMessage(
-                "モンスターを討伐した！"
-            );
-
-            isBattleOverRef.current = true;
-            setEndReason("victory");
-
-            setTimeout(() => {
-                const goldCrown = Math.random() < 0.1;
-                navigate(
-                    `/result/${quest.id}?outcome=victory${
-                        goldCrown ? "&crown=1" : ""
-                    }`
-                );
-            }, 1200);
-
+        if (round.session.endReason) {
+            setMessage(END_MESSAGES[round.session.endReason]);
             return;
         }
 
-        if (hpRef.current.player <= 0) {
-            setMessage(
-                "力尽きてしまった……"
-            );
-
-            isBattleOverRef.current = true;
-            setEndReason("defeated");
-
-            return;
-        }
-
-        if (nextTurns <= 0) {
-            setMessage(
-                "モンスターは逃げてしまった……"
-            );
-
-            isBattleOverRef.current = true;
-            setEndReason("timeout");
-
-            return;
-        }
-
-        if (result === "draw") {
+        if (round.result === "draw") {
             setMessage("あいこ！ もう一度！");
             return;
         }
 
-        if (result === "player") {
+        if (round.result === "player") {
             setMessage(
                 "勝利！ モンスターにダメージ！"
             );
@@ -176,21 +123,6 @@ function Battle() {
         setMessage(
             "敗北…… ダメージを受けた！"
         );
-    };
-
-    const handleRetry = () => {
-        hpRef.current = { player: 3, monster: 3, turns: maxTurns };
-        isBattleOverRef.current = false;
-
-        setPlayerHp(3);
-        setMonsterHp(3);
-        setTurnsLeft(maxTurns);
-
-        setMessage(
-            "じゃんけんでモンスターを倒せ！"
-        );
-
-        setEndReason(null);
     };
 
     return (
@@ -254,14 +186,14 @@ function Battle() {
                             <div
                                 className="hp-fill monster-hp-fill"
                                 style={{
-                                    width: `${(monsterHp / 3) * 100
+                                    width: `${(monsterHp / BATTLE_MAX_HP) * 100
                                         }%`,
                                 }}
                             />
                         </div>
 
                         <div className="hp-number">
-                            {monsterHp} / 3
+                            {monsterHp} / {BATTLE_MAX_HP}
                         </div>
                     </div>
 
@@ -291,14 +223,14 @@ function Battle() {
                             <div
                                 className="hp-fill player-hp-fill"
                                 style={{
-                                    width: `${(playerHp / 3) * 100
+                                    width: `${(playerHp / BATTLE_MAX_HP) * 100
                                         }%`,
                                 }}
                             />
                         </div>
 
                         <span>
-                            HP {playerHp} / 3
+                            HP {playerHp} / {BATTLE_MAX_HP}
                         </span>
                     </div>
 
@@ -309,7 +241,7 @@ function Battle() {
                     >
                         <span>残り</span>
                         <strong>{turnsLeft}</strong>
-                        <span>/ {maxTurns} 手</span>
+                        <span>/ {session.maxTurns} 手</span>
                     </div>
 
                 </section>
@@ -474,11 +406,7 @@ function Battle() {
                         type="button"
                         className="battle-retry-button"
                         onClick={() =>
-                            navigate(
-                                `/result/${quest.id}?outcome=failure${
-                                    endReason === "timeout" ? "&reason=timeout" : ""
-                                }`
-                            )
+                            navigate(`/result/${quest.id}`)
                         }
                     >
                         調査結果を見る
