@@ -179,7 +179,11 @@ export function parseSession(value: unknown): BattleSession | null {
     claimed: data.claimed,
     // 以前のバージョンで保存されたセッションには無いため、初期値で補う
     lastRound: parseLastRound(data.lastRound),
-    nextTurnAt: typeof data.nextTurnAt === "number" ? data.nextTurnAt : 0,
+    // 端末の時計が戻った場合などに長く待たされないよう、上限を「今から待ち時間分」にする
+    nextTurnAt:
+      typeof data.nextTurnAt === "number"
+        ? Math.min(data.nextTurnAt, Date.now() + TURN_COOLDOWN_MS)
+        : 0,
     ownerTabId: data.ownerTabId,
     startedAt: data.startedAt,
   };

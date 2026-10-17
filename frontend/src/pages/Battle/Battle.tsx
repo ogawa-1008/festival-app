@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -12,6 +12,8 @@ import {
     type RoundResult,
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
+
+import { useCooldown } from "./useCooldown";
 
 import "./Battle.css";
 
@@ -39,13 +41,18 @@ const HAND_LABELS: Record<Hand, string> = {
 function getBattleMessage(session: BattleSession) {
     const { lastRound, endReason } = session;
 
-    if (!lastRound) {
-        return { hands: null, text: START_MESSAGE };
+    const hands = lastRound
+        ? `あなた: ${HAND_LABELS[lastRound.playerHand]} / モンスター: ${HAND_LABELS[lastRound.enemyHand]}`
+        : null;
+
+    // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
+    if (endReason) {
+        return { hands, text: END_MESSAGES[endReason] };
     }
 
     return {
-        hands: `あなた: ${HAND_LABELS[lastRound.playerHand]} / モンスター: ${HAND_LABELS[lastRound.enemyHand]}`,
-        text: endReason ? END_MESSAGES[endReason] : ROUND_MESSAGES[lastRound.result],
+        hands,
+        text: lastRound ? ROUND_MESSAGES[lastRound.result] : START_MESSAGE,
     };
 }
 
@@ -65,19 +72,8 @@ function Battle() {
     const endReason = isOwnSession ? session.endReason : null;
     const nextTurnAt = isOwnSession ? session.nextTurnAt : 0;
 
-    // 待ち時間（ターン帯の表示中）の判定に使う現在時刻
-    const [now, setNow] = useState(() => Date.now());
-
-    // 待ち時間が終わる時刻に手を出せる状態へ戻す（再読み込み後は残り時間から再開）
-    useEffect(() => {
-        const remaining = nextTurnAt - Date.now();
-
-        if (remaining <= 0) return;
-
-        const timerId = setTimeout(() => setNow(Date.now()), remaining);
-
-        return () => clearTimeout(timerId);
-    }, [nextTurnAt]);
+    // 待ち時間（ターン帯の表示中）か。再読み込み後は残り時間から再開する
+    const cooldown = useCooldown(nextTurnAt);
 
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
@@ -134,21 +130,16 @@ function Battle() {
 
     const { playerHp, monsterHp, turnsLeft } = session;
     const isBattleOver = endReason !== null;
-    const isWaiting = !isBattleOver && now < nextTurnAt;
+    const isWaiting = !isBattleOver && cooldown.isWaiting;
     // 次に迎えるターン（あいこも1ターンとして数える）
     const turnNumber = session.maxTurns - turnsLeft + 1;
     // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
-    const bannerElapsed = Math.max(
-        0,
-        TURN_COOLDOWN_MS - (nextTurnAt - now)
-    );
+    const bannerElapsed = Math.max(0, TURN_COOLDOWN_MS - cooldown.remaining);
     const message = getBattleMessage(session);
 
     const handleHandSelect = (playerHand: Hand) => {
         // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
-        if (playHand(playerHand)) {
-            setNow(Date.now());
-        }
+        playHand(playerHand);
     };
 
     return (
@@ -166,7 +157,7 @@ function Battle() {
                 <div
                     key={turnNumber}
                     className="battle-turn-banner"
-                    role="status"
+                    aria-hidden="true"
                     style={{
                         animationDuration: `${TURN_COOLDOWN_MS}ms`,
                         animationDelay: `-${bannerElapsed}ms`,
@@ -175,6 +166,11 @@ function Battle() {
                     <span>{turnNumber}ターン目</span>
                 </div>
             )}
+
+            {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
+            <div className="battle-sr-only" aria-live="polite">
+                {isWaiting ? `${turnNumber}ターン目` : ""}
+            </div>
 
             <div className="battle-content">
 
