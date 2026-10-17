@@ -86,7 +86,8 @@ export function restoreRankState(saved: Record<string, unknown>): RankState {
 // baseExp: クエストの報酬EXP（getRewardExp）。ランク上限で実際に加算された分を gainedExp として返す
 export function getBattleRankReward(totalExp: number, baseExp: number) {
   const current = getRankProgress(totalExp);
-  const next = getRankProgress(current.rankExp + baseExp);
+  // 小数が入ると getRankProgress が 0 扱いにして進行度が消えるため、整数に丸めて加算する
+  const next = getRankProgress(current.rankExp + Math.floor(baseExp));
 
   return { ...next, gainedExp: next.rankExp - current.rankExp };
 }
