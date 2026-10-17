@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -10,6 +10,7 @@ import {
     type EndReason,
     type Hand,
     type RoundResult,
+    HUNT_BANNER_MS,
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
@@ -75,13 +76,27 @@ function Battle() {
     // 待ち時間（ターン帯の表示中）か。再読み込み後は残り時間から再開する
     const cooldown = useCooldown(nextTurnAt);
 
+    // まだ1手も出していなければ、待ち時間の前半は「討伐開始」の帯を出す
+    const isStarting =
+        isOwnSession &&
+        session.lastRound === null &&
+        session.turnsLeft === session.maxTurns;
+    const startPhase = useCooldown(
+        isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0
+    );
+
+    // 「討伐成功」「討伐失敗」の帯は決着した瞬間だけ出す（再読み込みでは出さない）
+    const [endBannerUntil, setEndBannerUntil] = useState(0);
+    const endPhase = useCooldown(endBannerUntil);
+
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
         if (screenStatus !== "ready" || endReason !== "victory" || session?.claimed) return;
 
+        // 「討伐成功」の帯を見せきってから移る
         const timerId = setTimeout(() => {
             navigate(`/result/${questId}`);
-        }, 1200);
+        }, HUNT_BANNER_MS);
 
         return () => clearTimeout(timerId);
     }, [screenStatus, endReason, session?.claimed, navigate, questId]);
@@ -133,13 +148,35 @@ function Battle() {
     const isWaiting = !isBattleOver && cooldown.isWaiting;
     // 次に迎えるターン（あいこも1ターンとして数える）
     const turnNumber = session.maxTurns - turnsLeft + 1;
+    // 「討伐開始」の帯が終わってから「1ターン目」の帯を出す
+    const showTurnBanner = isWaiting && !startPhase.isWaiting;
     // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
     const bannerElapsed = Math.max(0, TURN_COOLDOWN_MS - cooldown.remaining);
     const message = getBattleMessage(session);
 
+    // 下から上に出す討伐の帯（開始・成功・失敗）
+    const huntBanner =
+        !isBattleOver && startPhase.isWaiting
+            ? {
+                kind: "start",
+                text: "討伐開始",
+                elapsed: HUNT_BANNER_MS - startPhase.remaining,
+            }
+            : isBattleOver && endPhase.isWaiting
+                ? {
+                    kind: endReason === "victory" ? "success" : "failure",
+                    text: endReason === "victory" ? "討伐成功" : "討伐失敗",
+                    elapsed: HUNT_BANNER_MS - endPhase.remaining,
+                }
+                : null;
+
     const handleHandSelect = (playerHand: Hand) => {
         // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
-        playHand(playerHand);
+        const round = playHand(playerHand);
+
+        if (round?.session.endReason) {
+            setEndBannerUntil(Date.now() + HUNT_BANNER_MS);
+        }
     };
 
     return (
@@ -152,8 +189,23 @@ function Battle() {
                 />
             )}
 
+            {/* 討伐の開始・成功・失敗は画面中央に下から帯を出す */}
+            {huntBanner && (
+                <div
+                    key={huntBanner.kind}
+                    className={`battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
+                    aria-hidden="true"
+                    style={{
+                        animationDuration: `${HUNT_BANNER_MS}ms`,
+                        animationDelay: `-${huntBanner.elapsed}ms`,
+                    }}
+                >
+                    <span>{huntBanner.text}</span>
+                </div>
+            )}
+
             {/* 待ち時間中は画面中央に「Nターン目」の帯を出す */}
-            {isWaiting && (
+            {showTurnBanner && (
                 <div
                     key={turnNumber}
                     className="battle-turn-banner"
@@ -169,7 +221,8 @@ function Battle() {
 
             {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
             <div className="battle-sr-only" aria-live="polite">
-                {isWaiting ? `${turnNumber}ターン目` : ""}
+                {huntBanner?.text
+                    ?? (showTurnBanner ? `${turnNumber}ターン目` : "")}
             </div>
 
             <div className="battle-content">
@@ -444,7 +497,9 @@ function Battle() {
             RETRY
         ========================= */}
 
-                {(endReason === "defeated" || endReason === "timeout") && (
+                {/* 「討伐失敗」の帯が消えてから出す */}
+                {(endReason === "defeated" || endReason === "timeout")
+                    && !endPhase.isWaiting && (
                     <button
                         type="button"
                         className="battle-retry-button"

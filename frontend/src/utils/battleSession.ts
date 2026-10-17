@@ -35,6 +35,12 @@ export const BATTLE_MAX_HP = 3;
 // 手を出してから次の手を出せるまでの時間（ターン帯を表示する時間）
 export const TURN_COOLDOWN_MS = 1500;
 
+// 「討伐開始」「討伐成功」「討伐失敗」の帯を表示する時間
+export const HUNT_BANNER_MS = 1500;
+
+// 開始時は「討伐開始」→「1ターン目」の帯を続けて出してから手を出せる
+const START_WAIT_MS = HUNT_BANNER_MS + TURN_COOLDOWN_MS;
+
 const GOLD_CROWN_RATE = 0.1;
 
 const HANDS: Hand[] = ["rock", "scissors", "paper"];
@@ -56,8 +62,8 @@ export function createSession(
     goldCrown: false,
     claimed: false,
     lastRound: null,
-    // 開始時も「1ターン目」の帯を出すため待ち時間を入れる
-    nextTurnAt: Date.now() + TURN_COOLDOWN_MS,
+    // 開始時は「討伐開始」「1ターン目」の帯を出すため待ち時間を入れる
+    nextTurnAt: Date.now() + START_WAIT_MS,
     ownerTabId,
     startedAt: Date.now(),
   };
@@ -179,10 +185,10 @@ export function parseSession(value: unknown): BattleSession | null {
     claimed: data.claimed,
     // 以前のバージョンで保存されたセッションには無いため、初期値で補う
     lastRound: parseLastRound(data.lastRound),
-    // 端末の時計が戻った場合などに長く待たされないよう、上限を「今から待ち時間分」にする
+    // 端末の時計が戻った場合などに長く待たされないよう、上限を「今から最長の待ち時間分」にする
     nextTurnAt:
       typeof data.nextTurnAt === "number"
-        ? Math.min(data.nextTurnAt, Date.now() + TURN_COOLDOWN_MS)
+        ? Math.min(data.nextTurnAt, Date.now() + START_WAIT_MS)
         : 0,
     ownerTabId: data.ownerTabId,
     startedAt: data.startedAt,
