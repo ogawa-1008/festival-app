@@ -26,6 +26,13 @@ function BattleRoute() {
   return <Battle key={questId} />;
 }
 
+// クエストが変わったら Result を作り直し、前のクエストの入場チェック結果を引き継がない
+function ResultRoute() {
+  const { questId } = useParams();
+
+  return <Result key={questId} />;
+}
+
 function App() {
   return (
     <GameProvider>
@@ -57,7 +64,7 @@ function App() {
 
               <Route
                 path="/result/:questId"
-                element={<Result />}
+                element={<ResultRoute />}
               />
 
               <Route path="/materials" element={<Collection view="materials" />} />

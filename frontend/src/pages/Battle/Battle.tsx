@@ -79,7 +79,11 @@ function Battle() {
             <Navigate
                 to="/qr-scanner"
                 replace
-                state={{ message: "QRコードを読み取ってください" }}
+                state={{
+                    message: screenStatus === "elsewhere"
+                        ? "このバトルは別のタブで開いています。\nこのタブで続けるにはQRコードを読み取ってください"
+                        : "QRコードを読み取ってください",
+                }}
             />
         );
     }

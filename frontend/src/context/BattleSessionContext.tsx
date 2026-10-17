@@ -18,12 +18,15 @@ import {
   type RoundResult,
 } from "../utils/battleSession";
 
-// "battle" | "result": その画面へ進む / "conflict": 別タブで開いているので確認が必要
+// "battle" | "result": その画面へ進む
+// "conflict": 別タブで開いているので確認が必要
+//   takeover: 同じクエストの戦闘中・受け取り前の結果 → このタブで引き継ぐ
+//   discard: 別クエストの戦闘中 → 破棄して新しく始める
 // "replace": 別クエストが戦闘中なので、破棄してよいか確認が必要
 type StartResult =
   | { type: "battle"; questId: string }
   | { type: "result"; questId: string }
-  | { type: "conflict" }
+  | { type: "conflict"; mode: "takeover" | "discard"; questId: string }
   | { type: "replace"; questId: string };
 
 // "ok": この画面を表示してよい / "conflict": 別タブで開いているので確認が必要
@@ -223,42 +226,53 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
     [update]
   );
 
+  // force: 確認済み（別タブ・別クエスト戦闘中でも進めてよい）
   const startBattle = useCallback(
-    async (questId: string, maxTurns: number, options?: { force?: boolean }) => {
+    async (
+      questId: string,
+      maxTurns: number,
+      options?: { force?: boolean }
+    ): Promise<StartResult> => {
       const current = readLatest();
-      const isUnclaimed = current !== null && !current.claimed;
 
-      if (
-        !options?.force &&
-        isUnclaimed &&
-        (await isOpenElsewhere(current.ownerTabId))
-      ) {
-        return { type: "conflict" } as const;
-      }
+      if (current !== null && !current.claimed) {
+        // 同じクエストの戦闘中・受け取り前の結果は、確認後も作り直さずに引き継ぐ
+        // （別タブを使ってHP・手数を回復させたり、勝利を消したりできないようにする）
+        const canTakeOver =
+          current.endReason !== null || current.questId === questId;
 
-      if (!options?.force && isUnclaimed) {
+        if (!options?.force && (await isOpenElsewhere(current.ownerTabId))) {
+          return {
+            type: "conflict",
+            mode: canTakeOver ? "takeover" : "discard",
+            questId: current.questId,
+          };
+        }
+
         // 受け取り前の決着済みセッションがあれば、先にそのリザルトへ案内する
         if (current.endReason !== null) {
           adopt(current);
 
-          return { type: "result", questId: current.questId } as const;
+          return { type: "result", questId: current.questId };
         }
 
         // 同じクエストが戦闘中なら再開し、QRの読み直しでHP・手数を回復させない
         if (current.questId === questId) {
           adopt(current);
 
-          return { type: "battle", questId } as const;
+          return { type: "battle", questId };
         }
 
         // 別クエストが戦闘中なら、破棄してよいか確認してから上書きする
-        return { type: "replace", questId: current.questId } as const;
+        if (!options?.force) {
+          return { type: "replace", questId: current.questId };
+        }
       }
 
       // それ以外（受け取り済み・破棄を選んだ場合）は上書きする
       update(createSession(questId, maxTurns, tabId));
 
-      return { type: "battle", questId } as const;
+      return { type: "battle", questId };
     },
     [readLatest, isOpenElsewhere, adopt, update]
   );

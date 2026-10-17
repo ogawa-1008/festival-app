@@ -8,11 +8,11 @@ import { DEFAULT_MAX_TURNS } from "../../types/quest";
 
 import "./QRScanner.css";
 
-const SESSION_CONFLICT_MESSAGE =
-  "別のタブでバトル中、またはリザルト画面を開いています。\n前回のバトルを破棄して、新しくバトルを始めますか？";
+const getTakeOverMessage = (title: string) =>
+  `別のタブで「${title}」のバトル・リザルト画面を開いています。\nこのタブで続きから引き継ぎますか？`;
 
-const getReplaceMessage = (title: string) =>
-  `「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
+const getDiscardMessage = (title: string, isElsewhere: boolean) =>
+  `${isElsewhere ? "別のタブで" : ""}「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
 
 function QRScanner() {
   const navigate = useNavigate();
@@ -104,15 +104,16 @@ function QRScanner() {
             void (async () => {
               let start = await startBattle(quest.id, maxTurns);
 
-              // 別タブで開いている・別クエストが戦闘中の場合は破棄してよいか確認する
+              // 別タブで開いている・別クエストが戦闘中の場合は確認する
               if (start.type === "conflict" || start.type === "replace") {
-                const replacedId = start.type === "replace" ? start.questId : null;
-                const message = replacedId === null
-                  ? SESSION_CONFLICT_MESSAGE
-                  : getReplaceMessage(
-                    quests.find((item) => item.id === replacedId)?.title
-                      ?? "前回のクエスト"
-                  );
+                const previousId = start.questId;
+                const title =
+                  quests.find((item) => item.id === previousId)?.title
+                    ?? "前回のクエスト";
+                const message =
+                  start.type === "conflict" && start.mode === "takeover"
+                    ? getTakeOverMessage(title)
+                    : getDiscardMessage(title, start.type === "conflict");
 
                 if (!window.confirm(message)) {
                   navigate("/");
