@@ -1,0 +1,149 @@
+/* 右端までスライドして確定するボタン */
+
+.swipe-confirm {
+  --knob-size: 44px;
+  --track-padding: 4px;
+  --track-border: 2px;
+
+  position: relative;
+
+  /* box-sizing: border-box なので枠線の太さも含めた高さにする */
+  height: calc(var(--knob-size) + var(--track-padding) * 2 + var(--track-border) * 2);
+
+  border: var(--track-border) solid #cfec42;
+  border-radius: 999px;
+
+  background: #1a160f;
+
+  overflow: hidden;
+
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* つまみの通った部分を塗る。つまみと同じ高さ・丸みで、つまみの右端までの帯にする */
+.swipe-confirm-fill {
+  position: absolute;
+  top: var(--track-padding);
+  bottom: var(--track-padding);
+  left: var(--track-padding);
+
+  /* --swipe-offset はつまみの移動量（px）。JS で測った値なので古いブラウザでも動く */
+  width: calc(var(--knob-size) + var(--swipe-offset));
+
+  border-radius: 999px;
+
+  background: linear-gradient(90deg, rgba(69, 87, 25, 0.9), rgba(120, 150, 40, 0.9));
+
+  transition: width 0.25s ease-out;
+}
+
+.swipe-confirm-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #f2eadb;
+
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+
+  /* 進むほど文字を薄くする */
+  opacity: calc(1 - var(--swipe-progress) * 0.8);
+
+  pointer-events: none;
+}
+
+.swipe-confirm-knob {
+  position: absolute;
+  top: var(--track-padding);
+  left: var(--track-padding);
+
+  width: var(--knob-size);
+  height: var(--knob-size);
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #cfec42;
+  color: #21180f;
+
+  font-size: 16px;
+  font-weight: bold;
+
+  cursor: grab;
+
+  /* スライド中に画面がスクロールしないようにする */
+  touch-action: none;
+
+  transform: translateX(var(--swipe-offset));
+
+  transition: transform 0.25s ease-out;
+}
+
+/* キーボード・読み上げ機能用の標準スライダー。画面には出さない */
+.swipe-confirm-input {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  margin: 0;
+
+  opacity: 0;
+
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
+
+  pointer-events: none;
+}
+
+/* 見えないスライダーにフォーカスがあるときは、つまみに枠を出す */
+.swipe-confirm-focused .swipe-confirm-knob {
+  outline: 3px solid #f6e3b4;
+  outline-offset: 2px;
+}
+
+/* 指で動かしている間は遅れなく追従させる */
+.swipe-confirm-dragging .swipe-confirm-knob,
+.swipe-confirm-dragging .swipe-confirm-fill {
+  transition: none;
+}
+
+.swipe-confirm-dragging .swipe-confirm-knob {
+  cursor: grabbing;
+}
+
+.swipe-confirm-done .swipe-confirm-label {
+  opacity: 1;
+}
+
+.swipe-confirm-disabled {
+  border-color: #555;
+}
+
+.swipe-confirm-disabled .swipe-confirm-knob {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.swipe-confirm-disabled .swipe-confirm-label {
+  color: #999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-confirm-knob,
+  .swipe-confirm-fill {
+    transition: none;
+  }
+}
