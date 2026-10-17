@@ -13,6 +13,7 @@ import {
   parseSession,
   playRound,
   type BattleSession,
+  type BattleStats,
   type Hand,
   type RoundResult,
 } from "../utils/battleSession";
@@ -39,7 +40,7 @@ type BattleSessionContextType = {
   takenOver: boolean;
   startBattle: (
     questId: string,
-    maxTurns: number,
+    stats: BattleStats,
     options?: { force?: boolean }
   ) => StartResult;
   registerScreen: () => () => void;
@@ -178,7 +179,7 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
   const startBattle = useCallback(
     (
       questId: string,
-      maxTurns: number,
+      stats: BattleStats,
       options?: { force?: boolean }
     ): StartResult => {
       const current = readLatest();
@@ -226,7 +227,7 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       }
 
       // それ以外（受け取り済み・破棄を選んだ場合）は上書きする
-      update(createSession(questId, maxTurns, tabId));
+      update(createSession(questId, stats, tabId));
 
       return { type: "battle", questId };
     },

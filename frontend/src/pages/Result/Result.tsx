@@ -6,6 +6,7 @@ import { useGame } from "../../context/GameContext";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import { progressData } from "../../data/progress";
 import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
+import { getRewardExp } from "../../utils/questReward";
 
 import { useExpRewardAnimation } from "./useExpRewardAnimation";
 
@@ -71,7 +72,10 @@ function Result() {
     const isGoldCrown = session.goldCrown;
     const rewardRate = outcome === "victory" ? 1 : 0.5;
     const claimed = session.claimed;
-    const rewardExp = getBattleRankReward(rankExp, outcome === "victory" ? 100 : 30).gainedExp;
+    const rewardExp = getBattleRankReward(
+        rankExp,
+        getRewardExp(quest.id, outcome)
+    ).gainedExp;
     const displayedExp = receipt?.gainedExp ?? (claimed ? 0 : rewardExp);
     const progress = frame ?? getRankProgress(rankExp);
     const beforeRank = receipt ? getRankProgress(receipt.fromExp).rank : progress.rank;

@@ -12,6 +12,7 @@ import {
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
 import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
+import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
 import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage";
 
@@ -63,13 +64,31 @@ const initialGameState: GameState = {
   activities: [],
 };
 
+// クエストの定義（素材・手数・ステータス・EXP）は常に data/quests.ts を使い、
+// 保存データからは進行度（討伐済み・金冠）だけを引き継ぐ。定義を変えてもキャッシュ削除が不要になる
+function mergeQuestProgress(savedQuests: GameState["quests"]): GameState["quests"] {
+  return initialQuests.map((quest) => {
+    const saved = Array.isArray(savedQuests)
+      ? savedQuests.find((item) => item?.id === quest.id)
+      : undefined;
+
+    return {
+      ...quest,
+      completed: saved?.completed === true,
+      goldCrown: saved?.goldCrown === true,
+    };
+  });
+}
+
 function loadGameState(): GameState {
   if (typeof window === "undefined") {
     return initialGameState;
   }
 
   try {
-    return loadSavedGame(window.localStorage, initialGameState);
+    const saved = loadSavedGame(window.localStorage, initialGameState);
+
+    return { ...saved, quests: mergeQuestProgress(saved.quests) };
   } catch {
     return initialGameState;
   }
@@ -165,8 +184,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...reward,
           amount: Math.max(1, Math.ceil(reward.amount * rewardRate)),
         }));
+        // EXP はクエストごとの報酬（調査は3割）。ランクの上限処理は getBattleRankReward に任せる
         const { gainedExp, rank: nextRank, rankExp: nextExp } =
-          getBattleRankReward(current.rankExp, outcome === "victory" ? 100 : 30);
+          getBattleRankReward(current.rankExp, getRewardExp(quest.id, outcome));
         const expDetail = gainedExp > 0 ? `HR EXP +${gainedExp}` : "HR MAX";
         const materials = { ...current.materials };
 
