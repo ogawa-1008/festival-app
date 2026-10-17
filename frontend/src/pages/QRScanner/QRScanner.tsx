@@ -9,10 +9,10 @@ import { DEFAULT_MAX_TURNS } from "../../types/quest";
 import "./QRScanner.css";
 
 const getTakeOverMessage = (title: string) =>
-  `別のタブで「${title}」のバトル・リザルト画面を開いています。\nこのタブで続きから引き継ぎますか？`;
+  `別のタブで開いていた「${title}」のバトル・リザルトがあります。\nこのタブで続きから引き継ぎますか？`;
 
 const getDiscardMessage = (title: string, isElsewhere: boolean) =>
-  `${isElsewhere ? "別のタブで" : ""}「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
+  `${isElsewhere ? "別のタブで開いていた" : ""}「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
 
 function QRScanner() {
   const navigate = useNavigate();

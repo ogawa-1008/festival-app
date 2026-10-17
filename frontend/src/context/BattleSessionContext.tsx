@@ -19,7 +19,7 @@ import {
 } from "../utils/battleSession";
 
 // "battle" | "result": その画面へ進む
-// "conflict": 別タブで開いているので確認が必要
+// "conflict": 別タブのセッションなので確認が必要
 //   takeover: 同じクエストの戦闘中・受け取り前の結果 → このタブで引き継ぐ
 //   discard: 別クエストの戦闘中 → 破棄して新しく始める
 // "replace": 別クエストが戦闘中なので、破棄してよいか確認が必要
@@ -29,7 +29,7 @@ type StartResult =
   | { type: "conflict"; mode: "takeover" | "discard"; questId: string }
   | { type: "replace"; questId: string };
 
-// "ok": この画面を表示してよい / "conflict": 別タブで開いているので確認が必要
+// "ok": この画面を表示してよい / "conflict": 別タブのセッションなので、このタブでは表示しない
 type AccessResult = "ok" | "conflict";
 
 type BattleSessionContextType = {
@@ -52,11 +52,29 @@ type BattleSessionContextType = {
 // 進行中の1戦は GameState（確定した進行度）とは別キーで保存する
 const storageKey = "monster-hunter-festival-battle";
 
-// 持ち主タブの応答を待つ時間。応答がなければ閉じた・再読み込みしたとみなす
-const PING_TIMEOUT_MS = 300;
+const tabIdKey = "monster-hunter-festival-tab-id";
 
-// ページを読み込むたびに変わるタブID（再読み込み後は持ち主タブが応答しないので引き継げる）
-const tabId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+// タブごとのID。sessionStorage はタブ単位で、再読み込みしても変わらない
+// （再読み込みでは確認なしで続けられ、別タブからは必ず確認が出る）
+function loadTabId() {
+  const fresh = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+
+  try {
+    const saved = window.sessionStorage.getItem(tabIdKey);
+
+    if (saved) {
+      return saved;
+    }
+
+    window.sessionStorage.setItem(tabIdKey, fresh);
+  } catch {
+    // sessionStorage が使えない環境ではページを読み込むたびに新しいIDになる
+  }
+
+  return fresh;
+}
+
+const tabId = typeof window === "undefined" ? "" : loadTabId();
 
 // 読み込めない環境では fallback を返す
 function loadSession(
@@ -96,7 +114,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
   // 連打時に再レンダリング前の古い値で判定しないよう、Refで同期的に最新値を持つ
   const sessionRef = useRef(session);
-  const channelRef = useRef<BroadcastChannel | null>(null);
   // このタブでバトル・リザルト画面を開いている数
   const screenCountRef = useRef(0);
 
@@ -172,70 +189,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // 子画面の effect は Provider の effect より先に走るため、チャンネルは初回利用時に作る
-  const getChannel = useCallback(() => {
-    if (channelRef.current || typeof BroadcastChannel === "undefined") {
-      return channelRef.current;
-    }
-
-    const channel = new BroadcastChannel(storageKey);
-
-    // 持ち主タブでバトル・リザルト画面を開いていれば応答する
-    channel.onmessage = (event: MessageEvent) => {
-      const message = event.data as { type?: string; target?: string; nonce?: string };
-
-      if (
-        message?.type === "ping" &&
-        message.target === tabId &&
-        screenCountRef.current > 0
-      ) {
-        channel.postMessage({ type: "pong", nonce: message.nonce });
-      }
-    };
-
-    channelRef.current = channel;
-
-    return channel;
-  }, []);
-
-  // Provider はアプリ全体で1つなので閉じない（StrictMode の後片付けで閉じると応答を取りこぼす）
-  useEffect(() => {
-    getChannel();
-  }, [getChannel]);
-
-  // 持ち主タブがバトル・リザルト画面を開いているか問い合わせる
-  const isOpenElsewhere = useCallback((ownerTabId: string) => {
-    return new Promise<boolean>((resolve) => {
-      const channel = getChannel();
-
-      if (!channel || ownerTabId === tabId) {
-        resolve(false);
-        return;
-      }
-
-      const nonce = Math.random().toString(36).slice(2);
-
-      const finish = (isOpen: boolean) => {
-        clearTimeout(timerId);
-        channel.removeEventListener("message", handleMessage);
-        resolve(isOpen);
-      };
-
-      const handleMessage = (event: MessageEvent) => {
-        const message = event.data as { type?: string; nonce?: string };
-
-        if (message?.type === "pong" && message.nonce === nonce) {
-          finish(true);
-        }
-      };
-
-      const timerId = setTimeout(() => finish(false), PING_TIMEOUT_MS);
-
-      channel.addEventListener("message", handleMessage);
-      channel.postMessage({ type: "ping", target: ownerTabId, nonce });
-    });
-  }, [getChannel]);
-
   const adopt = useCallback(
     (current: BattleSession) => {
       if (current.ownerTabId !== tabId) {
@@ -260,7 +213,8 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
         const canTakeOver =
           current.endReason !== null || current.questId === questId;
 
-        if (!options?.force && (await isOpenElsewhere(current.ownerTabId))) {
+        // 別タブのセッションは、引き継ぐ・破棄する前に必ず確認する
+        if (!options?.force && current.ownerTabId !== tabId) {
           return {
             type: "conflict",
             mode: canTakeOver ? "takeover" : "discard",
@@ -293,7 +247,7 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
       return { type: "battle", questId };
     },
-    [readLatest, isOpenElsewhere, adopt, update]
+    [readLatest, adopt, update]
   );
 
   const checkAccess = useCallback(
@@ -305,15 +259,10 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
         return "ok";
       }
 
-      if (await isOpenElsewhere(current.ownerTabId)) {
-        return "conflict";
-      }
-
-      adopt(current);
-
-      return "ok";
+      // URL直打ちでは引き継がない（引き継ぐにはQRを読み取って確認する）
+      return current.ownerTabId === tabId ? "ok" : "conflict";
     },
-    [readLatest, isOpenElsewhere, adopt]
+    [readLatest]
   );
 
   const registerScreen = useCallback(() => {
