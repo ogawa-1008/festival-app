@@ -6,8 +6,11 @@ import { useGame } from "../../context/GameContext";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     BATTLE_MAX_HP,
+    type BattleSession,
     type EndReason,
     type Hand,
+    type RoundResult,
+    TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
 import "./Battle.css";
@@ -19,6 +22,32 @@ const END_MESSAGES: Record<EndReason, string> = {
     defeated: "力尽きてしまった……",
     timeout: "モンスターは逃げてしまった……",
 };
+
+const ROUND_MESSAGES: Record<RoundResult, string> = {
+    draw: "あいこ！ もう一度！",
+    player: "勝利！ モンスターにダメージ！",
+    enemy: "敗北…… ダメージを受けた！",
+};
+
+const HAND_LABELS: Record<Hand, string> = {
+    rock: "グー",
+    scissors: "チョキ",
+    paper: "パー",
+};
+
+// メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
+function getBattleMessage(session: BattleSession) {
+    const { lastRound, endReason } = session;
+
+    if (!lastRound) {
+        return { hands: null, text: START_MESSAGE };
+    }
+
+    return {
+        hands: `あなた: ${HAND_LABELS[lastRound.playerHand]} / モンスター: ${HAND_LABELS[lastRound.enemyHand]}`,
+        text: endReason ? END_MESSAGES[endReason] : ROUND_MESSAGES[lastRound.result],
+    };
+}
 
 function Battle() {
     const navigate = useNavigate();
@@ -32,13 +61,23 @@ function Battle() {
         (item) => item.id === questId
     );
 
-    // 再読み込み時はセッションの状態からメッセージを復元する
-    const [message, setMessage] = useState(() =>
-        session?.endReason ? END_MESSAGES[session.endReason] : START_MESSAGE
-    );
-
     const isOwnSession = session !== null && session.questId === questId;
     const endReason = isOwnSession ? session.endReason : null;
+    const nextTurnAt = isOwnSession ? session.nextTurnAt : 0;
+
+    // 待ち時間（ターン帯の表示中）の判定に使う現在時刻
+    const [now, setNow] = useState(() => Date.now());
+
+    // 待ち時間が終わる時刻に手を出せる状態へ戻す（再読み込み後は残り時間から再開）
+    useEffect(() => {
+        const remaining = nextTurnAt - Date.now();
+
+        if (remaining <= 0) return;
+
+        const timerId = setTimeout(() => setNow(Date.now()), remaining);
+
+        return () => clearTimeout(timerId);
+    }, [nextTurnAt]);
 
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
@@ -95,34 +134,21 @@ function Battle() {
 
     const { playerHp, monsterHp, turnsLeft } = session;
     const isBattleOver = endReason !== null;
+    const isWaiting = !isBattleOver && now < nextTurnAt;
+    // 次に迎えるターン（あいこも1ターンとして数える）
+    const turnNumber = session.maxTurns - turnsLeft + 1;
+    // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
+    const bannerElapsed = Math.max(
+        0,
+        TURN_COOLDOWN_MS - (nextTurnAt - now)
+    );
+    const message = getBattleMessage(session);
 
     const handleHandSelect = (playerHand: Hand) => {
-        // 終了済みなら null が返る（連打を防ぐガード）
-        const round = playHand(playerHand);
-
-        if (!round) return;
-
-        if (round.session.endReason) {
-            setMessage(END_MESSAGES[round.session.endReason]);
-            return;
+        // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
+        if (playHand(playerHand)) {
+            setNow(Date.now());
         }
-
-        if (round.result === "draw") {
-            setMessage("あいこ！ もう一度！");
-            return;
-        }
-
-        if (round.result === "player") {
-            setMessage(
-                "勝利！ モンスターにダメージ！"
-            );
-
-            return;
-        }
-
-        setMessage(
-            "敗北…… ダメージを受けた！"
-        );
     };
 
     return (
@@ -133,6 +159,21 @@ function Battle() {
                     className="battle-danger-overlay"
                     aria-hidden="true"
                 />
+            )}
+
+            {/* 待ち時間中は画面中央に「Nターン目」の帯を出す */}
+            {isWaiting && (
+                <div
+                    key={turnNumber}
+                    className="battle-turn-banner"
+                    role="status"
+                    style={{
+                        animationDuration: `${TURN_COOLDOWN_MS}ms`,
+                        animationDelay: `-${bannerElapsed}ms`,
+                    }}
+                >
+                    <span>{turnNumber}ターン目</span>
+                </div>
             )}
 
             <div className="battle-content">
@@ -205,7 +246,13 @@ function Battle() {
         ========================= */}
 
                 <section className="battle-message">
-                    {message}
+                    {message.hands && (
+                        <span className="battle-message-hands">
+                            {message.hands}
+                        </span>
+                    )}
+
+                    <span>{message.text}</span>
                 </section>
 
                 {/* =========================
@@ -267,7 +314,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("rock")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isWaiting}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -289,7 +336,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("scissors")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isWaiting}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -311,7 +358,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("paper")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isWaiting}
                         >
                             <div className="janken-image-frame">
                                 <img

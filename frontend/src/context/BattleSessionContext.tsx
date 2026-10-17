@@ -254,7 +254,14 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      const round = playRound(current, hand);
+      // ターン帯を表示している待ち時間中の入力は受け付けない
+      const now = Date.now();
+
+      if (now < current.nextTurnAt) {
+        return null;
+      }
+
+      const round = playRound(current, hand, Math.random, now);
 
       update(round.session);
 
