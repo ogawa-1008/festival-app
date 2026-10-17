@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { quests } from "../../data/quests";
+import { DEFAULT_MAX_TURNS } from "../../types/quest";
 
 import "./QRScanner.css";
 
 function QRScanner() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { startBattle } = useBattleSession();
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
@@ -16,8 +21,12 @@ function QRScanner() {
   const [isScanning, setIsScanning] =
     useState(false);
 
+  // バトル画面から差し戻された場合はその理由を表示する
   const [errorMessage, setErrorMessage] =
-    useState("");
+    useState(
+      () =>
+        (location.state as { message?: string } | null)?.message ?? ""
+    );
 
   const stopScanner = async () => {
     const scanner = scannerRef.current;
@@ -82,6 +91,12 @@ function QRScanner() {
           if (quest) {
             hasScannedRef.current = true;
             setIsScanning(false);
+
+            // QRを読み取った証拠としてバトルセッションを開始する
+            startBattle(
+              quest.id,
+              quest.maxTurns ?? DEFAULT_MAX_TURNS
+            );
 
             // カメラの停止完了を待つと、端末によっては
             // 映像だけが黒いまま遷移しないことがある。

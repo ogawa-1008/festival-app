@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
 
@@ -9,23 +9,14 @@ import "./Result.css";
 function Result() {
     const navigate = useNavigate();
     const { questId } = useParams();
-    const [searchParams] = useSearchParams();
 
     const { quests, resolveBattle } = useGame();
-
-    const [claimed, setClaimed] = useState(false);
+    const { session, claimReward } = useBattleSession();
 
     const quest = quests.find(
         (item) => item.id === questId
     );
 
-    const outcome = searchParams.get("outcome") === "failure"
-        ? "failure"
-        : "victory";
-    const isTimeout = outcome === "failure"
-        && searchParams.get("reason") === "timeout";
-    const isGoldCrown = searchParams.get("crown") === "1";
-    const rewardRate = outcome === "victory" ? 1 : 0.5;
 
     if (!quest) {
         return (
@@ -44,10 +35,25 @@ function Result() {
         );
     }
 
-    const handleClaimReward = () => {
-        if (claimed) return;
+    if (
+        !session
+        || session.questId !== quest.id
+        || session.endReason === null
+    ) {
+        return <Navigate to="/" replace />;
+    }
 
-        setClaimed(true);
+    const outcome = session.endReason === "victory"
+        ? "victory"
+        : "failure";
+    const isTimeout = session.endReason === "timeout";
+    const isGoldCrown = session.goldCrown;
+    const rewardRate = outcome === "victory" ? 1 : 0.5;
+    const claimed = session.claimed;
+
+    const handleClaimReward = () => {
+        // 受け取り済みなら false（再読み込み・戻る操作での二重受け取りを防ぐ）
+        if (!claimReward()) return;
 
         resolveBattle(quest.id, outcome, isGoldCrown);
     };
