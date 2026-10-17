@@ -16,6 +16,6 @@
 .exchange-modal > div { width: min(100%, 340px); padding: 24px 18px; border: 2px solid #b89a68; background: #21180f; text-align: center; }
 .exchange-modal h2 { margin: 0; }
 .exchange-modal p { color: #d7c6a4; font-size: 13px; line-height: 1.6; }
-.exchange-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-.exchange-modal-actions button { min-height: 42px; border: 1px solid #756246; color: #f2eadb; background: #33291e; }
-.exchange-modal-actions button:last-child { border-color: #cfec42; background: #455719; }
+.exchange-modal-actions { display: grid; gap: 12px; margin-top: 20px; }
+.exchange-modal-cancel { min-height: 42px; border: 1px solid #756246; color: #f2eadb; background: #33291e; }
+.exchange-modal-cancel:disabled { color: #777; }
