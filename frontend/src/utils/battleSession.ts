@@ -185,10 +185,12 @@ export function parseSession(value: unknown): BattleSession | null {
     claimed: data.claimed,
     // 以前のバージョンで保存されたセッションには無いため、初期値で補う
     lastRound: parseLastRound(data.lastRound),
-    // 端末の時計が戻った場合などに長く待たされないよう、上限を「今から最長の待ち時間分」にする
+    // 最長の待ち時間より先の時刻（端末の時計が戻った等）は不正とみなし、待ち時間なしにする
+    // （上限に置き換えると読むたびに値が変わり、いつまでも待ち時間が終わらなくなる）
     nextTurnAt:
-      typeof data.nextTurnAt === "number"
-        ? Math.min(data.nextTurnAt, Date.now() + START_WAIT_MS)
+      typeof data.nextTurnAt === "number" &&
+      data.nextTurnAt <= Date.now() + START_WAIT_MS
+        ? data.nextTurnAt
         : 0,
     ownerTabId: data.ownerTabId,
     startedAt: data.startedAt,

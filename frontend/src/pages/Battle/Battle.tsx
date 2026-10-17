@@ -74,7 +74,7 @@ function Battle() {
     const nextTurnAt = isOwnSession ? session.nextTurnAt : 0;
 
     // 待ち時間（ターン帯の表示中）か。再読み込み後は残り時間から再開する
-    const cooldown = useCooldown(nextTurnAt);
+    const cooldown = useCooldown(nextTurnAt, TURN_COOLDOWN_MS);
 
     // まだ1手も出していなければ、待ち時間の前半は「討伐開始」の帯を出す
     const isStarting =
@@ -82,12 +82,13 @@ function Battle() {
         session.lastRound === null &&
         session.turnsLeft === session.maxTurns;
     const startPhase = useCooldown(
-        isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0
+        isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0,
+        HUNT_BANNER_MS
     );
 
     // 「討伐成功」「討伐失敗」の帯は決着した瞬間だけ出す（再読み込みでは出さない）
     const [endBannerUntil, setEndBannerUntil] = useState(0);
-    const endPhase = useCooldown(endBannerUntil);
+    const endPhase = useCooldown(endBannerUntil, HUNT_BANNER_MS);
 
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
@@ -160,13 +161,13 @@ function Battle() {
             ? {
                 kind: "start",
                 text: "討伐開始",
-                elapsed: HUNT_BANNER_MS - startPhase.remaining,
+                elapsed: Math.max(0, HUNT_BANNER_MS - startPhase.remaining),
             }
             : isBattleOver && endPhase.isWaiting
                 ? {
                     kind: endReason === "victory" ? "success" : "failure",
                     text: endReason === "victory" ? "討伐成功" : "討伐失敗",
-                    elapsed: HUNT_BANNER_MS - endPhase.remaining,
+                    elapsed: Math.max(0, HUNT_BANNER_MS - endPhase.remaining),
                 }
                 : null;
 
@@ -193,7 +194,7 @@ function Battle() {
             {huntBanner && (
                 <div
                     key={huntBanner.kind}
-                    className={`battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
+                    className={`battle-banner battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
                     aria-hidden="true"
                     style={{
                         animationDuration: `${HUNT_BANNER_MS}ms`,
@@ -208,7 +209,7 @@ function Battle() {
             {showTurnBanner && (
                 <div
                     key={turnNumber}
-                    className="battle-turn-banner"
+                    className="battle-banner battle-turn-banner"
                     aria-hidden="true"
                     style={{
                         animationDuration: `${TURN_COOLDOWN_MS}ms`,

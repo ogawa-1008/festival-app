@@ -558,9 +558,9 @@
 }
 
 
-/* ターン表示（画面中央に大きく出して消える） */
+/* 画面中央の帯（ターン帯・討伐の帯の共通部分）。色は変数で種類ごとに変える */
 
-.battle-turn-banner {
+.battle-banner {
   position: fixed;
   top: 50%;
   left: 0;
@@ -575,14 +575,14 @@
   background:
     linear-gradient(
       90deg,
-      rgba(31, 116, 29, 0) 0%,
-      rgba(31, 116, 29, 0.9) 20%,
-      rgba(31, 116, 29, 0.9) 80%,
-      rgba(31, 116, 29, 0) 100%
+      transparent 0%,
+      var(--banner-color) 20%,
+      var(--banner-color) 80%,
+      transparent 100%
     );
 
-  border-top: 2px solid rgba(214, 240, 196, 0.8);
-  border-bottom: 2px solid rgba(214, 240, 196, 0.8);
+  border-top: 2px solid var(--banner-line);
+  border-bottom: 2px solid var(--banner-line);
 
   text-align: center;
 
@@ -590,57 +590,32 @@
 
   transform: translateY(-50%);
 
-  animation:
-    battle-turn-banner 1s ease-out forwards;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
 }
 
-.battle-turn-banner span {
-  color: #fff;
+.battle-banner span {
+  color: var(--banner-text);
 
   font-family:
     "Hiragino Mincho ProN",
     "Yu Mincho",
     serif;
 
-  font-size: 30px;
-
   font-weight: 900;
 
-  letter-spacing: 6px;
-
   text-shadow:
+    var(--banner-glow),
     0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
-@keyframes battle-turn-banner {
-  0% {
-    opacity: 0;
-    transform: translate(-40%, -50%);
-  }
-
-  20% {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-
-  75% {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(40%, -50%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .battle-turn-banner {
-    animation-name: battle-turn-banner-fade;
+  .battle-banner {
+    animation-name: battle-banner-fade !important;
   }
 }
 
-@keyframes battle-turn-banner-fade {
+@keyframes battle-banner-fade {
   0%,
   100% {
     opacity: 0;
@@ -653,81 +628,66 @@
 }
 
 
+/* ターン帯: 横から流れて消える */
+
+.battle-turn-banner {
+  --banner-color: rgba(31, 116, 29, 0.9);
+  --banner-line: rgba(214, 240, 196, 0.8);
+  --banner-text: #fff;
+  --banner-glow: 0 0 0 transparent;
+
+  animation-name: battle-turn-banner;
+}
+
+.battle-turn-banner span {
+  font-size: 30px;
+
+  letter-spacing: 6px;
+}
+
+@keyframes battle-turn-banner {
+  0% {
+    opacity: 0;
+    transform: translate(-40%, -50%);
+  }
+
+  20%,
+  75% {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(40%, -50%);
+  }
+}
+
+
 /* 討伐の帯（開始・成功・失敗）: 下から浮かび上がり、上へ抜けて消える */
 
 .battle-hunt-banner {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  right: 0;
-
-  z-index: 60;
-
-  pointer-events: none;
+  --banner-color: rgba(120, 86, 24, 0.92);
+  --banner-line: rgba(246, 227, 180, 0.85);
+  --banner-text: #fff6dc;
+  --banner-glow: 0 0 12px rgba(246, 210, 120, 0.7);
 
   padding: 20px 16px;
 
-  background:
-    linear-gradient(
-      90deg,
-      rgba(120, 86, 24, 0) 0%,
-      rgba(120, 86, 24, 0.92) 20%,
-      rgba(120, 86, 24, 0.92) 80%,
-      rgba(120, 86, 24, 0) 100%
-    );
-
-  border-top: 2px solid rgba(246, 227, 180, 0.85);
-  border-bottom: 2px solid rgba(246, 227, 180, 0.85);
-
-  text-align: center;
-
-  opacity: 0;
-
-  transform: translateY(-50%);
-
   animation-name: battle-hunt-banner;
-  animation-timing-function: ease-out;
-  animation-fill-mode: forwards;
 }
 
 .battle-hunt-banner span {
-  color: #fff6dc;
-
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
-
   font-size: 36px;
 
-  font-weight: 900;
-
   letter-spacing: 8px;
-
-  text-shadow:
-    0 0 12px rgba(246, 210, 120, 0.7),
-    0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 .battle-hunt-banner-failure {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(150, 30, 20, 0) 0%,
-      rgba(150, 30, 20, 0.9) 20%,
-      rgba(150, 30, 20, 0.9) 80%,
-      rgba(150, 30, 20, 0) 100%
-    );
-
-  border-color: rgba(245, 198, 192, 0.8);
-}
-
-.battle-hunt-banner-failure span {
-  color: #ffe9e6;
-
-  text-shadow:
-    0 0 12px rgba(220, 80, 60, 0.6),
-    0 2px 6px rgba(0, 0, 0, 0.8);
+  --banner-color: rgba(150, 30, 20, 0.9);
+  --banner-line: rgba(245, 198, 192, 0.8);
+  --banner-text: #ffe9e6;
+  --banner-glow: 0 0 12px rgba(220, 80, 60, 0.6);
 }
 
 @keyframes battle-hunt-banner {
@@ -745,12 +705,6 @@
   100% {
     opacity: 0;
     transform: translateY(calc(-50% - 60px));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .battle-hunt-banner {
-    animation-name: battle-turn-banner-fade;
   }
 }
 
