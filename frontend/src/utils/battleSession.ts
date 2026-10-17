@@ -5,6 +5,13 @@ export type RoundResult = "player" | "enemy" | "draw";
 // バトル終了理由（null はバトル中）
 export type EndReason = "victory" | "defeated" | "timeout";
 
+// 直前の1手（再読み込み後もお互いの手と勝敗を表示するため保存する）
+export type LastRound = {
+  playerHand: Hand;
+  enemyHand: Hand;
+  result: RoundResult;
+};
+
 // QR 読み取りで開始され、報酬受け取りまでを管理する1戦分の状態
 export type BattleSession = {
   questId: string;
@@ -15,12 +22,24 @@ export type BattleSession = {
   endReason: EndReason | null;
   goldCrown: boolean;
   claimed: boolean;
+  lastRound: LastRound | null;
+  // 次に手を出せる時刻（それまではターン帯を表示して待つ）。再読み込みしても引き継ぐ
+  nextTurnAt: number;
   // このセッションを操作できるタブ（複数タブでの二重操作を防ぐ）
   ownerTabId: string;
   startedAt: number;
 };
 
 export const BATTLE_MAX_HP = 3;
+
+// 手を出してから次の手を出せるまでの時間（ターン帯を表示する時間）
+export const TURN_COOLDOWN_MS = 1500;
+
+// 「討伐開始」「討伐成功」「討伐失敗」の帯を表示する時間
+export const HUNT_BANNER_MS = 1500;
+
+// 開始時は「討伐開始」→「1ターン目」の帯を続けて出してから手を出せる
+const START_WAIT_MS = HUNT_BANNER_MS + TURN_COOLDOWN_MS;
 
 const GOLD_CROWN_RATE = 0.1;
 
@@ -42,6 +61,9 @@ export function createSession(
     endReason: null,
     goldCrown: false,
     claimed: false,
+    lastRound: null,
+    // 開始時は「討伐開始」「1ターン目」の帯を出すため待ち時間を入れる
+    nextTurnAt: Date.now() + START_WAIT_MS,
     ownerTabId,
     startedAt: Date.now(),
   };
@@ -66,7 +88,8 @@ export function judgeWinner(player: Hand, enemy: Hand): RoundResult {
 export function playRound(
   session: BattleSession,
   playerHand: Hand,
-  random: () => number = Math.random
+  random: () => number = Math.random,
+  now: number = Date.now()
 ): { session: BattleSession; result: RoundResult } {
   const enemyHand = HANDS[Math.floor(random() * HANDS.length)];
   const result = judgeWinner(playerHand, enemyHand);
@@ -94,8 +117,35 @@ export function playRound(
       endReason,
       // 金冠は討伐が決まった時点で1回だけ抽選し、セッションに保存する
       goldCrown: endReason === "victory" && random() < GOLD_CROWN_RATE,
+      lastRound: { playerHand, enemyHand, result },
+      // 決着がついた手のあとは次のターンへ進まない
+      nextTurnAt: endReason === null ? now + TURN_COOLDOWN_MS : 0,
     },
     result,
+  };
+}
+
+const RESULTS: RoundResult[] = ["player", "enemy", "draw"];
+
+function parseLastRound(value: unknown): LastRound | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const data = value as Record<string, unknown>;
+
+  if (
+    !HANDS.includes(data.playerHand as Hand) ||
+    !HANDS.includes(data.enemyHand as Hand) ||
+    !RESULTS.includes(data.result as RoundResult)
+  ) {
+    return null;
+  }
+
+  return {
+    playerHand: data.playerHand as Hand,
+    enemyHand: data.enemyHand as Hand,
+    result: data.result as RoundResult,
   };
 }
 
@@ -133,6 +183,15 @@ export function parseSession(value: unknown): BattleSession | null {
     endReason: data.endReason as EndReason | null,
     goldCrown: data.goldCrown,
     claimed: data.claimed,
+    // 以前のバージョンで保存されたセッションには無いため、初期値で補う
+    lastRound: parseLastRound(data.lastRound),
+    // 最長の待ち時間より先の時刻（端末の時計が戻った等）は不正とみなし、待ち時間なしにする
+    // （上限に置き換えると読むたびに値が変わり、いつまでも待ち時間が終わらなくなる）
+    nextTurnAt:
+      typeof data.nextTurnAt === "number" &&
+      data.nextTurnAt <= Date.now() + START_WAIT_MS
+        ? data.nextTurnAt
+        : 0,
     ownerTabId: data.ownerTabId,
     startedAt: data.startedAt,
   };

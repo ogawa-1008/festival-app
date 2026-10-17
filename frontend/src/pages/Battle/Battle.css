@@ -66,6 +66,21 @@
   }
 }
 
+/* 画面には出さず読み上げだけ行う */
+
+.battle-sr-only {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
+
+  white-space: nowrap;
+}
+
 .battle-content {
   width: min(100%, 430px);
 
@@ -370,6 +385,10 @@
 
   display: flex;
 
+  flex-direction: column;
+
+  gap: 3px;
+
   align-items: center;
   justify-content: center;
 
@@ -525,6 +544,168 @@
   font-size: 20px;
 
   font-weight: 900;
+}
+
+
+/* 直前の手（あなた / モンスター） */
+
+.battle-message-hands {
+  color: #c9bea9;
+
+  font-size: 11px;
+
+  font-weight: normal;
+}
+
+
+/* 画面中央の帯（ターン帯・討伐の帯の共通部分）。色は変数で種類ごとに変える */
+
+.battle-banner {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  right: 0;
+
+  z-index: 60;
+
+  pointer-events: none;
+
+  padding: 18px 16px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--banner-color) 20%,
+      var(--banner-color) 80%,
+      transparent 100%
+    );
+
+  border-top: 2px solid var(--banner-line);
+  border-bottom: 2px solid var(--banner-line);
+
+  text-align: center;
+
+  opacity: 0;
+
+  transform: translateY(-50%);
+
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.battle-banner span {
+  color: var(--banner-text);
+
+  font-family:
+    "Hiragino Mincho ProN",
+    "Yu Mincho",
+    serif;
+
+  font-weight: 900;
+
+  text-shadow:
+    var(--banner-glow),
+    0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-banner {
+    animation-name: battle-banner-fade !important;
+  }
+}
+
+@keyframes battle-banner-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  20%,
+  75% {
+    opacity: 1;
+  }
+}
+
+
+/* ターン帯: 横から流れて消える */
+
+.battle-turn-banner {
+  --banner-color: rgba(31, 116, 29, 0.9);
+  --banner-line: rgba(214, 240, 196, 0.8);
+  --banner-text: #fff;
+  --banner-glow: 0 0 0 transparent;
+
+  animation-name: battle-turn-banner;
+}
+
+.battle-turn-banner span {
+  font-size: 30px;
+
+  letter-spacing: 6px;
+}
+
+@keyframes battle-turn-banner {
+  0% {
+    opacity: 0;
+    transform: translate(-40%, -50%);
+  }
+
+  20%,
+  75% {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(40%, -50%);
+  }
+}
+
+
+/* 討伐の帯（開始・成功・失敗）: 下から浮かび上がり、上へ抜けて消える */
+
+.battle-hunt-banner {
+  --banner-color: rgba(120, 86, 24, 0.92);
+  --banner-line: rgba(246, 227, 180, 0.85);
+  --banner-text: #fff6dc;
+  --banner-glow: 0 0 12px rgba(246, 210, 120, 0.7);
+
+  padding: 20px 16px;
+
+  animation-name: battle-hunt-banner;
+}
+
+.battle-hunt-banner span {
+  font-size: 36px;
+
+  letter-spacing: 8px;
+}
+
+.battle-hunt-banner-failure {
+  --banner-color: rgba(150, 30, 20, 0.9);
+  --banner-line: rgba(245, 198, 192, 0.8);
+  --banner-text: #ffe9e6;
+  --banner-glow: 0 0 12px rgba(220, 80, 60, 0.6);
+}
+
+@keyframes battle-hunt-banner {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 60px));
+  }
+
+  20%,
+  75% {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(calc(-50% - 60px));
+  }
 }
 
 

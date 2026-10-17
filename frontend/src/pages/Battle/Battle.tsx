@@ -6,9 +6,15 @@ import { useGame } from "../../context/GameContext";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     BATTLE_MAX_HP,
+    type BattleSession,
     type EndReason,
     type Hand,
+    type RoundResult,
+    HUNT_BANNER_MS,
+    TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
+
+import { useCooldown } from "./useCooldown";
 
 import "./Battle.css";
 
@@ -19,6 +25,37 @@ const END_MESSAGES: Record<EndReason, string> = {
     defeated: "力尽きてしまった……",
     timeout: "モンスターは逃げてしまった……",
 };
+
+const ROUND_MESSAGES: Record<RoundResult, string> = {
+    draw: "あいこ！ もう一度！",
+    player: "勝利！ モンスターにダメージ！",
+    enemy: "敗北…… ダメージを受けた！",
+};
+
+const HAND_LABELS: Record<Hand, string> = {
+    rock: "グー",
+    scissors: "チョキ",
+    paper: "パー",
+};
+
+// メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
+function getBattleMessage(session: BattleSession) {
+    const { lastRound, endReason } = session;
+
+    const hands = lastRound
+        ? `あなた: ${HAND_LABELS[lastRound.playerHand]} / モンスター: ${HAND_LABELS[lastRound.enemyHand]}`
+        : null;
+
+    // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
+    if (endReason) {
+        return { hands, text: END_MESSAGES[endReason] };
+    }
+
+    return {
+        hands,
+        text: lastRound ? ROUND_MESSAGES[lastRound.result] : START_MESSAGE,
+    };
+}
 
 function Battle() {
     const navigate = useNavigate();
@@ -32,21 +69,35 @@ function Battle() {
         (item) => item.id === questId
     );
 
-    // 再読み込み時はセッションの状態からメッセージを復元する
-    const [message, setMessage] = useState(() =>
-        session?.endReason ? END_MESSAGES[session.endReason] : START_MESSAGE
-    );
-
     const isOwnSession = session !== null && session.questId === questId;
     const endReason = isOwnSession ? session.endReason : null;
+    const nextTurnAt = isOwnSession ? session.nextTurnAt : 0;
+
+    // 待ち時間（ターン帯の表示中）か。再読み込み後は残り時間から再開する
+    const cooldown = useCooldown(nextTurnAt, TURN_COOLDOWN_MS);
+
+    // まだ1手も出していなければ、待ち時間の前半は「討伐開始」の帯を出す
+    const isStarting =
+        isOwnSession &&
+        session.lastRound === null &&
+        session.turnsLeft === session.maxTurns;
+    const startPhase = useCooldown(
+        isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0,
+        HUNT_BANNER_MS
+    );
+
+    // 「討伐成功」「討伐失敗」の帯は決着した瞬間だけ出す（再読み込みでは出さない）
+    const [endBannerUntil, setEndBannerUntil] = useState(0);
+    const endPhase = useCooldown(endBannerUntil, HUNT_BANNER_MS);
 
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
         if (screenStatus !== "ready" || endReason !== "victory" || session?.claimed) return;
 
+        // 「討伐成功」の帯を見せきってから移る
         const timerId = setTimeout(() => {
             navigate(`/result/${questId}`);
-        }, 1200);
+        }, HUNT_BANNER_MS);
 
         return () => clearTimeout(timerId);
     }, [screenStatus, endReason, session?.claimed, navigate, questId]);
@@ -95,34 +146,38 @@ function Battle() {
 
     const { playerHp, monsterHp, turnsLeft } = session;
     const isBattleOver = endReason !== null;
+    const isWaiting = !isBattleOver && cooldown.isWaiting;
+    // 次に迎えるターン（あいこも1ターンとして数える）
+    const turnNumber = session.maxTurns - turnsLeft + 1;
+    // 「討伐開始」の帯が終わってから「1ターン目」の帯を出す
+    const showTurnBanner = isWaiting && !startPhase.isWaiting;
+    // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
+    const bannerElapsed = Math.max(0, TURN_COOLDOWN_MS - cooldown.remaining);
+    const message = getBattleMessage(session);
+
+    // 下から上に出す討伐の帯（開始・成功・失敗）
+    const huntBanner =
+        !isBattleOver && startPhase.isWaiting
+            ? {
+                kind: "start",
+                text: "討伐開始",
+                elapsed: Math.max(0, HUNT_BANNER_MS - startPhase.remaining),
+            }
+            : isBattleOver && endPhase.isWaiting
+                ? {
+                    kind: endReason === "victory" ? "success" : "failure",
+                    text: endReason === "victory" ? "討伐成功" : "討伐失敗",
+                    elapsed: Math.max(0, HUNT_BANNER_MS - endPhase.remaining),
+                }
+                : null;
 
     const handleHandSelect = (playerHand: Hand) => {
-        // 終了済みなら null が返る（連打を防ぐガード）
+        // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
         const round = playHand(playerHand);
 
-        if (!round) return;
-
-        if (round.session.endReason) {
-            setMessage(END_MESSAGES[round.session.endReason]);
-            return;
+        if (round?.session.endReason) {
+            setEndBannerUntil(Date.now() + HUNT_BANNER_MS);
         }
-
-        if (round.result === "draw") {
-            setMessage("あいこ！ もう一度！");
-            return;
-        }
-
-        if (round.result === "player") {
-            setMessage(
-                "勝利！ モンスターにダメージ！"
-            );
-
-            return;
-        }
-
-        setMessage(
-            "敗北…… ダメージを受けた！"
-        );
     };
 
     return (
@@ -134,6 +189,42 @@ function Battle() {
                     aria-hidden="true"
                 />
             )}
+
+            {/* 討伐の開始・成功・失敗は画面中央に下から帯を出す */}
+            {huntBanner && (
+                <div
+                    key={huntBanner.kind}
+                    className={`battle-banner battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
+                    aria-hidden="true"
+                    style={{
+                        animationDuration: `${HUNT_BANNER_MS}ms`,
+                        animationDelay: `-${huntBanner.elapsed}ms`,
+                    }}
+                >
+                    <span>{huntBanner.text}</span>
+                </div>
+            )}
+
+            {/* 待ち時間中は画面中央に「Nターン目」の帯を出す */}
+            {showTurnBanner && (
+                <div
+                    key={turnNumber}
+                    className="battle-banner battle-turn-banner"
+                    aria-hidden="true"
+                    style={{
+                        animationDuration: `${TURN_COOLDOWN_MS}ms`,
+                        animationDelay: `-${bannerElapsed}ms`,
+                    }}
+                >
+                    <span>{turnNumber}ターン目</span>
+                </div>
+            )}
+
+            {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
+            <div className="battle-sr-only" aria-live="polite">
+                {huntBanner?.text
+                    ?? (showTurnBanner ? `${turnNumber}ターン目` : "")}
+            </div>
 
             <div className="battle-content">
 
@@ -205,7 +296,13 @@ function Battle() {
         ========================= */}
 
                 <section className="battle-message">
-                    {message}
+                    {message.hands && (
+                        <span className="battle-message-hands">
+                            {message.hands}
+                        </span>
+                    )}
+
+                    <span>{message.text}</span>
                 </section>
 
                 {/* =========================
@@ -267,7 +364,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("rock")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isWaiting}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -289,7 +386,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("scissors")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isWaiting}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -311,7 +408,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("paper")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isWaiting}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -401,7 +498,9 @@ function Battle() {
             RETRY
         ========================= */}
 
-                {(endReason === "defeated" || endReason === "timeout") && (
+                {/* 「討伐失敗」の帯が消えてから出す */}
+                {(endReason === "defeated" || endReason === "timeout")
+                    && !endPhase.isWaiting && (
                     <button
                         type="button"
                         className="battle-retry-button"
