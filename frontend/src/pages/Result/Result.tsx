@@ -1,4 +1,4 @@
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
@@ -10,6 +10,11 @@ import "./Result.css";
 function Result() {
     const navigate = useNavigate();
     const { questId } = useParams();
+    const location = useLocation();
+
+    // 別クエストのQRを読んで、このリザルトへ案内された場合の説明
+    const notice =
+        (location.state as { notice?: string } | null)?.notice ?? null;
 
     const { quests, resolveBattle } = useGame();
     const { session, claimReward } = useBattleSession();
@@ -130,6 +135,12 @@ function Result() {
                     <h2>
                         {quest.title}
                     </h2>
+
+                    {notice && !claimed && (
+                        <p className="result-notice">
+                            {notice}
+                        </p>
+                    )}
 
                     {isTimeout && (
                         <p className="result-timeout-message">

@@ -101,38 +101,45 @@ function QRScanner() {
             const maxTurns = quest.maxTurns ?? DEFAULT_MAX_TURNS;
 
             // QRを読み取った証拠としてバトルセッションを開始する
-            void (async () => {
-              let start = await startBattle(quest.id, maxTurns);
+            let start = startBattle(quest.id, maxTurns);
 
-              // 別タブで開いている・別クエストが戦闘中の場合は確認する
-              if (start.type === "conflict" || start.type === "replace") {
-                const previousId = start.questId;
-                const title =
-                  quests.find((item) => item.id === previousId)?.title
-                    ?? "前回のクエスト";
-                const message =
-                  start.type === "conflict" && start.mode === "takeover"
-                    ? getTakeOverMessage(title)
-                    : getDiscardMessage(title, start.type === "conflict");
+            // 別タブのセッション・別クエストが戦闘中の場合は確認する
+            if (start.type === "confirm") {
+              const previousId = start.questId;
+              const title =
+                quests.find((item) => item.id === previousId)?.title
+                  ?? "前回のクエスト";
+              const message = start.mode === "takeover"
+                ? getTakeOverMessage(title)
+                : getDiscardMessage(title, start.isElsewhere);
 
-                if (!window.confirm(message)) {
-                  navigate("/");
-                  void stopScanner();
-                  return;
-                }
-
-                start = await startBattle(quest.id, maxTurns, { force: true });
+              if (!window.confirm(message)) {
+                navigate("/");
+                void stopScanner();
+                return;
               }
 
-              // カメラの停止完了を待つと、端末によっては
-              // 映像だけが黒いまま遷移しないことがある。
-              navigate(
-                start.type === "result"
-                  ? `/result/${start.questId}`
-                  : `/battle/${quest.id}`
-              );
-              void stopScanner();
-            })();
+              start = startBattle(quest.id, maxTurns, { force: true });
+            }
+
+            // カメラの停止完了を待つと、端末によっては
+            // 映像だけが黒いまま遷移しないことがある。
+            if (start.type === "result") {
+              const pendingTitle =
+                quests.find((item) => item.id === start.questId)?.title;
+
+              // 別クエストのQRを読んだのに前のリザルトへ進む理由を伝える
+              navigate(`/result/${start.questId}`, {
+                state: start.questId !== quest.id && pendingTitle
+                  ? {
+                      notice: `「${pendingTitle}」の報酬を受け取ってから、次のバトルを始められます`,
+                    }
+                  : null,
+              });
+            } else {
+              navigate(`/battle/${quest.id}`);
+            }
+            void stopScanner();
           } else {
             setErrorMessage(
               "このQRコードはクエスト用ではありません"

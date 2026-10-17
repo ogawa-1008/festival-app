@@ -19,15 +19,19 @@ import {
 } from "../utils/battleSession";
 
 // "battle" | "result": その画面へ進む
-// "conflict": 別タブのセッションなので確認が必要
-//   takeover: 同じクエストの戦闘中・受け取り前の結果 → このタブで引き継ぐ
+// "confirm": 進める前に確認が必要（questId は対象になる既存セッションのクエスト）
+//   takeover: 別タブの同じクエストの戦闘中・受け取り前の結果 → このタブで引き継ぐ
 //   discard: 別クエストの戦闘中 → 破棄して新しく始める
-// "replace": 別クエストが戦闘中なので、破棄してよいか確認が必要
+//   isElsewhere: 既存セッションが別タブのものか
 type StartResult =
   | { type: "battle"; questId: string }
   | { type: "result"; questId: string }
-  | { type: "conflict"; mode: "takeover" | "discard"; questId: string }
-  | { type: "replace"; questId: string };
+  | {
+      type: "confirm";
+      mode: "takeover" | "discard";
+      questId: string;
+      isElsewhere: boolean;
+    };
 
 // "ok": この画面を表示してよい / "conflict": 別タブのセッションなので、このタブでは表示しない
 type AccessResult = "ok" | "conflict";
@@ -40,8 +44,8 @@ type BattleSessionContextType = {
     questId: string,
     maxTurns: number,
     options?: { force?: boolean }
-  ) => Promise<StartResult>;
-  checkAccess: (questId: string | undefined) => Promise<AccessResult>;
+  ) => StartResult;
+  checkAccess: (questId: string | undefined) => AccessResult;
   registerScreen: () => () => void;
   playHand: (
     hand: Hand
@@ -200,11 +204,11 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
   // force: 確認済み（別タブ・別クエスト戦闘中でも進めてよい）
   const startBattle = useCallback(
-    async (
+    (
       questId: string,
       maxTurns: number,
       options?: { force?: boolean }
-    ): Promise<StartResult> => {
+    ): StartResult => {
       const current = readLatest();
 
       if (current !== null && !current.claimed) {
@@ -212,13 +216,15 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
         // （別タブを使ってHP・手数を回復させたり、勝利を消したりできないようにする）
         const canTakeOver =
           current.endReason !== null || current.questId === questId;
+        const isElsewhere = current.ownerTabId !== tabId;
 
         // 別タブのセッションは、引き継ぐ・破棄する前に必ず確認する
-        if (!options?.force && current.ownerTabId !== tabId) {
+        if (!options?.force && isElsewhere) {
           return {
-            type: "conflict",
+            type: "confirm",
             mode: canTakeOver ? "takeover" : "discard",
             questId: current.questId,
+            isElsewhere,
           };
         }
 
@@ -238,7 +244,12 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
 
         // 別クエストが戦闘中なら、破棄してよいか確認してから上書きする
         if (!options?.force) {
-          return { type: "replace", questId: current.questId };
+          return {
+            type: "confirm",
+            mode: "discard",
+            questId: current.questId,
+            isElsewhere,
+          };
         }
       }
 
@@ -251,7 +262,7 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
   );
 
   const checkAccess = useCallback(
-    async (questId: string | undefined): Promise<AccessResult> => {
+    (questId: string | undefined): AccessResult => {
       const current = readLatest();
 
       // セッションなし・別クエスト・受け取り済みは各画面の判定に任せる

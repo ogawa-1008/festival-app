@@ -406,6 +406,25 @@
 }
 
 
+/* 別クエストのQRから案内されたときの説明 */
+
+.result-notice {
+  margin: 6px 0 0;
+
+  padding: 6px 8px;
+
+  border-radius: 6px;
+
+  background: rgba(232, 192, 122, 0.15);
+
+  color: #f0e4cb;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+
 /* 手数切れメッセージ */
 
 .result-timeout-message {

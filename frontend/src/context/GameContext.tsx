@@ -106,9 +106,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setGameState(loadGameState());
     };
 
-    window.addEventListener("storage", handleStorage);
+    // スマホでは背景タブの storage イベントが遅れるため、表示に戻った時点でも読み直す
+    const handleVisible = () => {
+      if (document.visibilityState === "visible") {
+        setGameState(loadGameState());
+      }
+    };
 
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("pageshow", handleVisible);
+    window.addEventListener("focus", handleVisible);
+    document.addEventListener("visibilitychange", handleVisible);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("pageshow", handleVisible);
+      window.removeEventListener("focus", handleVisible);
+      document.removeEventListener("visibilitychange", handleVisible);
+    };
   }, []);
 
   const value = useMemo<GameContextType>(() => {
