@@ -19,6 +19,11 @@ export type BattleSession = {
   monsterHp: number;
   turnsLeft: number;
   maxTurns: number;
+  // バトル開始時のステータス（途中で武器を交換しても、このバトルの間は変わらない）
+  playerMaxHp: number;
+  playerAttack: number;
+  monsterMaxHp: number;
+  monsterAttack: number;
   endReason: EndReason | null;
   goldCrown: boolean;
   claimed: boolean;
@@ -30,7 +35,18 @@ export type BattleSession = {
   startedAt: number;
 };
 
-export const BATTLE_MAX_HP = 3;
+// バトル開始時に決まるステータス
+export type BattleStats = {
+  maxTurns: number;
+  playerMaxHp: number;
+  playerAttack: number;
+  monsterMaxHp: number;
+  monsterAttack: number;
+};
+
+// ステータス導入前に保存されたセッションの値（当時は HP 3・ダメージ 1 固定）
+const LEGACY_MAX_HP = 3;
+const LEGACY_ATTACK = 1;
 
 // 手を出してから次の手を出せるまでの時間（ターン帯を表示する時間）
 export const TURN_COOLDOWN_MS = 1500;
@@ -49,15 +65,15 @@ const END_REASONS: EndReason[] = ["victory", "defeated", "timeout"];
 
 export function createSession(
   questId: string,
-  maxTurns: number,
+  stats: BattleStats,
   ownerTabId: string
 ): BattleSession {
   return {
     questId,
-    playerHp: BATTLE_MAX_HP,
-    monsterHp: BATTLE_MAX_HP,
-    turnsLeft: maxTurns,
-    maxTurns,
+    playerHp: stats.playerMaxHp,
+    monsterHp: stats.monsterMaxHp,
+    turnsLeft: stats.maxTurns,
+    ...stats,
     endReason: null,
     goldCrown: false,
     claimed: false,
@@ -96,10 +112,15 @@ export function playRound(
 
   // あいこも含めて1手として数える
   const turnsLeft = session.turnsLeft - 1;
+  // 勝てば自分の攻撃力、負ければモンスターの攻撃力の分だけダメージ
   const monsterHp =
-    result === "player" ? Math.max(0, session.monsterHp - 1) : session.monsterHp;
+    result === "player"
+      ? Math.max(0, session.monsterHp - session.playerAttack)
+      : session.monsterHp;
   const playerHp =
-    result === "enemy" ? Math.max(0, session.playerHp - 1) : session.playerHp;
+    result === "enemy"
+      ? Math.max(0, session.playerHp - session.monsterAttack)
+      : session.playerHp;
 
   // 終了判定は 討伐 → 力尽きた → 手数切れ の優先順
   const endReason: EndReason | null =
@@ -126,6 +147,12 @@ export function playRound(
 }
 
 const RESULTS: RoundResult[] = ["player", "enemy", "draw"];
+
+function readPositive(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value
+    : fallback;
+}
 
 function parseLastRound(value: unknown): LastRound | null {
   if (!value || typeof value !== "object") {
@@ -180,6 +207,11 @@ export function parseSession(value: unknown): BattleSession | null {
     monsterHp: data.monsterHp,
     turnsLeft: data.turnsLeft,
     maxTurns: data.maxTurns,
+    // ステータス導入前に保存されたセッションには無いため、当時の値で補う
+    playerMaxHp: readPositive(data.playerMaxHp, LEGACY_MAX_HP),
+    playerAttack: readPositive(data.playerAttack, LEGACY_ATTACK),
+    monsterMaxHp: readPositive(data.monsterMaxHp, LEGACY_MAX_HP),
+    monsterAttack: readPositive(data.monsterAttack, LEGACY_ATTACK),
     endReason: data.endReason as EndReason | null,
     goldCrown: data.goldCrown,
     claimed: data.claimed,

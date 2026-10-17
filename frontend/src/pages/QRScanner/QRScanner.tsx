@@ -4,7 +4,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { quests } from "../../data/quests";
-import { DEFAULT_MAX_TURNS } from "../../types/quest";
+import { useGame } from "../../context/GameContext";
+import {
+  DEFAULT_MAX_TURNS,
+  DEFAULT_MONSTER_ATTACK,
+  DEFAULT_MONSTER_HP,
+} from "../../types/quest";
+import { getPlayerStats } from "../../utils/playerStats";
 
 import "./QRScanner.css";
 
@@ -19,6 +25,7 @@ function QRScanner() {
   const location = useLocation();
 
   const { startBattle } = useBattleSession();
+  const { weaponClaimed } = useGame();
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
@@ -105,10 +112,18 @@ function QRScanner() {
             hasScannedRef.current = true;
             setIsScanning(false);
 
-            const maxTurns = quest.maxTurns ?? DEFAULT_MAX_TURNS;
+            // 交換済みの武器を反映した、このバトルのステータス
+            const player = getPlayerStats({ weaponClaimed });
+            const stats = {
+              maxTurns: quest.maxTurns ?? DEFAULT_MAX_TURNS,
+              playerMaxHp: player.maxHp,
+              playerAttack: player.attack,
+              monsterMaxHp: quest.monsterHp ?? DEFAULT_MONSTER_HP,
+              monsterAttack: quest.monsterAttack ?? DEFAULT_MONSTER_ATTACK,
+            };
 
             // QRを読み取った証拠としてバトルセッションを開始する
-            let start = startBattle(quest.id, maxTurns);
+            let start = startBattle(quest.id, stats);
 
             // 別タブのセッション・別クエストが戦闘中の場合は確認する
             if (start.type === "confirm") {
@@ -126,7 +141,7 @@ function QRScanner() {
                 return;
               }
 
-              start = startBattle(quest.id, maxTurns, { force: true });
+              start = startBattle(quest.id, stats, { force: true });
             }
 
             // カメラの停止完了を待つと、端末によっては

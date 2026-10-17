@@ -5,7 +5,6 @@ import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
-    BATTLE_MAX_HP,
     type BattleSession,
     type EndReason,
     type Hand,
@@ -182,8 +181,9 @@ function Battle() {
 
     return (
         <main className="battle-page">
-            {/* 残り1手 or HP1（あと1回で終わる状況）で画面の縁に赤いモヤ */}
-            {(turnsLeft === 1 || playerHp === 1) && !isBattleOver && (
+            {/* 残り1手 or あと1回負けたら力尽きる状況で画面の縁に赤いモヤ */}
+            {(turnsLeft === 1 || playerHp <= session.monsterAttack)
+                && !isBattleOver && (
                 <div
                     className="battle-danger-overlay"
                     aria-hidden="true"
@@ -277,14 +277,14 @@ function Battle() {
                             <div
                                 className="hp-fill monster-hp-fill"
                                 style={{
-                                    width: `${(monsterHp / BATTLE_MAX_HP) * 100
+                                    width: `${(monsterHp / session.monsterMaxHp) * 100
                                         }%`,
                                 }}
                             />
                         </div>
 
                         <div className="hp-number">
-                            {monsterHp} / {BATTLE_MAX_HP}
+                            {monsterHp} / {session.monsterMaxHp}
                         </div>
                     </div>
 
@@ -320,14 +320,14 @@ function Battle() {
                             <div
                                 className="hp-fill player-hp-fill"
                                 style={{
-                                    width: `${(playerHp / BATTLE_MAX_HP) * 100
+                                    width: `${(playerHp / session.playerMaxHp) * 100
                                         }%`,
                                 }}
                             />
                         </div>
 
                         <span>
-                            HP {playerHp} / {BATTLE_MAX_HP}
+                            HP {playerHp} / {session.playerMaxHp}
                         </span>
                     </div>
 

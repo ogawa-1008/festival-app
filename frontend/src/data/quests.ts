@@ -21,7 +21,12 @@ export const quests: Quest[] = [
       },
     ],
 
-    maxTurns: 6,
+    maxTurns: 9,
+
+    monsterHp: 3,
+    monsterAttack: 3,
+
+    rewardExp: 100,
 
     completed: false,
   },
@@ -46,7 +51,12 @@ export const quests: Quest[] = [
       },
     ],
 
-    maxTurns: 5,
+    maxTurns: 6,
+
+    monsterHp: 5,
+    monsterAttack: 4,
+
+    rewardExp: 120,
 
     completed: false,
   },
@@ -71,7 +81,12 @@ export const quests: Quest[] = [
       },
     ],
 
-    maxTurns: 4,
+    maxTurns: 6,
+
+    monsterHp: 6,
+    monsterAttack: 4,
+
+    rewardExp: 150,
 
     completed: false,
   },

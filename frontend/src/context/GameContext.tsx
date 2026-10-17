@@ -9,6 +9,7 @@ import {
 
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
+import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
 
 type MaterialStock = Record<number, number>;
@@ -128,7 +129,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...reward,
           amount: Math.max(1, Math.ceil(reward.amount * rewardRate)),
         }));
-        const gainedExp = outcome === "victory" ? 100 : 30;
+        const gainedExp = getRewardExp(quest, outcome);
         const nextExp = current.rankExp + gainedExp;
         const nextRank = 1 + Math.floor(nextExp / 100);
         const materials = { ...current.materials };
