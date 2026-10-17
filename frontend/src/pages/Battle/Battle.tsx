@@ -26,7 +26,7 @@ function Battle() {
 
     const { quests } = useGame();
     const { session, playHand } = useBattleSession();
-    const isReady = useSessionScreen(questId);
+    const screenStatus = useSessionScreen(questId);
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -42,14 +42,14 @@ function Battle() {
 
     // 討伐後は少し待ってからリザルトへ。画面を離れたらタイマーを取り消す
     useEffect(() => {
-        if (!isReady || endReason !== "victory" || session?.claimed) return;
+        if (screenStatus !== "ready" || endReason !== "victory" || session?.claimed) return;
 
         const timerId = setTimeout(() => {
             navigate(`/result/${questId}`);
         }, 1200);
 
         return () => clearTimeout(timerId);
-    }, [isReady, endReason, session?.claimed, navigate, questId]);
+    }, [screenStatus, endReason, session?.claimed, navigate, questId]);
 
     if (!quest) {
         return (
@@ -69,12 +69,12 @@ function Battle() {
     }
 
     // 別タブで開いているかの確認中は何も表示しない
-    if (!isReady) {
+    if (screenStatus === "checking") {
         return null;
     }
 
-    // QRを読み取らずにURLを直接開いた場合は読み取り画面へ戻す
-    if (!isOwnSession) {
+    // QRを読み取らずにURLを直接開いた場合・別タブでバトル中の場合は読み取り画面へ戻す
+    if (!isOwnSession || screenStatus === "elsewhere") {
         return (
             <Navigate
                 to="/qr-scanner"

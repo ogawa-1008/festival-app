@@ -3,11 +3,13 @@ import { Html5Qrcode } from "html5-qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
-import { SESSION_CONFLICT_MESSAGE } from "../../context/useSessionScreen";
 import { quests } from "../../data/quests";
 import { DEFAULT_MAX_TURNS } from "../../types/quest";
 
 import "./QRScanner.css";
+
+const SESSION_CONFLICT_MESSAGE =
+  "別のタブでバトル中、またはリザルト画面を開いています。\n前回のバトルを破棄して、新しくバトルを始めますか？";
 
 function QRScanner() {
   const navigate = useNavigate();

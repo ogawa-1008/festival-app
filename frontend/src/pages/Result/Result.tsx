@@ -13,7 +13,7 @@ function Result() {
 
     const { quests, resolveBattle } = useGame();
     const { session, claimReward } = useBattleSession();
-    const isReady = useSessionScreen(questId);
+    const screenStatus = useSessionScreen(questId);
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -38,12 +38,14 @@ function Result() {
     }
 
     // 別タブで開いているかの確認中は何も表示しない
-    if (!isReady) {
+    if (screenStatus === "checking") {
         return null;
     }
 
+    // 別タブで開いているリザルトはこのタブでは表示しない
     if (
-        !session
+        screenStatus === "elsewhere"
+        || !session
         || session.questId !== quest.id
         || session.endReason === null
     ) {

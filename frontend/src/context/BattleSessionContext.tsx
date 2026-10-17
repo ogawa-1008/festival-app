@@ -37,7 +37,6 @@ type BattleSessionContextType = {
     options?: { force?: boolean }
   ) => Promise<StartResult>;
   checkAccess: (questId: string | undefined) => Promise<AccessResult>;
-  discardSession: () => void;
   registerScreen: () => () => void;
   playHand: (
     hand: Hand
@@ -273,10 +272,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
     [readLatest, isOpenElsewhere, adopt]
   );
 
-  const discardSession = useCallback(() => {
-    update(null);
-  }, [update]);
-
   const registerScreen = useCallback(() => {
     screenCountRef.current += 1;
 
@@ -341,7 +336,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       takenOver,
       startBattle,
       checkAccess,
-      discardSession,
       registerScreen,
       playHand,
       claimReward,
@@ -351,7 +345,6 @@ export function BattleSessionProvider({ children }: { children: ReactNode }) {
       takenOver,
       startBattle,
       checkAccess,
-      discardSession,
       registerScreen,
       playHand,
       claimReward,
