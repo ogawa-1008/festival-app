@@ -2,12 +2,12 @@
   position: relative;
 
   width: 100%;
-  max-width: 430px;
+  max-width: var(--app-max-width);
 
   height: 100dvh;
   min-height: 100dvh;
 
   margin: 0 auto;
 
-  background: #2b251d;
+  background: var(--color-bg-app);
 }
