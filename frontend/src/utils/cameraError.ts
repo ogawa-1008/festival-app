@@ -9,7 +9,8 @@ export type CameraErrorKind =
   | "unsupported" // https だが、このブラウザにカメラの機能がない
   | "unknown";
 
-export type Platform = "ios" | "android" | "other";
+// ios-other は iPhone の Safari 以外のブラウザ（Chrome・Firefox・Edge）
+export type Platform = "ios" | "ios-other" | "android" | "other";
 
 export type CameraEnvironment = {
   userAgent: string;
@@ -41,8 +42,11 @@ const ERROR_NAMES = [
 // maxTouchPoints は navigator.maxTouchPoints を渡す（iPadOS の判定に使う）
 export function detectPlatform(userAgent: string, maxTouchPoints = 0): Platform {
   // iPadOS の Safari は Mac と同じ User-Agent を名乗るため、タッチ対応の Mac も iOS とみなす
-  if (/iPhone|iPad|iPod/i.test(userAgent)) return "ios";
-  if (/Macintosh/i.test(userAgent) && maxTouchPoints > 1) return "ios";
+  const isIos =
+    /iPhone|iPad|iPod/i.test(userAgent) ||
+    (/Macintosh/i.test(userAgent) && maxTouchPoints > 1);
+
+  if (isIos) return /CriOS|FxiOS|EdgiOS/.test(userAgent) ? "ios-other" : "ios";
   if (/Android/i.test(userAgent)) return "android";
   return "other";
 }
@@ -75,10 +79,11 @@ export function getCameraErrorName(error: unknown): string | null {
 export function classifyEnvironment(environment: CameraEnvironment): CameraErrorKind | null {
   if (environment.isSecureContext && environment.hasMediaDevices) return null;
 
-  if (isInAppBrowser(environment.userAgent)) return "in-app-browser";
+  // https でなければ、どのブラウザで開き直しても使えないので先に案内する
+  if (!environment.isSecureContext) return "insecure";
 
   // https で開いているのにカメラの機能がない場合は、ブラウザが対応していない
-  return environment.isSecureContext ? "unsupported" : "insecure";
+  return isInAppBrowser(environment.userAgent) ? "in-app-browser" : "unsupported";
 }
 
 // カメラの使用を拒否されたことによるエラーか（許可し直せば解決するもの）
@@ -142,6 +147,12 @@ export function getCameraErrorContent(
                 "「Webサイトの設定」→「カメラ」を「許可」にする",
                 RETRY_STEP,
               ]
+            : platform === "ios-other"
+              ? [
+                  "iPhone の「設定」アプリを開く",
+                  "お使いのブラウザ（Chrome など）を選び、「カメラ」をオンにする",
+                  RETRY_STEP,
+                ]
             : platform === "android"
               ? [
                   "アドレスバー左の鍵（または設定）アイコンをタップ",
@@ -189,7 +200,7 @@ export function getCameraErrorContent(
           platform === "android"
             ? "画面右上のメニュー（︙ または …）を押す"
             : "画面の右上か右下にあるメニュー（… または 共有）を押す",
-          platform === "ios"
+          platform === "ios" || platform === "ios-other"
             ? "「Safariで開く」（または「ブラウザで開く」）を選ぶ"
             : platform === "android"
               ? "「Chromeで開く」（または「ブラウザで開く」）を選ぶ"
@@ -205,7 +216,7 @@ export function getCameraErrorContent(
         steps: [
           platform === "android"
             ? "Chrome でこのページを開き直す"
-            : platform === "ios"
+            : platform === "ios" || platform === "ios-other"
               ? "Safari でこのページを開き直す"
               : "Chrome・Safari などの新しいブラウザでこのページを開き直す",
           "開いたページで「カメラを起動」を押す",

@@ -112,6 +112,9 @@ function QRScanner() {
     }
   };
 
+  // 最新の権限の状態（許可しているのに起動できなかった場合の判定に使う）
+  const permissionStateRef = useRef<PermissionState | null>(null);
+
   // 以前にカメラを拒否していることが分かる端末では、画面を開いた時点で許可し直す方法を案内する
   // 設定から許可し直して戻ってきたら、案内を閉じる
   useEffect(() => {
@@ -120,6 +123,8 @@ function QRScanner() {
 
     const apply = () => {
       if (!status || cancelled) return;
+
+      permissionStateRef.current = status.state;
 
       if (status.state === "denied") {
         // 読み取りの途中で取り消された場合も、止めて案内を出す
@@ -141,6 +146,9 @@ function QRScanner() {
     navigator.permissions
       ?.query({ name: "camera" as PermissionName })
       .then((result) => {
+        // 問い合わせ中に画面を離れていたら、監視を登録しない
+        if (cancelled) return;
+
         status = result;
         apply();
         result.addEventListener("change", apply);
@@ -277,10 +285,11 @@ function QRScanner() {
 
     try {
       setErrorMessage("");
-      setCameraError(null);
       hasScannedRef.current = false;
 
+      // 結果が出るまでは今の案内を出したままにする（「カメラを起動」の画面が一瞬出ないように）
       if (await startScanner()) {
+        setCameraError(null);
         setIsScanning(true);
       }
     } catch (error) {
@@ -289,9 +298,15 @@ function QRScanner() {
         error
       );
 
+      // 許可しているのに同じエラーが出た場合は、映像の再生がブロックされた（低電力モードなど）とみなす
+      const fromPermission =
+        isPermissionError(error) && permissionStateRef.current !== "granted";
+
       setCameraError({
-        kind: classifyCameraError(error, getCameraEnvironment()),
-        fromPermission: isPermissionError(error),
+        kind: fromPermission || !isPermissionError(error)
+          ? classifyCameraError(error, getCameraEnvironment())
+          : "unknown",
+        fromPermission,
       });
       await stopScanner();
     } finally {
@@ -405,11 +420,14 @@ function QRScanner() {
 
       </section>
 
-      <p className="qr-guide">
-        {isScanning
-          ? "QRコードを枠の中に合わせてください"
-          : "カメラを起動してQRコードを読み取ります"}
-      </p>
+      {/* 案内を出しているときは、食い違わないよう下の説明を出さない */}
+      {!cameraErrorContent && (
+        <p className="qr-guide">
+          {isScanning
+            ? "QRコードを枠の中に合わせてください"
+            : "カメラを起動してQRコードを読み取ります"}
+        </p>
+      )}
 
       {errorMessage && (
         <p className="qr-error">
