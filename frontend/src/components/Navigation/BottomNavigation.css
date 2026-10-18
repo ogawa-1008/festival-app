@@ -7,7 +7,7 @@
   transform: translateX(-50%);
 
   width: min(100%, 430px);
-  height: 82px;
+  height: var(--bottom-nav-height);
 
   display: flex;
   align-items: flex-end;

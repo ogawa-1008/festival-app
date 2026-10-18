@@ -14,11 +14,12 @@
    - 360px: 小さいスマホ
    - 380px: 標準より狭いスマホ
    - 430px / 431px: アプリの最大幅とその外側（これより広い画面では中央に寄せて表示）
-     ※ --app-max-width を変えるときは、メディアクエリの 430px / 431px も合わせて直す
+     ※ --app-max-width を変えるときは、メディアクエリの 430px / 431px と、
+       まだ 430px を直接書いている幅の指定（BottomNavigation / Battle / Home / QuestList）も合わせて直す
 
    重なり順
    - 画面全体にかかる層（モヤ・帯・ナビ・確認画面・通知）は --z-* の変数を使う
-   - 1つの部品の中だけでの重なりは、1〜30 の小さい数で書いてよい
+   - 1つの部品の中だけでの重なりは 1〜30 の小さい数で書いてよい（--z-raised より下）
 ========================================================= */
 
 :root {
@@ -54,7 +55,7 @@
   /* 暗い面の上で目立たせたい明るい文字（通知など） */
   --color-text-highlight: #fff4cf;
   /* アクセント色の上に載せる文字 */
-  --color-text-on-accent: #21180f;
+  --color-text-on-accent: var(--color-bg-panel);
 
   /* ---------- 強調 ---------- */
 
@@ -68,7 +69,7 @@
   /* 緑（HPなど） */
   --color-success: #7fcf36;
   /* キーボード操作時のフォーカスの枠 */
-  --color-focus: #fff4cf;
+  --color-focus: var(--color-text-highlight);
 
   /* ---------- フォント ---------- */
 
@@ -113,8 +114,8 @@
 
   /* ---------- 重なり順（下から順に） ---------- */
 
-  /* 画面内で少し浮かせる要素 */
-  --z-raised: 10;
+  /* 画面内で少し浮かせる要素（部品内の重なり 1〜30 より上） */
+  --z-raised: 40;
   /* 画面全体にかかる演出（赤いモヤなど） */
   --z-overlay: 50;
   /* 画面中央の帯（ターン帯・討伐の帯） */
@@ -130,6 +131,8 @@
 
   --app-max-width: 430px;
   --app-gutter: 16px;
+  /* 下部ナビゲーションの高さ（その上に出す通知の位置にも使う） */
+  --bottom-nav-height: 82px;
 
   /* ---------- 動き ---------- */
 
@@ -183,7 +186,7 @@ button {
 /* 保存の失敗・新しいバージョンの案内（下部ナビの上に出す） */
 .game-save-notice {
   position: fixed;
-  bottom: 100px;
+  bottom: calc(var(--bottom-nav-height) + var(--space-4));
   left: 50%;
   transform: translateX(-50%);
   width: min(360px, calc(100% - var(--app-gutter) * 2));

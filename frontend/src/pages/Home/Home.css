@@ -353,8 +353,8 @@
 }
 
 .home-qr-cta:focus-visible {
-  outline: 3px solid #fff4cf;
-  outline-offset: 4px;
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .home-qr-cta:active {
