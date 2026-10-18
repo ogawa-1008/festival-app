@@ -12,6 +12,7 @@ import {
   classifyPermissionDenied,
   detectPlatform,
   getCameraErrorContent,
+  isPermissionError,
   type CameraErrorKind,
 } from "../../utils/cameraError";
 
@@ -37,8 +38,18 @@ const getCameraEnvironment = () => ({
   hasMediaDevices: Boolean(navigator.mediaDevices?.getUserMedia),
 });
 
+// カメラが使えなかった原因。fromPermission は権限が原因か（許可し直したら案内を閉じる）
+type CameraError = {
+  kind: CameraErrorKind;
+  fromPermission: boolean;
+};
+
 // https でない・カメラの機能がないことは、カメラを起動する前から分かる
-const getInitialCameraError = () => classifyEnvironment(getCameraEnvironment());
+const getInitialCameraError = (): CameraError | null => {
+  const kind = classifyEnvironment(getCameraEnvironment());
+
+  return kind ? { kind, fromPermission: false } : null;
+};
 
 function QRScanner() {
   const navigate = useNavigate();
@@ -70,7 +81,7 @@ function QRScanner() {
 
   // カメラが使えなかった原因（null のときは使える・未確認）
   const [cameraError, setCameraError] =
-    useState<CameraErrorKind | null>(getInitialCameraError);
+    useState<CameraError | null>(getInitialCameraError);
 
   // 案内は1回だけ表示する（再読み込み・戻る操作で古い案内が出ないよう履歴から消す）
   useEffect(() => {
@@ -115,15 +126,15 @@ function QRScanner() {
         void stopScanner();
         setIsScanning(false);
         setCameraError(
-          (current) => current ?? classifyPermissionDenied(navigator.userAgent)
+          (current) =>
+            current ?? {
+              kind: classifyPermissionDenied(navigator.userAgent),
+              fromPermission: true,
+            }
         );
-      } else if (status.state === "granted") {
-        // 閉じるのは権限が原因の案内だけ（カメラの機能がない場合の案内は残す）
-        if (getInitialCameraError()) return;
-
-        setCameraError((current) =>
-          current === "denied" || current === "in-app-browser" ? null : current
-        );
+      } else {
+        // 許可・確認（毎回たずねる）に戻ったら試せるので、権限が原因の案内だけ閉じる
+        setCameraError((current) => (current?.fromPermission ? null : current));
       }
     };
 
@@ -219,14 +230,29 @@ function QRScanner() {
 
     scannerRef.current = scanner;
 
-    await scanner.start(
-      { facingMode: "environment" },
-      SCAN_SETTINGS,
-      handleScanSuccess,
-      () => {
-        // QRコードをまだ認識していない場合
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        SCAN_SETTINGS,
+        handleScanSuccess,
+        () => {
+          // QRコードをまだ認識していない場合
+        }
+      );
+    } catch (error) {
+      // 起動中に画面を離れていたら、後片付けだけして案内は出さない
+      if (scannerRef.current !== scanner) {
+        try {
+          await scanner.clear();
+        } catch {
+          // すでに片付いていれば何もしない
+        }
+
+        return false;
       }
-    );
+
+      throw error;
+    }
 
     if (scannerRef.current !== scanner) {
       try {
@@ -263,7 +289,10 @@ function QRScanner() {
         error
       );
 
-      setCameraError(classifyCameraError(error, getCameraEnvironment()));
+      setCameraError({
+        kind: classifyCameraError(error, getCameraEnvironment()),
+        fromPermission: isPermissionError(error),
+      });
       await stopScanner();
     } finally {
       isStartingRef.current = false;
@@ -278,7 +307,7 @@ function QRScanner() {
 
   const cameraErrorContent = cameraError
     ? getCameraErrorContent(
-      cameraError,
+      cameraError.kind,
       detectPlatform(navigator.userAgent, navigator.maxTouchPoints)
     )
     : null;

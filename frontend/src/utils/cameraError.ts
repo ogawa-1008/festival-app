@@ -6,6 +6,7 @@ export type CameraErrorKind =
   | "in-use" // ほかのアプリ・タブが使用中
   | "insecure" // 安全な接続（https）ではない
   | "in-app-browser" // LINE・Instagram などのアプリ内ブラウザ
+  | "unsupported" // https だが、このブラウザにカメラの機能がない
   | "unknown";
 
 export type Platform = "ios" | "android" | "other";
@@ -46,8 +47,12 @@ export function detectPlatform(userAgent: string, maxTouchPoints = 0): Platform 
   return "other";
 }
 
+// アプリ内ブラウザが User-Agent に付ける目印（大文字・小文字を区別して、関係ない文字列に反応しないようにする）
+const IN_APP_BROWSER_PATTERN =
+  /\bLine\/\d|Instagram|FBAN\/|FBAV\/|FB_IAB|Twitter for|TikTok|BytedanceWebview|musical_ly|MicroMessenger|KAKAOTALK|YJApp/;
+
 export function isInAppBrowser(userAgent: string) {
-  return /Line\/|Instagram|FBAN|FBAV|FB_IAB|Twitter|TikTok|BytedanceWebview|musical_ly/i.test(userAgent);
+  return IN_APP_BROWSER_PATTERN.test(userAgent);
 }
 
 // エラーの名前を取り出す。html5-qrcode は
@@ -70,7 +75,17 @@ export function getCameraErrorName(error: unknown): string | null {
 export function classifyEnvironment(environment: CameraEnvironment): CameraErrorKind | null {
   if (environment.isSecureContext && environment.hasMediaDevices) return null;
 
-  return isInAppBrowser(environment.userAgent) ? "in-app-browser" : "insecure";
+  if (isInAppBrowser(environment.userAgent)) return "in-app-browser";
+
+  // https で開いているのにカメラの機能がない場合は、ブラウザが対応していない
+  return environment.isSecureContext ? "unsupported" : "insecure";
+}
+
+// カメラの使用を拒否されたことによるエラーか（許可し直せば解決するもの）
+export function isPermissionError(error: unknown) {
+  const name = getCameraErrorName(error);
+
+  return name === "NotAllowedError" || name === "PermissionDeniedError";
 }
 
 // カメラの使用を拒否されたときの原因
@@ -95,20 +110,20 @@ export function classifyCameraError(
       return classifyPermissionDenied(environment.userAgent);
     case "NotFoundError":
     case "DevicesNotFoundError":
-    case "OverconstrainedError":
-    case "ConstraintNotSatisfiedError":
       return "not-found";
     case "NotReadableError":
     case "TrackStartError":
     case "AbortError":
       return "in-use";
     // SecurityError は iframe などの制限によるもので、ユーザーが許可し直しても解決しないため「その他」とする
+    // OverconstrainedError は一時的なことがあるため、もう一度試せる「その他」とする
     default:
       return inApp ? "in-app-browser" : "unknown";
   }
 }
 
-const RETRY_STEP = "この画面に戻り「もう一度試す」を押す";
+// 設定を変えたときにページが再読み込みされると、ボタンは「カメラを起動」になる
+const RETRY_STEP = "この画面に戻り「もう一度試す」（または「カメラを起動」）を押す";
 
 export function getCameraErrorContent(
   kind: CameraErrorKind,
@@ -168,26 +183,40 @@ export function getCameraErrorContent(
       return {
         title: "ブラウザで開き直してください",
         message: "LINE・Instagram などのアプリの中のブラウザでは、カメラを使えないことがあります。",
-        canRetry: true,
-        steps:
+        // アプリの中では何度試しても使えないことが多いため、ブラウザで開き直してもらう
+        canRetry: false,
+        steps: [
           platform === "android"
-            ? [
-                "画面右上のメニュー（︙ または …）を押す",
-                "「Chromeで開く」（または「ブラウザで開く」）を選ぶ",
-                "開いたページで「カメラを起動」を押す",
-              ]
-            : [
-                "画面の右上か右下にあるメニュー（… または 共有）を押す",
-                "「Safariで開く」（または「ブラウザで開く」）を選ぶ",
-                "開いたページで「カメラを起動」を押す",
-              ],
+            ? "画面右上のメニュー（︙ または …）を押す"
+            : "画面の右上か右下にあるメニュー（… または 共有）を押す",
+          platform === "ios"
+            ? "「Safariで開く」（または「ブラウザで開く」）を選ぶ"
+            : platform === "android"
+              ? "「Chromeで開く」（または「ブラウザで開く」）を選ぶ"
+              : "「ブラウザで開く」を選ぶ",
+          "開いたページで「カメラを起動」を押す",
+        ],
+      };
+    case "unsupported":
+      return {
+        title: "このブラウザではカメラを使えません",
+        message: "お使いのブラウザがカメラの読み取りに対応していません。",
+        canRetry: false,
+        steps: [
+          platform === "android"
+            ? "Chrome でこのページを開き直す"
+            : platform === "ios"
+              ? "Safari でこのページを開き直す"
+              : "Chrome・Safari などの新しいブラウザでこのページを開き直す",
+          "開いたページで「カメラを起動」を押す",
+        ],
       };
     default:
       return {
         title: "カメラを起動できませんでした",
         message: "一時的な問題の可能性があります。",
         canRetry: true,
-        steps: ["ページを再読み込みする", "「もう一度試す」を押す"],
+        steps: ["「もう一度試す」を押す", "解決しないときは、ページを再読み込みしてから「カメラを起動」を押す"],
       };
   }
 }
