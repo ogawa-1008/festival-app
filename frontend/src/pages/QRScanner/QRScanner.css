@@ -6,7 +6,7 @@
 
   padding: 24px 20px 40px;
 
-  background: #111;
+  background: var(--color-bg-base);
   color: #fff;
 }
 
@@ -23,7 +23,7 @@
 .qr-header h1 {
   margin: 0;
 
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   font-weight: bold;
 }
 
@@ -32,12 +32,12 @@
   height: 44px;
 
   border: 1px solid #555;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
   background: #222;
   color: #fff;
 
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
 }
 
 /* 説明 */
@@ -75,7 +75,7 @@
   overflow: hidden;
 
   border: 2px solid var(--color-accent-strong);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 
   background: #050505;
 }
@@ -123,7 +123,7 @@
 
   padding: 20px;
 
-  background: #111;
+  background: var(--color-bg-base);
 
   text-align: center;
 
@@ -141,7 +141,7 @@
 
   color: #ddd;
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
   line-height: 1.7;
 }
 
@@ -151,7 +151,7 @@
   padding: 13px 28px;
 
   border: 2px solid var(--color-accent-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 
   background: #181818;
   color: var(--color-accent-strong);
@@ -220,7 +220,7 @@
 
   text-align: center;
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 
 /* エラー */
@@ -234,15 +234,15 @@
 
   box-sizing: border-box;
 
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 
   background: #3a1515;
 
-  color: #ffaaaa;
+  color: var(--color-danger-text);
 
   text-align: center;
 
-  font-size: 13px;
+  font-size: var(--font-size-base);
 
   white-space: pre-line;
 }
