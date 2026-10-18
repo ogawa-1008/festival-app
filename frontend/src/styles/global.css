@@ -13,7 +13,12 @@
    画面幅の区切り（メディアクエリでは CSS 変数が使えないため値で書く）
    - 360px: 小さいスマホ
    - 380px: 標準より狭いスマホ
-   - 430px: アプリの最大幅（これより広い画面では中央に寄せて表示）
+   - 430px / 431px: アプリの最大幅とその外側（これより広い画面では中央に寄せて表示）
+     ※ --app-max-width を変えるときは、メディアクエリの 430px / 431px も合わせて直す
+
+   重なり順
+   - 画面全体にかかる層（モヤ・帯・ナビ・確認画面・通知）は --z-* の変数を使う
+   - 1つの部品の中だけでの重なりは、1〜30 の小さい数で書いてよい
 ========================================================= */
 
 :root {
@@ -46,6 +51,8 @@
   --color-text-muted: #c9bea9;
   /* 英字の小見出しなど、さらに控えめな文字 */
   --color-text-subtle: #a89a78;
+  /* 暗い面の上で目立たせたい明るい文字（通知など） */
+  --color-text-highlight: #fff4cf;
   /* アクセント色の上に載せる文字 */
   --color-text-on-accent: #21180f;
 
@@ -60,6 +67,8 @@
   --color-danger-text: #ffaaaa;
   /* 緑（HPなど） */
   --color-success: #7fcf36;
+  /* キーボード操作時のフォーカスの枠 */
+  --color-focus: #fff4cf;
 
   /* ---------- フォント ---------- */
 
@@ -77,6 +86,8 @@
   --font-size-2xs: 8px;
   --font-size-xs: 10px;
   --font-size-sm: 12px;
+  /* 本文で一番多く使う大きさ */
+  --font-size-base: 13px;
   --font-size-md: 14px;
   --font-size-lg: 16px;
   --font-size-xl: 20px;
@@ -162,25 +173,26 @@ button {
   font: inherit;
 }
 
-/* キーボード操作でフォーカスしたときだけ枠を出す（タップでは出ない） */
+/* キーボード操作でフォーカスしたときだけ枠を出す（タップでは出ない）
+   部品ごとにフォーカスの見た目を作る場合も、この太さ・色に合わせる */
 :focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-/* 保存の失敗・新しいバージョンの案内 */
+/* 保存の失敗・新しいバージョンの案内（下部ナビの上に出す） */
 .game-save-notice {
   position: fixed;
   bottom: 100px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(360px, calc(100% - 32px));
+  width: min(360px, calc(100% - var(--app-gutter) * 2));
   margin: 0;
   padding: var(--space-3);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   background: var(--color-bg-raised);
-  color: #fff4cf;
-  font-size: 13px;
+  color: var(--color-text-highlight);
+  font-size: var(--font-size-base);
   z-index: var(--z-toast);
 }
