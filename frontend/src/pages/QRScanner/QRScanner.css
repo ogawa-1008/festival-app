@@ -175,10 +175,10 @@
   /* 四隅の枠（z-index 10）より上に出す */
   z-index: 11;
 
+  /* 中身が枠より高いときも上からスクロールできるよう、上下の余白（margin: auto）で中央に寄せる */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 
   padding: var(--space-5) var(--space-4);
 
@@ -189,6 +189,14 @@
   color: var(--color-text);
 
   text-align: center;
+}
+
+.qr-camera-error > :first-child {
+  margin-top: auto;
+}
+
+.qr-camera-error > :last-child {
+  margin-bottom: auto;
 }
 
 .qr-camera-error h2 {
@@ -231,7 +239,8 @@
 }
 
 .qr-camera-error .qr-camera-error-help {
-  margin: var(--space-3) 0 0;
+  /* 下の余白は auto のまま（中央寄せのため） */
+  margin: var(--space-3) 0 auto;
 
   color: var(--color-text-subtle);
 

@@ -8,10 +8,10 @@ import { useGame } from "../../context/GameContext";
 import { getBattleStats } from "../../utils/battleStats";
 import {
   classifyCameraError,
+  classifyEnvironment,
+  classifyPermissionDenied,
   detectPlatform,
   getCameraErrorContent,
-  isCameraConstraintError,
-  isInAppBrowser,
   type CameraErrorKind,
 } from "../../utils/cameraError";
 
@@ -38,13 +38,7 @@ const getCameraEnvironment = () => ({
 });
 
 // https でない・カメラの機能がないことは、カメラを起動する前から分かる
-const getInitialCameraError = (): CameraErrorKind | null => {
-  const environment = getCameraEnvironment();
-
-  if (environment.isSecureContext && environment.hasMediaDevices) return null;
-
-  return isInAppBrowser(environment.userAgent) ? "in-app-browser" : "insecure";
-};
+const getInitialCameraError = () => classifyEnvironment(getCameraEnvironment());
 
 function QRScanner() {
   const navigate = useNavigate();
@@ -78,44 +72,6 @@ function QRScanner() {
   const [cameraError, setCameraError] =
     useState<CameraErrorKind | null>(getInitialCameraError);
 
-  // 以前にカメラを拒否していることが分かる端末では、画面を開いた時点で許可し直す方法を案内する
-  // 設定から許可し直して戻ってきたら、案内を閉じる
-  useEffect(() => {
-    let status: PermissionStatus | null = null;
-    let cancelled = false;
-
-    const apply = () => {
-      if (!status || cancelled) return;
-
-      if (status.state === "denied") {
-        // アプリ内ブラウザでは、許可し直すよりブラウザで開き直すほうが確実
-        const kind = isInAppBrowser(navigator.userAgent) ? "in-app-browser" : "denied";
-
-        setCameraError((current) => current ?? kind);
-      } else if (status.state === "granted") {
-        setCameraError((current) =>
-          current === "denied" || current === "in-app-browser" ? null : current
-        );
-      }
-    };
-
-    navigator.permissions
-      ?.query({ name: "camera" as PermissionName })
-      .then((result) => {
-        status = result;
-        apply();
-        result.addEventListener("change", apply);
-      })
-      .catch(() => {
-        // camera の権限を問い合わせられないブラウザ（古い iPhone など）は、起動に失敗してから案内する
-      });
-
-    return () => {
-      cancelled = true;
-      status?.removeEventListener("change", apply);
-    };
-  }, []);
-
   // 案内は1回だけ表示する（再読み込み・戻る操作で古い案内が出ないよう履歴から消す）
   useEffect(() => {
     if (location.state) {
@@ -144,6 +100,49 @@ function QRScanner() {
       // アンマウント後に要素が消えていても問題ない
     }
   };
+
+  // 以前にカメラを拒否していることが分かる端末では、画面を開いた時点で許可し直す方法を案内する
+  // 設定から許可し直して戻ってきたら、案内を閉じる
+  useEffect(() => {
+    let status: PermissionStatus | null = null;
+    let cancelled = false;
+
+    const apply = () => {
+      if (!status || cancelled) return;
+
+      if (status.state === "denied") {
+        // 読み取りの途中で取り消された場合も、止めて案内を出す
+        void stopScanner();
+        setIsScanning(false);
+        setCameraError(
+          (current) => current ?? classifyPermissionDenied(navigator.userAgent)
+        );
+      } else if (status.state === "granted") {
+        // 閉じるのは権限が原因の案内だけ（カメラの機能がない場合の案内は残す）
+        if (getInitialCameraError()) return;
+
+        setCameraError((current) =>
+          current === "denied" || current === "in-app-browser" ? null : current
+        );
+      }
+    };
+
+    navigator.permissions
+      ?.query({ name: "camera" as PermissionName })
+      .then((result) => {
+        status = result;
+        apply();
+        result.addEventListener("change", apply);
+      })
+      .catch(() => {
+        // camera の権限を問い合わせられないブラウザ（古い iPhone など）は、起動に失敗してから案内する
+      });
+
+    return () => {
+      cancelled = true;
+      status?.removeEventListener("change", apply);
+    };
+  }, []);
 
   // QRコードを読み取れたとき
   const handleScanSuccess = (decodedText: string) => {
@@ -213,44 +212,34 @@ function QRScanner() {
   
   };
 
-  // カメラを起動する。背面カメラが使えない端末では、使えるカメラを探してやり直す
+  // カメラを起動する。起動中に画面を離れたり止められたりしていたら、起動したカメラを止める
+  // （背面カメラの指定は「できれば背面」の扱いなので、背面がない端末では前面カメラが使われる）
   const startScanner = async () => {
     const scanner = new Html5Qrcode("qr-reader");
 
     scannerRef.current = scanner;
 
-    try {
-      await scanner.start(
-        { facingMode: "environment" },
-        SCAN_SETTINGS,
-        handleScanSuccess,
-        () => {
-          // QRコードをまだ認識していない場合
-        }
-      );
-    } catch (error) {
-      if (!isCameraConstraintError(error)) throw error;
+    await scanner.start(
+      { facingMode: "environment" },
+      SCAN_SETTINGS,
+      handleScanSuccess,
+      () => {
+        // QRコードをまだ認識していない場合
+      }
+    );
 
-      await stopScanner();
+    if (scannerRef.current !== scanner) {
+      try {
+        await scanner.stop();
+        await scanner.clear();
+      } catch {
+        // すでに止まっていれば何もしない
+      }
 
-      const cameras = await Html5Qrcode.getCameras();
-
-      if (cameras.length === 0) throw error;
-
-      const fallback = new Html5Qrcode("qr-reader");
-
-      scannerRef.current = fallback;
-
-      // 背面カメラは一覧の最後にあることが多い
-      await fallback.start(
-        cameras[cameras.length - 1].id,
-        SCAN_SETTINGS,
-        handleScanSuccess,
-        () => {
-          // QRコードをまだ認識していない場合
-        }
-      );
+      return false;
     }
+
+    return true;
   };
 
   const startCamera = async () => {
@@ -265,9 +254,9 @@ function QRScanner() {
       setCameraError(null);
       hasScannedRef.current = false;
 
-      await startScanner();
-
-      setIsScanning(true);
+      if (await startScanner()) {
+        setIsScanning(true);
+      }
     } catch (error) {
       console.error(
         "Camera error:",
@@ -288,7 +277,10 @@ function QRScanner() {
   }, []);
 
   const cameraErrorContent = cameraError
-    ? getCameraErrorContent(cameraError, detectPlatform(navigator.userAgent))
+    ? getCameraErrorContent(
+      cameraError,
+      detectPlatform(navigator.userAgent, navigator.maxTouchPoints)
+    )
     : null;
 
   return (
@@ -337,13 +329,15 @@ function QRScanner() {
                 </ol>
               )}
 
-              <button
-                type="button"
-                className="qr-start-button"
-                onClick={startCamera}
-              >
-                もう一度試す
-              </button>
+              {cameraErrorContent.canRetry && (
+                <button
+                  type="button"
+                  className="qr-start-button"
+                  onClick={startCamera}
+                >
+                  もう一度試す
+                </button>
+              )}
 
               <p className="qr-camera-error-help">
                 解決しないときは、近くのスタッフに声をかけてください。

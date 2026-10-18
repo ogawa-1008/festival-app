@@ -20,6 +20,8 @@ export type CameraErrorContent = {
   title: string;
   message: string;
   steps: string[];
+  // 「もう一度試す」で解決する見込みがあるか（https でない・カメラがない場合はない）
+  canRetry: boolean;
 };
 
 const ERROR_NAMES = [
@@ -35,12 +37,11 @@ const ERROR_NAMES = [
   "ConstraintNotSatisfiedError",
 ] as const;
 
-export function detectPlatform(userAgent: string): Platform {
+// maxTouchPoints は navigator.maxTouchPoints を渡す（iPadOS の判定に使う）
+export function detectPlatform(userAgent: string, maxTouchPoints = 0): Platform {
   // iPadOS の Safari は Mac と同じ User-Agent を名乗るため、タッチ対応の Mac も iOS とみなす
   if (/iPhone|iPad|iPod/i.test(userAgent)) return "ios";
-  if (/Macintosh/i.test(userAgent) && typeof navigator !== "undefined" && navigator.maxTouchPoints > 1) {
-    return "ios";
-  }
+  if (/Macintosh/i.test(userAgent) && maxTouchPoints > 1) return "ios";
   if (/Android/i.test(userAgent)) return "android";
   return "other";
 }
@@ -64,30 +65,34 @@ export function getCameraErrorName(error: unknown): string | null {
   return ERROR_NAMES.find((name) => text.includes(name)) ?? null;
 }
 
-// 背面カメラ（facingMode: environment）が使えなかったか。このときは別のカメラでやり直す
-export function isCameraConstraintError(error: unknown) {
-  const name = getCameraErrorName(error);
+// カメラの機能そのものが使えるか（https でない・アプリ内ブラウザが対応していない場合は使えない）
+// カメラを起動する前から分かるので、画面を開いた時点の判定にも使う
+export function classifyEnvironment(environment: CameraEnvironment): CameraErrorKind | null {
+  if (environment.isSecureContext && environment.hasMediaDevices) return null;
 
-  return name === "OverconstrainedError" || name === "ConstraintNotSatisfiedError";
+  return isInAppBrowser(environment.userAgent) ? "in-app-browser" : "insecure";
+}
+
+// カメラの使用を拒否されたときの原因
+// アプリ内ブラウザはカメラを拒否することが多いので、ブラウザで開き直すよう案内する
+export function classifyPermissionDenied(userAgent: string): CameraErrorKind {
+  return isInAppBrowser(userAgent) ? "in-app-browser" : "denied";
 }
 
 export function classifyCameraError(
   error: unknown,
   environment: CameraEnvironment
 ): CameraErrorKind {
-  const inApp = isInAppBrowser(environment.userAgent);
+  const environmentError = classifyEnvironment(environment);
 
-  // カメラの機能そのものが使えない（https でない、アプリ内ブラウザが対応していない）
-  if (!environment.isSecureContext || !environment.hasMediaDevices) {
-    return inApp ? "in-app-browser" : "insecure";
-  }
+  if (environmentError) return environmentError;
+
+  const inApp = isInAppBrowser(environment.userAgent);
 
   switch (getCameraErrorName(error)) {
     case "NotAllowedError":
     case "PermissionDeniedError":
-    case "SecurityError":
-      // アプリ内ブラウザはカメラを拒否することが多いので、ブラウザで開き直すよう案内する
-      return inApp ? "in-app-browser" : "denied";
+      return classifyPermissionDenied(environment.userAgent);
     case "NotFoundError":
     case "DevicesNotFoundError":
     case "OverconstrainedError":
@@ -97,6 +102,7 @@ export function classifyCameraError(
     case "TrackStartError":
     case "AbortError":
       return "in-use";
+    // SecurityError は iframe などの制限によるもので、ユーザーが許可し直しても解決しないため「その他」とする
     default:
       return inApp ? "in-app-browser" : "unknown";
   }
@@ -113,6 +119,7 @@ export function getCameraErrorContent(
       return {
         title: "カメラの使用が許可されていません",
         message: "QRコードを読み取るには、このページでのカメラの使用を許可してください。",
+        canRetry: true,
         steps:
           platform === "ios"
             ? [
@@ -136,12 +143,14 @@ export function getCameraErrorContent(
       return {
         title: "カメラが見つかりません",
         message: "この端末ではカメラを使えませんでした。カメラのあるスマートフォンで開いてください。",
+        canRetry: false,
         steps: [],
       };
     case "in-use":
       return {
         title: "カメラを起動できませんでした",
         message: "ほかのアプリやタブでカメラを使っている可能性があります。",
+        canRetry: true,
         steps: [
           "カメラを使っているアプリ（ビデオ通話・カメラアプリなど）を閉じる",
           "ほかのタブでこのページを開いていれば閉じる",
@@ -152,12 +161,14 @@ export function getCameraErrorContent(
       return {
         title: "このページではカメラを使えません",
         message: "安全な接続（https）で開かれていないため、カメラを使えません。",
+        canRetry: false,
         steps: ["会場の案内にあるURL（https:// で始まるもの）から開き直す"],
       };
     case "in-app-browser":
       return {
         title: "ブラウザで開き直してください",
         message: "LINE・Instagram などのアプリの中のブラウザでは、カメラを使えないことがあります。",
+        canRetry: true,
         steps:
           platform === "android"
             ? [
@@ -175,6 +186,7 @@ export function getCameraErrorContent(
       return {
         title: "カメラを起動できませんでした",
         message: "一時的な問題の可能性があります。",
+        canRetry: true,
         steps: ["ページを再読み込みする", "「もう一度試す」を押す"],
       };
   }
