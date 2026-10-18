@@ -1,6 +1,6 @@
 .exchange-page { min-height: 100dvh; display: grid; place-items: center; padding: 20px 14px; color: var(--color-text); background: radial-gradient(ellipse at center top, #55452f, #171411 72%); }
 .exchange-card { width: min(100%, 390px); padding: 22px 18px; border: 2px solid var(--color-border); background: linear-gradient(180deg, rgba(35,30,23,.98), rgba(15,13,10,.98)); text-align: center; box-shadow: 0 8px 22px rgba(0,0,0,.55); }
-.exchange-eyebrow { color: var(--color-text-subtle); font: bold 10px Georgia, serif; letter-spacing: 3px; }
+.exchange-eyebrow { color: var(--color-text-subtle); font-weight: bold; font-size: var(--font-size-xs); font-family: var(--font-display); line-height: normal; letter-spacing: 3px; }
 .exchange-card h1 { margin: 8px 0 12px; font-size: 23px; letter-spacing: 2px; }
 .exchange-image { width: 200px; height: 200px; object-fit: contain; border: 1px solid var(--color-border-muted); background: #090806; }
 .exchange-materials { margin: 18px 0; text-align: left; border-top: 1px solid var(--color-border-muted); }

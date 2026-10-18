@@ -21,7 +21,7 @@
   background: linear-gradient(180deg, rgba(35, 30, 23, .96), rgba(15, 13, 10, .96));
 }
 
-.collection-header span { color: var(--color-text-subtle); font: bold 9px Georgia, serif; letter-spacing: 2px; }
+.collection-header span { color: var(--color-text-subtle); font-weight: bold; font-size: 9px; font-family: var(--font-display); line-height: normal; letter-spacing: 2px; }
 .collection-header h1 { margin: 3px 0 0; font-size: var(--font-size-xl); letter-spacing: 2px; }
 .collection-back { width: 38px; height: 38px; border: 1px solid var(--color-border); border-radius: var(--radius-circle); color: var(--color-text); background: #1d1812; font-size: 22px; }
 

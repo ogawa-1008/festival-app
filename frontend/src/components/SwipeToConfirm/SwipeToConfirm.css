@@ -13,7 +13,8 @@
   border: var(--track-border) solid var(--color-accent);
   border-radius: var(--radius-pill);
 
-  background: var(--color-bg-panel);
+  /* 確認画面のパネル（--color-bg-panel）より暗くして、くぼんだ溝に見せる */
+  background: var(--color-bg-deep);
 
   overflow: hidden;
 
