@@ -6,8 +6,8 @@
 
   transform: translateX(-50%);
 
-  width: min(100%, 430px);
-  height: 82px;
+  width: min(100%, var(--app-max-width));
+  height: var(--bottom-nav-height);
 
   display: flex;
   align-items: flex-end;
@@ -31,7 +31,7 @@
   box-shadow:
     0 -4px 12px rgba(0, 0, 0, 0.45);
 
-  z-index: 100;
+  z-index: var(--z-nav);
 }
 
 
@@ -193,15 +193,4 @@
 
 .nav-center-button:active {
   transform: scale(0.95);
-}
-
-
-/* ========================================
-   PC表示
-======================================== */
-
-@media (min-width: 431px) {
-  .bottom-navigation {
-    width: 430px;
-  }
 }

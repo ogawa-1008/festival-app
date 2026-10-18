@@ -110,7 +110,7 @@
 
 /* 見えないスライダーにフォーカスがあるときは、つまみに枠を出す */
 .swipe-confirm-focused .swipe-confirm-knob {
-  outline: 3px solid #f6e3b4;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 

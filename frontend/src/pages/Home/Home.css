@@ -352,11 +352,6 @@
   touch-action: manipulation;
 }
 
-.home-qr-cta:focus-visible {
-  outline: 3px solid #fff4cf;
-  outline-offset: 4px;
-}
-
 .home-qr-cta:active {
   filter: brightness(1.1);
 }
