@@ -119,8 +119,7 @@
 
   color: #f2f2f2;
 
-  font-family:
-    var(--font-mincho);
+  font-family: var(--font-mincho);
 
   font-size: 23px;
 
@@ -270,8 +269,7 @@
 
   color: #65d9ff;
 
-  font-family:
-    var(--font-mincho);
+  font-family: var(--font-mincho);
 
   font-size: 26px;
 
@@ -408,8 +406,7 @@
 
   color: #eeeeee;
 
-  font-family:
-    var(--font-mincho);
+  font-family: var(--font-mincho);
 
   font-size: var(--font-size-md);
 
@@ -662,8 +659,7 @@
 
   color: #f4e7c9;
 
-  font-family:
-    var(--font-mincho);
+  font-family: var(--font-mincho);
 
   font-size: 17px;
   font-weight: bold;
