@@ -15,7 +15,7 @@
    - 380px: 標準より狭いスマホ
    - 430px / 431px: アプリの最大幅とその外側（これより広い画面では中央に寄せて表示）
      ※ --app-max-width を変えるときは、メディアクエリの 430px / 431px と、
-       まだ 430px を直接書いている幅の指定（BottomNavigation / Battle / Home / QuestList）も合わせて直す
+       まだ 430px を直接書いている幅の指定も合わせて直す（「430px」で全ファイルを検索する）
 
    重なり順
    - 画面全体にかかる層（モヤ・帯・ナビ・確認画面・通知）は --z-* の変数を使う
@@ -186,7 +186,7 @@ button {
 /* 保存の失敗・新しいバージョンの案内（下部ナビの上に出す） */
 .game-save-notice {
   position: fixed;
-  bottom: calc(var(--bottom-nav-height) + var(--space-4));
+  bottom: calc(var(--bottom-nav-height) + 18px);
   left: 50%;
   transform: translateX(-50%);
   width: min(360px, calc(100% - var(--app-gutter) * 2));

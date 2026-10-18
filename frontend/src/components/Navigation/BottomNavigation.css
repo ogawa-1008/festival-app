@@ -6,7 +6,7 @@
 
   transform: translateX(-50%);
 
-  width: min(100%, 430px);
+  width: min(100%, var(--app-max-width));
   height: var(--bottom-nav-height);
 
   display: flex;
@@ -31,7 +31,7 @@
   box-shadow:
     0 -4px 12px rgba(0, 0, 0, 0.45);
 
-  z-index: 100;
+  z-index: var(--z-nav);
 }
 
 
@@ -202,6 +202,6 @@
 
 @media (min-width: 431px) {
   .bottom-navigation {
-    width: 430px;
+    width: var(--app-max-width);
   }
 }
