@@ -52,6 +52,8 @@
   --color-text: #f2eadb;
   /* 補足・説明文 */
   --color-text-muted: #c9bea9;
+  /* 金色がかった補足の文字（金の飾りの近くの見出し・ラベルなど） */
+  --color-text-warm: #d8c39c;
   /* 英字の小見出しなど、さらに控えめな文字 */
   --color-text-subtle: #a89a78;
   /* 暗い面の上で目立たせたい明るい文字（通知など） */
