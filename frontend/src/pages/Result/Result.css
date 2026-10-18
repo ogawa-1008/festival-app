@@ -65,12 +65,9 @@
 
   color: #c8b48e;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
 
   letter-spacing: 4px;
@@ -86,10 +83,7 @@
 
   color: #f0dfb7;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 28px;
   font-weight: bold;
@@ -120,14 +114,11 @@
 
   margin-bottom: 8px;
 
-  color: #d8c39c;
+  color: var(--color-text-muted);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
 
   letter-spacing: 3px;
@@ -372,12 +363,9 @@
 
   color: #bfa67d;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 
   letter-spacing: 3px;
 
@@ -390,9 +378,9 @@
 .result-quest h2 {
   margin: 5px 0 0;
 
-  color: #f0e4cb;
+  color: var(--color-text);
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: bold;
 
   line-height: 1.25;
@@ -415,11 +403,11 @@
 
   padding: 6px 8px;
 
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 
   background: rgba(232, 192, 122, 0.15);
 
-  color: #f0e4cb;
+  color: var(--color-text);
 
   font-size: 11px;
 
@@ -512,12 +500,9 @@
 .result-section-title h2 {
   margin: 0;
 
-  color: #d8c39c;
+  color: var(--color-text-muted);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 11px;
 
@@ -627,7 +612,7 @@
 
   color: #eee2c9;
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
 
   line-height: 1.25;
@@ -650,7 +635,7 @@
 
   padding-left: 5px;
 
-  color: #d8c39c;
+  color: var(--color-text-muted);
 
   font-size: 11px;
   font-weight: bold;
@@ -680,7 +665,7 @@
   border:
     2px solid #9b835d;
 
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 
   background:
     linear-gradient(
@@ -691,7 +676,7 @@
 
   color: #ffffff;
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: bold;
 
   letter-spacing: 1px;
@@ -737,7 +722,7 @@
 .result-error h1 {
   margin: 0;
 
-  font-size: 20px;
+  font-size: var(--font-size-xl);
 }
 
 .result-error button {
@@ -750,7 +735,7 @@
   border:
     2px solid #8d7652;
 
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 
   background: #2b2017;
 
@@ -806,7 +791,7 @@
   }
 
   .result-header-subtitle {
-    font-size: 8px;
+    font-size: var(--font-size-2xs);
   }
 
   .result-header h1 {
@@ -814,7 +799,7 @@
   }
 
   .result-section-label {
-    font-size: 8px;
+    font-size: var(--font-size-2xs);
     margin-bottom: 6px;
   }
 
@@ -839,7 +824,7 @@
   }
 
   .result-quest h2 {
-    font-size: 12px;
+    font-size: var(--font-size-sm);
   }
 
   .result-reward {
@@ -863,7 +848,7 @@
 
   .result-reward-name {
     margin-left: 5px;
-    font-size: 8px;
+    font-size: var(--font-size-2xs);
   }
 
   .result-reward-amount {
@@ -873,14 +858,14 @@
   .result-claim-button {
     height: 46px;
     margin-top: 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
   }
 }
 .result-exp-panel {
   margin-bottom: 12px;
   padding: 12px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: linear-gradient(135deg, #30291f, #171512);
 }
 
@@ -900,7 +885,7 @@
 
 .result-rank-exp {
   color: var(--color-gold);
-  font-size: 16px;
+  font-size: var(--font-size-lg);
   font-weight: bold;
 }
 
@@ -908,7 +893,7 @@
   position: relative;
   height: 14px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-bg-deep);
   overflow: hidden;
 }
@@ -940,7 +925,7 @@
   margin-top: 6px;
   color: #e8dcc3;
   text-align: right;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -948,7 +933,7 @@
   min-height: 18px;
   margin: 8px 0 0;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
   text-align: center;
 }
@@ -959,7 +944,7 @@
 }
 
 .result-exp-panel.is-rank-up .result-exp-status {
-  color: #f4d58b;
+  color: var(--color-gold);
   font-weight: bold;
 }
 

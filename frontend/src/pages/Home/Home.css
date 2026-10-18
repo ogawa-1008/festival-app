@@ -193,7 +193,7 @@
 
   border: 2px solid rgba(130, 130, 130, 0.85);
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
   background:
     radial-gradient(
@@ -302,10 +302,7 @@
 
   color: #f1eadb;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 23px;
 
@@ -343,8 +340,8 @@
   min-height: 80px;
   margin: 0 16px;
   padding: 14px 12px;
-  border: 2px solid #b79763;
-  border-radius: 6px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   background: linear-gradient(135deg, #f1e2bd, #d9c18e);
   box-shadow: inset 0 0 0 2px #654426, 0 4px 10px rgba(0, 0, 0, 0.4);
   color: #302417;
@@ -377,7 +374,7 @@
 }
 
 .home-qr-text > span {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.5;
 }
 
@@ -410,9 +407,9 @@
 
   box-sizing: border-box;
 
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--color-overlay);
 
-  z-index: 200;
+  z-index: var(--z-modal);
 
   overflow: hidden;
 
@@ -568,10 +565,7 @@
 
   color: #a99570;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: clamp(7px, 2vw, 9px);
 
@@ -594,10 +588,7 @@
 
   color: #eee1c1;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: clamp(27px, 8vw, 31px);
 
@@ -656,7 +647,7 @@
 
   color: #b79763;
 
-  font-size: 8px;
+  font-size: var(--font-size-2xs);
 
   text-shadow:
     0 2px 3px #000;
@@ -757,7 +748,7 @@
 
   border: 2px solid #92734b;
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
   background:
     radial-gradient(
@@ -768,12 +759,9 @@
 
   color: #e8d4ac;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 20px;
+  font-size: var(--font-size-xl);
 
   font-weight: bold;
 
@@ -807,10 +795,7 @@
 .side-menu-item-text small {
   color: #a8926d;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 7px;
 
@@ -824,14 +809,11 @@
 .side-menu-item-text strong {
   margin-top: 3px;
 
-  color: #f0e4cb;
+  color: var(--color-text);
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
-  font-size: 16px;
+  font-size: var(--font-size-lg);
 
   font-weight: 900;
 
@@ -855,9 +837,7 @@
 
   color: #b69a6b;
 
-  font-family:
-    Georgia,
-    serif;
+  font-family: var(--font-display);
 
   font-size: 28px;
 
@@ -923,10 +903,7 @@
 
   color: #8e7959;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 6px;
 
@@ -974,11 +951,11 @@
   }
 
   .side-menu-item-text strong {
-    font-size: 14px;
+    font-size: var(--font-size-md);
   }
 
   .side-menu-arrow {
-    font-size: 24px;
+    font-size: var(--font-size-2xl);
   }
 }
 
@@ -1000,9 +977,9 @@
 
   box-sizing: border-box;
 
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--color-overlay);
 
-  z-index: 200;
+  z-index: var(--z-modal);
 
   overflow: hidden;
 }
