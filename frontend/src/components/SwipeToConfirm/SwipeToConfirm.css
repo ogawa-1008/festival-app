@@ -10,10 +10,11 @@
   /* box-sizing: border-box なので枠線の太さも含めた高さにする */
   height: calc(var(--knob-size) + var(--track-padding) * 2 + var(--track-border) * 2);
 
-  border: var(--track-border) solid #cfec42;
-  border-radius: 999px;
+  border: var(--track-border) solid var(--color-accent);
+  border-radius: var(--radius-pill);
 
-  background: #1a160f;
+  /* 確認画面のパネル（--color-bg-panel）より暗くして、くぼんだ溝に見せる */
+  background: var(--color-bg-deep);
 
   overflow: hidden;
 
@@ -31,7 +32,7 @@
   /* --swipe-offset はつまみの移動量（px）。JS で測った値なので古いブラウザでも動く */
   width: calc(var(--knob-size) + var(--swipe-offset));
 
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 
   background: linear-gradient(90deg, rgba(69, 87, 25, 0.9), rgba(120, 150, 40, 0.9));
 
@@ -49,9 +50,9 @@
   align-items: center;
   justify-content: center;
 
-  color: #f2eadb;
+  color: var(--color-text);
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: bold;
   letter-spacing: 1px;
 
@@ -72,12 +73,12 @@
   display: grid;
   place-items: center;
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
-  background: #cfec42;
+  background: var(--color-accent);
   color: #21180f;
 
-  font-size: 16px;
+  font-size: var(--font-size-lg);
   font-weight: bold;
 
   cursor: grab;

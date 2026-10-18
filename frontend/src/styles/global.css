@@ -43,6 +43,8 @@
   --color-border: #81704e;
   --color-border-muted: #756246;
   --color-border-strong: #b89a68;
+  /* 暗い枠（未獲得・無効な項目など、目立たせたくないもの） */
+  --color-border-subtle: #5e4d36;
 
   /* ---------- 文字 ---------- */
 
@@ -61,6 +63,8 @@
 
   /* 黄緑（決定・完了・進捗） */
   --color-accent: #cfec42;
+  /* 蛍光の黄緑（QR 読み取りなど、暗い背景の上で特に目立たせたいもの） */
+  --color-accent-strong: #c8ff00;
   /* 金（称号・特別な強調） */
   --color-gold: #f4d58b;
   /* 赤（危険・失敗） */

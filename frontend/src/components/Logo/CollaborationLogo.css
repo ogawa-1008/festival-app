@@ -77,9 +77,7 @@
   color: #f1eadb;
 
   font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+    var(--font-mincho);
 
   font-size: 25px;
 
