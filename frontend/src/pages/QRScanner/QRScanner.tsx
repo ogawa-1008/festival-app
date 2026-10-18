@@ -6,6 +6,14 @@ import { useBattleSession } from "../../context/BattleSessionContext";
 import { quests } from "../../data/quests";
 import { useGame } from "../../context/GameContext";
 import { getBattleStats } from "../../utils/battleStats";
+import {
+  classifyCameraError,
+  detectPlatform,
+  getCameraErrorContent,
+  isCameraConstraintError,
+  isInAppBrowser,
+  type CameraErrorKind,
+} from "../../utils/cameraError";
 
 import "./QRScanner.css";
 
@@ -14,6 +22,29 @@ const getTakeOverMessage = (title: string) =>
 
 const getDiscardMessage = (title: string, isElsewhere: boolean) =>
   `${isElsewhere ? "別のタブで開いていた" : ""}「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
+
+const SCAN_SETTINGS = {
+  fps: 10,
+  qrbox: {
+    width: 220,
+    height: 220,
+  },
+};
+
+const getCameraEnvironment = () => ({
+  userAgent: navigator.userAgent,
+  isSecureContext: window.isSecureContext,
+  hasMediaDevices: Boolean(navigator.mediaDevices?.getUserMedia),
+});
+
+// https でない・カメラの機能がないことは、カメラを起動する前から分かる
+const getInitialCameraError = (): CameraErrorKind | null => {
+  const environment = getCameraEnvironment();
+
+  if (environment.isSecureContext && environment.hasMediaDevices) return null;
+
+  return isInAppBrowser(environment.userAgent) ? "in-app-browser" : "insecure";
+};
 
 function QRScanner() {
   const navigate = useNavigate();
@@ -42,6 +73,48 @@ function QRScanner() {
       () =>
         (location.state as { message?: string } | null)?.message ?? ""
     );
+
+  // カメラが使えなかった原因（null のときは使える・未確認）
+  const [cameraError, setCameraError] =
+    useState<CameraErrorKind | null>(getInitialCameraError);
+
+  // 以前にカメラを拒否していることが分かる端末では、画面を開いた時点で許可し直す方法を案内する
+  // 設定から許可し直して戻ってきたら、案内を閉じる
+  useEffect(() => {
+    let status: PermissionStatus | null = null;
+    let cancelled = false;
+
+    const apply = () => {
+      if (!status || cancelled) return;
+
+      if (status.state === "denied") {
+        // アプリ内ブラウザでは、許可し直すよりブラウザで開き直すほうが確実
+        const kind = isInAppBrowser(navigator.userAgent) ? "in-app-browser" : "denied";
+
+        setCameraError((current) => current ?? kind);
+      } else if (status.state === "granted") {
+        setCameraError((current) =>
+          current === "denied" || current === "in-app-browser" ? null : current
+        );
+      }
+    };
+
+    navigator.permissions
+      ?.query({ name: "camera" as PermissionName })
+      .then((result) => {
+        status = result;
+        apply();
+        result.addEventListener("change", apply);
+      })
+      .catch(() => {
+        // camera の権限を問い合わせられないブラウザ（古い iPhone など）は、起動に失敗してから案内する
+      });
+
+    return () => {
+      cancelled = true;
+      status?.removeEventListener("change", apply);
+    };
+  }, []);
 
   // 案内は1回だけ表示する（再読み込み・戻る操作で古い案内が出ないよう履歴から消す）
   useEffect(() => {
@@ -72,6 +145,114 @@ function QRScanner() {
     }
   };
 
+  // QRコードを読み取れたとき
+  const handleScanSuccess = (decodedText: string) => {
+    if (hasScannedRef.current) {
+      return;
+    }
+
+    const quest = quests.find(
+      (item) =>
+        item.qrCode === decodedText
+    );
+
+    if (quest) {
+      hasScannedRef.current = true;
+      setIsScanning(false);
+
+      // 交換済みの武器を反映した、このバトルのステータス
+      const stats = getBattleStats(quest, {
+        weaponClaimed: weaponClaimedRef.current,
+      });
+
+      // QRを読み取った証拠としてバトルセッションを開始する
+      let start = startBattle(quest.id, stats);
+
+      // 別タブのセッション・別クエストが戦闘中の場合は確認する
+      if (start.type === "confirm") {
+        const previousId = start.questId;
+        const title =
+          quests.find((item) => item.id === previousId)?.title
+            ?? "前回のクエスト";
+        const message = start.mode === "takeover"
+          ? getTakeOverMessage(title)
+          : getDiscardMessage(title, start.isElsewhere);
+
+        if (!window.confirm(message)) {
+          navigate("/");
+          void stopScanner();
+          return;
+        }
+
+        start = startBattle(quest.id, stats, { force: true });
+      }
+
+      // カメラの停止完了を待つと、端末によっては
+      // 映像だけが黒いまま遷移しないことがある。
+      if (start.type === "result") {
+        const pendingTitle =
+          quests.find((item) => item.id === start.questId)?.title;
+
+        // 別クエストのQRを読んだのに前のリザルトへ進む理由を伝える
+        navigate(`/result/${start.questId}`, {
+          state: start.questId !== quest.id && pendingTitle
+            ? {
+                notice: `「${pendingTitle}」の報酬を受け取ってから、次のバトルを始められます`,
+              }
+            : null,
+        });
+      } else {
+        navigate(`/battle/${quest.id}`);
+      }
+      void stopScanner();
+    } else {
+      setErrorMessage(
+        "このQRコードはクエスト用ではありません"
+      );
+    }
+  
+  };
+
+  // カメラを起動する。背面カメラが使えない端末では、使えるカメラを探してやり直す
+  const startScanner = async () => {
+    const scanner = new Html5Qrcode("qr-reader");
+
+    scannerRef.current = scanner;
+
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        SCAN_SETTINGS,
+        handleScanSuccess,
+        () => {
+          // QRコードをまだ認識していない場合
+        }
+      );
+    } catch (error) {
+      if (!isCameraConstraintError(error)) throw error;
+
+      await stopScanner();
+
+      const cameras = await Html5Qrcode.getCameras();
+
+      if (cameras.length === 0) throw error;
+
+      const fallback = new Html5Qrcode("qr-reader");
+
+      scannerRef.current = fallback;
+
+      // 背面カメラは一覧の最後にあることが多い
+      await fallback.start(
+        cameras[cameras.length - 1].id,
+        SCAN_SETTINGS,
+        handleScanSuccess,
+        () => {
+          // QRコードをまだ認識していない場合
+        }
+      );
+    }
+  };
+
   const startCamera = async () => {
     if (isStartingRef.current || scannerRef.current) {
       return;
@@ -81,94 +262,10 @@ function QRScanner() {
 
     try {
       setErrorMessage("");
+      setCameraError(null);
       hasScannedRef.current = false;
 
-      const scanner = new Html5Qrcode(
-        "qr-reader"
-      );
-
-      scannerRef.current = scanner;
-
-      await scanner.start(
-        {
-          facingMode: "environment",
-        },
-        {
-          fps: 10,
-          qrbox: {
-            width: 220,
-            height: 220,
-          },
-        },
-        (decodedText) => {
-          if (hasScannedRef.current) {
-            return;
-          }
-
-          const quest = quests.find(
-            (item) =>
-              item.qrCode === decodedText
-          );
-
-          if (quest) {
-            hasScannedRef.current = true;
-            setIsScanning(false);
-
-            // 交換済みの武器を反映した、このバトルのステータス
-            const stats = getBattleStats(quest, {
-              weaponClaimed: weaponClaimedRef.current,
-            });
-
-            // QRを読み取った証拠としてバトルセッションを開始する
-            let start = startBattle(quest.id, stats);
-
-            // 別タブのセッション・別クエストが戦闘中の場合は確認する
-            if (start.type === "confirm") {
-              const previousId = start.questId;
-              const title =
-                quests.find((item) => item.id === previousId)?.title
-                  ?? "前回のクエスト";
-              const message = start.mode === "takeover"
-                ? getTakeOverMessage(title)
-                : getDiscardMessage(title, start.isElsewhere);
-
-              if (!window.confirm(message)) {
-                navigate("/");
-                void stopScanner();
-                return;
-              }
-
-              start = startBattle(quest.id, stats, { force: true });
-            }
-
-            // カメラの停止完了を待つと、端末によっては
-            // 映像だけが黒いまま遷移しないことがある。
-            if (start.type === "result") {
-              const pendingTitle =
-                quests.find((item) => item.id === start.questId)?.title;
-
-              // 別クエストのQRを読んだのに前のリザルトへ進む理由を伝える
-              navigate(`/result/${start.questId}`, {
-                state: start.questId !== quest.id && pendingTitle
-                  ? {
-                      notice: `「${pendingTitle}」の報酬を受け取ってから、次のバトルを始められます`,
-                    }
-                  : null,
-              });
-            } else {
-              navigate(`/battle/${quest.id}`);
-            }
-            void stopScanner();
-          } else {
-            setErrorMessage(
-              "このQRコードはクエスト用ではありません"
-            );
-          }
-        },
-        () => {
-          // QRコードをまだ認識していない場合
-        }
-      );
+      await startScanner();
 
       setIsScanning(true);
     } catch (error) {
@@ -177,9 +274,7 @@ function QRScanner() {
         error
       );
 
-      setErrorMessage(
-        "カメラを起動できませんでした。カメラの使用を許可してください。"
-      );
+      setCameraError(classifyCameraError(error, getCameraEnvironment()));
       await stopScanner();
     } finally {
       isStartingRef.current = false;
@@ -191,6 +286,10 @@ function QRScanner() {
       void stopScanner();
     };
   }, []);
+
+  const cameraErrorContent = cameraError
+    ? getCameraErrorContent(cameraError, detectPlatform(navigator.userAgent))
+    : null;
 
   return (
     <main className="qr-scanner-page">
@@ -224,7 +323,35 @@ function QRScanner() {
             className="qr-reader"
           />
 
-          {!isScanning && (
+          {!isScanning && cameraErrorContent && (
+            <div className="qr-camera-error" role="alert">
+              <h2>{cameraErrorContent.title}</h2>
+
+              <p>{cameraErrorContent.message}</p>
+
+              {cameraErrorContent.steps.length > 0 && (
+                <ol>
+                  {cameraErrorContent.steps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+              )}
+
+              <button
+                type="button"
+                className="qr-start-button"
+                onClick={startCamera}
+              >
+                もう一度試す
+              </button>
+
+              <p className="qr-camera-error-help">
+                解決しないときは、近くのスタッフに声をかけてください。
+              </p>
+            </div>
+          )}
+
+          {!isScanning && !cameraErrorContent && (
             <div className="qr-start-screen">
               <div className="qr-camera-icon">
                 📷
