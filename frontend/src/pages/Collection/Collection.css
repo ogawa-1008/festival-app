@@ -46,5 +46,5 @@
 .stamp-locked { color: var(--color-text-subtle); }
 
 .history-filters { display: flex; gap: 7px; margin-top: 18px; }
-.history-filters button { flex: 1; min-height: 36px; border: 1px solid var(--color-border-muted); color: var(--color-text-muted); background: #1d1812; font-size: var(--font-size-sm); }
+.history-filters button { flex: 1; min-height: 36px; border: 1px solid var(--color-border-muted); color: var(--color-text-warm); background: #1d1812; font-size: var(--font-size-sm); }
 .history-filters button.selected { border-color: var(--color-accent); color: #fff; background: #3c4a1a; }

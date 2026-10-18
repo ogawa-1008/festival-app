@@ -8,14 +8,14 @@
 .exchange-materials strong { color: var(--color-accent); white-space: nowrap; }
 .exchange-primary, .exchange-back { width: 100%; min-height: 48px; border: 2px solid var(--color-border-strong); color: #f4e7c9; background: linear-gradient(180deg, #6b4b32, #281a12); font-weight: bold; letter-spacing: 1px; }
 .exchange-primary:disabled { border-color: #555; color: #999; background: #302b27; }
-.exchange-back { margin-top: 10px; border: 1px solid var(--color-border-muted); color: var(--color-text-muted); background: transparent; }
+.exchange-back { margin-top: 10px; border: 1px solid var(--color-border-muted); color: var(--color-text-warm); background: transparent; }
 .exchange-complete { margin: 20px 0; padding: 18px; border: 1px solid var(--color-accent); background: rgba(56, 78, 24, .45); }
 .exchange-complete h2 { margin: 0; color: var(--color-accent); }
 .exchange-complete p { margin: 10px 0 0; font-size: var(--font-size-base); line-height: 1.7; }
 .exchange-modal { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: center; padding: 20px; background: var(--color-overlay); }
 .exchange-modal > div { width: min(100%, 340px); padding: 24px 18px; border: 2px solid var(--color-border-strong); background: var(--color-bg-panel); text-align: center; }
 .exchange-modal h2 { margin: 0; }
-.exchange-modal p { color: var(--color-text-muted); font-size: var(--font-size-base); line-height: 1.6; }
+.exchange-modal p { color: var(--color-text-warm); font-size: var(--font-size-base); line-height: 1.6; }
 .exchange-modal-actions { display: grid; gap: 12px; margin-top: 20px; }
 .exchange-modal-cancel { min-height: 42px; border: 1px solid var(--color-border-muted); color: var(--color-text); background: #33291e; }
 .exchange-modal-cancel:disabled { color: #777; }
