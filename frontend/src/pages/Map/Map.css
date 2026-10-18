@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  background: #2b251d;
+  background: var(--color-bg-app);
   color: #fff;
   overflow-x: hidden;
 }
@@ -52,8 +52,8 @@
       rgba(16, 15, 12, 0.92)
     );
 
-  border-top: 2px solid #81704e;
-  border-bottom: 2px solid #81704e;
+  border-top: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
 
   box-shadow:
     0 4px 10px rgba(0, 0, 0, 0.35);
@@ -67,8 +67,8 @@
   width: 80px;
   height: 7px;
   transform: translateX(-50%);
-  border-left: 2px solid #81704e;
-  border-right: 2px solid #81704e;
+  border-left: 2px solid var(--color-border);
+  border-right: 2px solid var(--color-border);
 }
 
 .map-header::before {
@@ -83,14 +83,11 @@
   display: block;
   margin-bottom: 3px;
 
-  color: #a89a78;
+  color: var(--color-text-subtle);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
   letter-spacing: 3px;
 
@@ -102,12 +99,9 @@
   position: relative;
   margin: 0;
 
-  color: #f0eadc;
+  color: var(--color-text);
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 25px;
   font-weight: 900;
@@ -159,7 +153,7 @@
   overflow: hidden;
 
   border: 4px solid #555;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 
   background: #444;
   color: white;
@@ -175,7 +169,7 @@
 }
 
 .map-card-active {
-  border-color: #c8f000;
+  border-color: var(--color-accent-strong);
 
   box-shadow:
     0 0 0 1px rgba(200, 240, 0, 0.3),
@@ -240,10 +234,7 @@
 
   color: rgba(255, 255, 255, 0.3);
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 28px;
 
@@ -288,10 +279,7 @@
 
   color: #fff;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 19px;
   font-weight: 400;
@@ -314,12 +302,9 @@
 
   color: #fff;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
-  font-size: 24px;
+  font-size: var(--font-size-2xl);
   font-weight: 900;
   letter-spacing: 1px;
 
@@ -369,9 +354,9 @@
       rgba(18, 16, 13, 0.98)
     );
 
-  border-left: 4px solid #81704e;
-  border-right: 4px solid #81704e;
-  border-bottom: 4px solid #81704e;
+  border-left: 4px solid var(--color-border);
+  border-right: 4px solid var(--color-border);
+  border-bottom: 4px solid var(--color-border);
 
   border-radius:
     0 0 10px 10px;
@@ -400,12 +385,9 @@
 
   margin-bottom: 4px;
 
-  color: #a89a78;
+  color: var(--color-text-subtle);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 9px;
   font-weight: bold;
@@ -415,12 +397,9 @@
 .map-area-detail-header h2 {
   margin: 0;
 
-  color: #f0eadc;
+  color: var(--color-text);
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 22px;
   font-weight: 900;
@@ -443,14 +422,14 @@
 }
 
 .map-field-quest > span {
-  color: #a89a78;
-  font-family: Georgia, serif;
+  color: var(--color-text-subtle);
+  font-family: var(--font-display);
   font-size: 9px;
   letter-spacing: 2px;
 }
 
-.map-field-quest strong { font-size: 13px; }
-.map-field-quest small { color: #cfec42; font-size: 11px; }
+.map-field-quest strong { font-size: var(--font-size-base); }
+.map-field-quest small { color: var(--color-accent); font-size: 11px; }
 
 .map-detail-row {
   min-height: 38px;
@@ -465,12 +444,9 @@
 }
 
 .map-detail-row span {
-  color: #a89a78;
+  color: var(--color-text-subtle);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 9px;
   font-weight: bold;
@@ -480,14 +456,11 @@
 .map-detail-row strong {
   max-width: 65%;
 
-  color: #f0eadc;
+  color: var(--color-text);
 
-  font-family:
-    "Hiragino Kaku Gothic ProN",
-    "Yu Gothic",
-    sans-serif;
+  font-family: var(--font-sans);
 
-  font-size: 13px;
+  font-size: var(--font-size-base);
 
   text-align: right;
 }
@@ -503,14 +476,11 @@
     rgba(0, 0, 0, 0.25);
 
   border-left:
-    3px solid #81704e;
+    3px solid var(--color-border);
 
-  font-family:
-    "Hiragino Kaku Gothic ProN",
-    "Yu Gothic",
-    sans-serif;
+  font-family: var(--font-sans);
 
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1.7;
 }
 

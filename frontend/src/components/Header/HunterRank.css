@@ -59,8 +59,7 @@
   margin-bottom: 0;
   white-space: nowrap;
 
-  font-family:
-    var(--font-display);
+  font-family: var(--font-display);
 
   font-size: 9px;
 
@@ -83,8 +82,7 @@
   position: relative;
   text-align: center;
 
-  font-family:
-    var(--font-display);
+  font-family: var(--font-display);
 
   font-size: var(--font-size-3xl);
 
