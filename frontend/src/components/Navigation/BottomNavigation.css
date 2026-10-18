@@ -194,14 +194,3 @@
 .nav-center-button:active {
   transform: scale(0.95);
 }
-
-
-/* ========================================
-   PC表示
-======================================== */
-
-@media (min-width: 431px) {
-  .bottom-navigation {
-    width: var(--app-max-width);
-  }
-}
