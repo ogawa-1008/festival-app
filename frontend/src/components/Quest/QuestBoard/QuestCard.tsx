@@ -50,7 +50,7 @@ function QuestCard({
             クエストタイトル
         ========================== */}
 
-        <h2 className="quest-title">
+        <h2 className="quest-title" data-tutorial="quest">
           {quest.title}
         </h2>
 

@@ -12,6 +12,7 @@ import Progress from "./pages/Progress/Progress";
 import QRScanner from "./pages/QRScanner/QRScanner.tsx";
 import Battle from "./pages/Battle/Battle.tsx";
 import QuestLoading from "./pages/QuestLoading/QuestLoading";
+import GameTutorial from "./components/Tutorial/GameTutorial";
 import Result from "./pages/Result/Result.tsx";
 import Collection from "./pages/Collection/Collection.tsx";
 import Exchange from "./pages/Exchange/Exchange.tsx";
@@ -30,6 +31,7 @@ function App() {
     <GameProvider>
       <BrowserRouter>
         <div className="app">
+          <GameTutorial>
           <Routes>
             <Route path="/" element={<HomeEntry />} />
             <Route path="/start" element={<CampusSelection />} />
@@ -69,6 +71,7 @@ function App() {
             <Route path="/history" element={<Collection view="history" />} />
             <Route path="/exchange/weapon" element={<Exchange />} />
           </Routes>
+          </GameTutorial>
         </div>
       </BrowserRouter>
     </GameProvider>

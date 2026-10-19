@@ -52,7 +52,7 @@ function Progress() {
         ========================= */}
         <section className="materials-area">
 
-          <div className="decorative-title">
+          <div className="decorative-title" data-tutorial="required-materials">
             <span className="decorative-line left" />
 
             <h2>必要素材</h2>
@@ -168,6 +168,7 @@ function Progress() {
           <button
             type="button"
             className="create-weapon-button"
+            data-tutorial="create-weapon"
             onClick={handleCreateWeapon}
           >
             {weaponClaimed ? "交換済み" : "武器を作成する"}

@@ -6,6 +6,7 @@ import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { findCampus } from "../../data/campuses";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "../../components/Header/HunterRank.css";
 import "../../components/Logo/CollaborationLogo.css";
@@ -16,6 +17,7 @@ function Home() {
   const navigate = useNavigate();
   const { rank, campusId } = useGame();
   const campus = findCampus(campusId);
+  const startTutorial = useGameTutorial();
 
   return (
     <main className="home">
@@ -38,6 +40,7 @@ function Home() {
             type="button"
             className="hamburger-button"
             aria-label="メニュー"
+            data-tutorial="home-menu"
             onClick={() => setIsMenuOpen(true)}
           >
             <span />
@@ -81,6 +84,21 @@ function Home() {
 
               {/* メニュー項目 */}
               <div className="side-menu-list">
+                <button
+                  type="button"
+                  className="side-menu-item"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    startTutorial();
+                  }}
+                >
+                  <span className="side-menu-item-icon" aria-hidden="true">？</span>
+                  <span className="side-menu-item-text">
+                    <small>HOW TO PLAY</small>
+                    <strong>遊び方ガイド</strong>
+                  </span>
+                  <span className="side-menu-arrow" aria-hidden="true">›</span>
+                </button>
                 <button
                   type="button"
                   className="side-menu-item"

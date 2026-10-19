@@ -145,7 +145,7 @@ function QRScanner() {
 
       <section className="qr-camera-section">
 
-        <div className="qr-camera-frame">
+        <div className="qr-camera-frame" data-tutorial="qr-camera">
 
           <div
             id="qr-reader"

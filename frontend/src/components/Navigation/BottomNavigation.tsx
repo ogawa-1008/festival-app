@@ -137,6 +137,7 @@ function BottomNavigation({
         className="nav-side-button"
         type="button"
         aria-label={leftPage.label}
+        data-tutorial={`nav-${leftPage.key}`}
         onClick={() => navigate(leftPage.path)}
       >
         {leftPage.icon}
@@ -150,6 +151,7 @@ function BottomNavigation({
         className="nav-center-button"
         type="button"
         aria-label={activePage.label}
+        data-tutorial={`nav-${activePage.key}`}
       >
         <div className="nav-center-icon">
           {activePage.icon}
@@ -168,6 +170,7 @@ function BottomNavigation({
         className="nav-side-button"
         type="button"
         aria-label={rightPage.label}
+        data-tutorial={`nav-${rightPage.key}`}
         onClick={() => navigate(rightPage.path)}
       >
         {rightPage.icon}

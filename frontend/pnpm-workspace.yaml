@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - driver.js@1.10.2

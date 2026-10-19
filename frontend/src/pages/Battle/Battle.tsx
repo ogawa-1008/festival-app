@@ -194,7 +194,7 @@ function Battle() {
                         />
                     </div>
 
-                    <div className="monster-hp">
+                    <div className="monster-hp" data-tutorial="monster-hp">
                         <span>MONSTER HP</span>
 
                         <div className="hp-bar">
@@ -262,7 +262,7 @@ function Battle() {
                         <span>CHOOSE YOUR HAND</span>
                     </div>
 
-                    <div className="janken-buttons">
+                    <div className="janken-buttons" data-tutorial="battle-hands">
 
                         {/* グー */}
 
