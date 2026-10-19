@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import HunterRank from "../../components/Header/HunterRank";
-import BottomNavigation from "../../components/Navigation/BottomNavigation";
+import PatternBackground from "../../components/Festival/PatternBackground";
 import { useGame } from "../../context/GameContext";
 import { campuses } from "../../data/campuses";
 import "./CampusSelection.css";
@@ -10,10 +9,14 @@ type Campus = (typeof campuses)[number];
 const asset = "/images/campus/";
 
 function CampusSelection() {
-  const { rank, selectCampus } = useGame();
+  const { selectCampus } = useGame();
   const navigate = useNavigate();
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -23,13 +26,12 @@ function CampusSelection() {
   }, [pendingCampus]);
 
   return (
-    <main className="campus-selection">
-      <div className="campus-background" aria-hidden="true" />
-      <div className="campus-rank"><HunterRank rank={rank} /></div>
+    <main className="campus-selection festival-ui">
+      <PatternBackground />
 
       <div className="campus-content">
         <header className="campus-heading">
-          <p className="campus-eyebrow">― 文化祭クエスト ―</p>
+          <p className="campus-eyebrow">― 文化祭 × モンハンコラボ ―</p>
           <h1>校舎を選択</h1>
         </header>
 
@@ -58,11 +60,9 @@ function CampusSelection() {
         </div>
       </div>
 
-      <BottomNavigation active="home" homeIcon={<img src={`${asset}home.svg`} alt="" />} />
-
       <dialog
         ref={dialogRef}
-        className="campus-dialog campus-paper"
+        className="campus-dialog campus-paper festival-ui"
         aria-labelledby="campus-confirm-title"
         aria-describedby="campus-confirm-name campus-confirm-description"
         onClose={() => setPendingCampus(null)}
@@ -83,7 +83,7 @@ function CampusSelection() {
           </button>
           <button
             type="button"
-            className="campus-confirm"
+            className="festival-button"
             onClick={() => {
               if (!pendingCampus) return;
               selectCampus(pendingCampus.id);

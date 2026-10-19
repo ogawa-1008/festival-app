@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
+import { battleAssets } from "./battleAssets";
 
 import "./Battle.css";
 
@@ -187,7 +188,7 @@ function Battle() {
 
                     <div className="monster-image-frame">
                         <img
-                            src="/images/battle/D922CBBD-1F61-473A-8B25-F9649791B986.png"
+                            src={battleAssets.monster}
                             alt="モンスター"
                             className="monster-image"
                         />
@@ -275,7 +276,7 @@ function Battle() {
                         >
                             <div className="janken-image-frame">
                                 <img
-                                    src="/images/battle/DDB43F54-277A-4F6D-A089-AE52BEB3477B_4_5005_c.jpeg"
+                                    src={battleAssets.rock}
                                     alt="グー"
                                     className="janken-image"
                                 />
@@ -297,7 +298,7 @@ function Battle() {
                         >
                             <div className="janken-image-frame">
                                 <img
-                                    src="/images/battle/7B1F7267-94A8-4106-BCD7-7B355D18DDB7_4_5005_c.jpeg"
+                                    src={battleAssets.scissors}
                                     alt="チョキ"
                                     className="janken-image"
                                 />
@@ -319,7 +320,7 @@ function Battle() {
                         >
                             <div className="janken-image-frame">
                                 <img
-                                    src="/images/battle/B842F13F-0F17-4A80-8342-6487B70C170D_4_5005_c.jpeg"
+                                    src={battleAssets.paper}
                                     alt="パー"
                                     className="janken-image"
                                 />

@@ -85,7 +85,7 @@ function QRScanner() {
 
             // カメラの停止完了を待つと、端末によっては
             // 映像だけが黒いまま遷移しないことがある。
-            navigate(`/battle/${quest.id}`);
+            navigate(`/quest-loading/${quest.id}`);
             void stopScanner();
           } else {
             setErrorMessage(

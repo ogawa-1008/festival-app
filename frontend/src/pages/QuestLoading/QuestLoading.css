@@ -1,0 +1,63 @@
+.quest-loading {
+  position: relative;
+  isolation: isolate;
+  min-height: max(100dvh, 874px);
+  padding: 136px 24px 82px;
+  background: var(--festival-primary);
+}
+.departure-rim {
+  position: absolute;
+  inset: 24px 20px;
+  z-index: -1;
+  border: 1px solid rgb(86 83 83 / 40%);
+  pointer-events: none;
+}
+.departure-ornament {
+  position: absolute;
+  inset: 24px;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/images/loading/frame-ornament.svg") center / 100% 100% no-repeat;
+}
+.departure-content { display: flex; flex-direction: column; gap: 18px; text-align: center; }
+.departure-content p { margin: 0; }
+.departure-heading { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 104px; }
+.departure-heading p { font-size: 14px; line-height: 1.2; }
+.departure-heading p:first-child { min-height: 15px; }
+.departure-heading h1 { min-height: 48px; margin: 0; font-size: 32px; line-height: 1.2; }
+.quest-loading--ready .departure-heading h1 { font-size: 44px; }
+.departure-emblem { position: relative; align-self: center; flex: 0 0 252px; width: 354px; height: 252px; }
+.departure-emblem img { position: absolute; max-width: none; }
+.departure-glow { top: -16px; left: 35px; }
+.departure-ring-outer { top: -2px; left: 49px; }
+.departure-ring-inner { top: 14px; left: 65px; }
+.departure-ring-spin { position: absolute; top: 3px; left: 54px; width: 246px; height: 246px; animation: departure-orbit 2.4s linear infinite; }
+.departure-ring-spin img { top: 0; left: 25.49%; }
+.departure-ring-complete { top: 3px; left: 54px; }
+.departure-compass { position: absolute; top: -4px; left: 37px; width: 280px; height: 260px; }
+.departure-compass > img:first-child { inset: 0 auto auto 0; }
+.departure-compass-ticks { top: 19px; left: 19px; }
+.departure-monster { top: 42px; left: 33px; width: 288px; height: 168px; object-fit: cover; opacity: .82; }
+.quest-loading--ready .departure-monster { opacity: 1; }
+.departure-quest { display: flex; flex-direction: column; gap: 5px; min-height: 70px; }
+.departure-quest p { font-size: 14px; }
+.departure-quest h2 { margin: 0; font-size: 22px; font-weight: 400; line-height: 1.28; letter-spacing: .04em; overflow-wrap: anywhere; }
+.departure-status { display: flex; flex-direction: column; align-items: center; gap: 13px; min-height: 82px; }
+.departure-steps { display: flex; gap: 6px; width: min(306px, 100%); min-height: 26px; margin: 0; padding: 0; list-style: none; }
+.departure-steps li { flex: 1; padding-top: 5px; border-top: 2px solid var(--festival-surface); font-size: 14px; line-height: 1.2; }
+.departure-steps .is-complete { border-color: var(--festival-accent); }
+.departure-steps .is-current { border-color: var(--festival-active); }
+.departure-status > p { font-size: 16px; font-weight: 700; line-height: 1.2; }
+.departure-progress { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.departure-tip { display: flex; flex-direction: column; gap: 8px; min-height: 76px; font-size: 14px; line-height: 1.2; }
+.departure-error-actions { display: grid; gap: 12px; }
+.quest-loading--error .departure-ring-spin { animation-play-state: paused; }
+.quest-loading--error .departure-heading h1 { font-size: 22px; }
+@keyframes departure-orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .departure-ring-spin { animation-duration: 6s; }
+}
+@media (max-width: 374px) {
+  .quest-loading { padding-inline: 16px; }
+  .departure-emblem { transform: scale(.85); margin-block: -19px; }
+}

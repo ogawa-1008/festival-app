@@ -1,0 +1,90 @@
+@font-face {
+  font-family: "Festival Sans";
+  src: url("/fonts/campus/noto-sans-jp-regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Festival Sans";
+  src: url("/fonts/campus/noto-sans-jp-bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+.festival-ui {
+  --festival-primary: #080606;
+  --festival-surface: #565353;
+  --festival-accent: #cfee1d;
+  --festival-text: #e8e8e8;
+  --festival-inactive: #e9e9de;
+  --festival-active: #f8bf01;
+  --festival-paper: #f7edd3;
+  color: var(--festival-text);
+  font-family: "Festival Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.festival-ui button:focus-visible, .festival-ui a:focus-visible {
+  outline: 3px solid var(--festival-accent);
+  outline-offset: 4px;
+}
+/* Figma 636:123「武器詳細へ戻る」。 */
+.festival-button {
+  min-height: 48px;
+  padding: 12px;
+  border: 2px solid #a1875c;
+  border-radius: 2px;
+  background: #38241a;
+  color: #f0e8d1;
+  font: 700 14px / 1.3 "Noto Serif", "Festival Sans", serif;
+  text-align: center;
+  cursor: pointer;
+}
+.festival-button:hover { filter: brightness(1.12); }
+.festival-button:active { filter: brightness(.9); }
+.festival-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  container-type: size;
+  pointer-events: none;
+  background: var(--festival-primary);
+}
+/* The source image is rotated, then cropped as in Figma. */
+.festival-background-image {
+  --pattern-length: max(217.413cqw, 100cqh);
+  --pattern-height: calc(var(--pattern-length) * 402 / 874);
+  position: absolute;
+  top: calc((100cqh - var(--pattern-length)) / 2);
+  left: calc((100cqw + var(--pattern-height)) / 2);
+  width: var(--pattern-length);
+  height: var(--pattern-height);
+  transform: rotate(90deg);
+  transform-origin: top left;
+  overflow: hidden;
+}
+.festival-background-image img {
+  position: absolute;
+  top: -23.97%;
+  left: -15.45%;
+  width: 115.47%;
+  height: 141.02%;
+  max-width: none;
+}
+.festival-background--loading .festival-background-image {
+  top: -126px;
+  left: calc(50% + 278px);
+  width: max(1000px, calc(100cqh + 126px));
+  height: 562.633px;
+  overflow: visible;
+  opacity: .2;
+}
+.festival-background--loading img {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

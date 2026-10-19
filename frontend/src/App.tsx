@@ -11,6 +11,7 @@ import Map from "./pages/Map/Map";
 import Progress from "./pages/Progress/Progress";
 import QRScanner from "./pages/QRScanner/QRScanner.tsx";
 import Battle from "./pages/Battle/Battle.tsx";
+import QuestLoading from "./pages/QuestLoading/QuestLoading";
 import Result from "./pages/Result/Result.tsx";
 import Collection from "./pages/Collection/Collection.tsx";
 import Exchange from "./pages/Exchange/Exchange.tsx";
@@ -46,6 +47,11 @@ function App() {
             <Route
               path="/qr-scanner"
               element={<QRScanner />}
+            />
+
+            <Route
+              path="/quest-loading/:questId"
+              element={<QuestLoading />}
             />
 
             <Route
