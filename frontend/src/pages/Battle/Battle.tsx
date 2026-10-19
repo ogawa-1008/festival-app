@@ -147,20 +147,6 @@ function Battle() {
         );
     };
 
-    const handleRetry = () => {
-        hpRef.current = { player: 3, monster: 3 };
-        isBattleOverRef.current = false;
-
-        setPlayerHp(3);
-        setMonsterHp(3);
-
-        setMessage(
-            "じゃんけんでモンスターを倒せ！"
-        );
-
-        setIsBattleOver(false);
-    };
-
     return (
         <main className="battle-page">
             <div className="battle-content">

@@ -5,6 +5,7 @@ import CollaborationLogo from "../../components/Logo/CollaborationLogo";
 import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
+import { findCampus } from "../../data/campuses";
 
 import "../../components/Header/HunterRank.css";
 import "../../components/Logo/CollaborationLogo.css";
@@ -13,7 +14,8 @@ import "./Home.css";
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { rank } = useGame();
+  const { rank, campusId } = useGame();
+  const campus = findCampus(campusId);
 
   return (
     <main className="home">
@@ -79,6 +81,18 @@ function Home() {
 
               {/* メニュー項目 */}
               <div className="side-menu-list">
+                <button
+                  type="button"
+                  className="side-menu-item"
+                  onClick={() => navigate("/start")}
+                >
+                  <span className="side-menu-item-icon">⌂</span>
+                  <span className="side-menu-item-text">
+                    <small>{campus?.name}</small>
+                    <strong>校舎を選び直す</strong>
+                  </span>
+                  <span className="side-menu-arrow">›</span>
+                </button>
 
                 <button
                   type="button"

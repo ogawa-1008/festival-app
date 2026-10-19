@@ -9,6 +9,7 @@ import {
 
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
+import { findCampus, type CampusId } from "../data/campuses";
 
 type MaterialStock = Record<number, number>;
 
@@ -23,6 +24,7 @@ export type Activity = {
 type BattleOutcome = "victory" | "failure";
 
 type GameState = {
+  campusId: CampusId | null;
   quests: typeof initialQuests;
   materials: MaterialStock;
   rank: number;
@@ -32,6 +34,7 @@ type GameState = {
 };
 
 type GameContextType = GameState & {
+  selectCampus: (campusId: CampusId) => void;
   resolveBattle: (
     questId: string,
     outcome: BattleOutcome,
@@ -50,6 +53,7 @@ const initialMaterials: MaterialStock = Object.fromEntries(
 );
 
 const initialGameState: GameState = {
+  campusId: null,
   quests: initialQuests,
   materials: initialMaterials,
   rank: 1,
@@ -75,6 +79,7 @@ function loadGameState(): GameState {
     return {
       ...initialGameState,
       ...parsed,
+      campusId: findCampus(parsed.campusId)?.id ?? null,
       quests: parsed.quests ?? initialGameState.quests,
       materials: parsed.materials ?? initialGameState.materials,
       activities: parsed.activities ?? initialGameState.activities,
@@ -192,7 +197,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return true;
     };
 
-    return { ...gameState, resolveBattle, claimWeapon };
+    const selectCampus = (campusId: CampusId) => {
+      setGameState((current) => ({ ...current, campusId }));
+    };
+
+    return { ...gameState, resolveBattle, claimWeapon, selectCampus };
   }, [gameState]);
 
   return (

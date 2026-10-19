@@ -1,0 +1,101 @@
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import HunterRank from "../../components/Header/HunterRank";
+import BottomNavigation from "../../components/Navigation/BottomNavigation";
+import { useGame } from "../../context/GameContext";
+import { campuses } from "../../data/campuses";
+import "./CampusSelection.css";
+
+type Campus = (typeof campuses)[number];
+const asset = "/images/campus/";
+
+function CampusSelection() {
+  const { rank, selectCampus } = useGame();
+  const navigate = useNavigate();
+  const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (pendingCampus && dialog && !dialog.open) {
+      dialog.showModal();
+    }
+  }, [pendingCampus]);
+
+  return (
+    <main className="campus-selection">
+      <div className="campus-background" aria-hidden="true" />
+      <div className="campus-rank"><HunterRank rank={rank} /></div>
+
+      <div className="campus-content">
+        <header className="campus-heading">
+          <p className="campus-eyebrow">― 文化祭クエスト ―</p>
+          <h1>校舎を選択</h1>
+        </header>
+
+        <div className="campus-list" aria-label="参加する校舎">
+          {campuses.map((campus) => (
+            <button
+              key={campus.id}
+              type="button"
+              className="campus-card campus-paper"
+              aria-label={`${campus.name}を選択`}
+              aria-haspopup="dialog"
+              onClick={() => setPendingCampus(campus)}
+            >
+              <span className="campus-card-ornament" aria-hidden="true" />
+              <span className="campus-seal" aria-hidden="true">
+                <img src={`${asset}campus-seal.svg`} alt="" />
+              </span>
+              <span className="campus-card-labels">
+                <span className="campus-english">{campus.englishName}</span>
+                <span className="campus-name">{campus.name}</span>
+                <span className="campus-card-hint">この校舎でクエストに参加</span>
+              </span>
+              <img className="campus-chevron" src={`${asset}chevron.svg`} alt="" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <BottomNavigation active="home" homeIcon={<img src={`${asset}home.svg`} alt="" />} />
+
+      <dialog
+        ref={dialogRef}
+        className="campus-dialog campus-paper"
+        aria-labelledby="campus-confirm-title"
+        aria-describedby="campus-confirm-name campus-confirm-description"
+        onClose={() => setPendingCampus(null)}
+      >
+        <span className="campus-dialog-ornament" aria-hidden="true" />
+        <p className="campus-eyebrow">― 出発前の確認 ―</p>
+        <h2 id="campus-confirm-title">この校舎で始めますか？</h2>
+        <div className="campus-chosen">
+          <p id="campus-confirm-name">{pendingCampus?.name}</p>
+          <p className="campus-english">{pendingCampus?.englishName}</p>
+        </div>
+        <p id="campus-confirm-description" className="campus-confirm-description">
+          選択した校舎のクエストと<br />マップを表示します。
+        </p>
+        <div className="campus-dialog-actions">
+          <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
+            選び直す
+          </button>
+          <button
+            type="button"
+            className="campus-confirm"
+            onClick={() => {
+              if (!pendingCampus) return;
+              selectCampus(pendingCampus.id);
+              navigate("/", { replace: true });
+            }}
+          >
+            この校舎に決定
+          </button>
+        </div>
+      </dialog>
+    </main>
+  );
+}
+
+export default CampusSelection;

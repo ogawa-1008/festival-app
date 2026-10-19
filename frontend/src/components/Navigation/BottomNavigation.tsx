@@ -5,6 +5,7 @@ type PageType = "home" | "map" | "progress";
 
 type BottomNavigationProps = {
   active: PageType;
+  homeIcon?: React.ReactNode;
 };
 
 /* =========================
@@ -76,6 +77,7 @@ function ProgressIcon() {
 
 function BottomNavigation({
   active,
+  homeIcon,
 }: BottomNavigationProps) {
   const navigate = useNavigate();
 
@@ -89,7 +91,7 @@ function BottomNavigation({
       key: "home",
       label: "ホーム",
       path: "/",
-      icon: <HomeIcon />,
+      icon: homeIcon ?? <HomeIcon />,
     },
     {
       key: "map",
