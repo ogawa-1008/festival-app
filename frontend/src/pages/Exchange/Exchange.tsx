@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "./Exchange.css";
 
 function Exchange() {
   const navigate = useNavigate();
   const { materials, weaponClaimed, claimWeapon } = useGame();
-  const [isConfirming, setIsConfirming] = useState(false);
+  const { active: practice, step, advance } = useGameTutorial();
+  const [isConfirming, setIsConfirming] = useState(practice && step === "confirm");
   const [isClaimed, setIsClaimed] = useState(false);
 
   const hasEnoughMaterials = progressData.materials.every(
@@ -20,6 +22,7 @@ function Exchange() {
     if (claimWeapon()) {
       setIsConfirming(false);
       setIsClaimed(true);
+      if (practice) advance("exchange-confirmed");
     }
   };
 
@@ -36,8 +39,10 @@ function Exchange() {
 
         {isClaimed || weaponClaimed ? (
           <div className="exchange-complete">
-            <h2>交換済みです</h2>
-            <p>運営スタッフにこの画面を提示して、ピンバッジを受け取ってください。</p>
+            <h2>{practice ? "交換の練習ができました" : "交換済みです"}</h2>
+            <p>{practice
+              ? "これは練習用の画面です。実際の特典は受け取れません。本番では交換済み画面を運営スタッフに提示してください。"
+              : "運営スタッフにこの画面を提示して、ピンバッジを受け取ってください。"}</p>
           </div>
         ) : (
           <>
@@ -52,15 +57,22 @@ function Exchange() {
             <button
               type="button"
               className="exchange-primary"
+              data-tutorial="exchange-open"
               disabled={!hasEnoughMaterials}
-              onClick={() => setIsConfirming(true)}
+              onClick={() => {
+                setIsConfirming(true);
+                if (practice) advance("exchange-open");
+              }}
             >
               {hasEnoughMaterials ? "特典と交換する" : "素材が不足しています"}
             </button>
           </>
         )}
 
-        <button type="button" className="exchange-back" onClick={() => navigate("/progress")}>
+        <button type="button" className="exchange-back" data-tutorial="exchange-back" onClick={() => {
+          if (practice) advance("exchange-back");
+          navigate("/progress", { replace: practice });
+        }}>
           武器詳細へ戻る
         </button>
       </section>
@@ -72,7 +84,7 @@ function Exchange() {
             <p>素材を消費すると、同じ特典はもう交換できません。</p>
             <div className="exchange-modal-actions">
               <button type="button" onClick={() => setIsConfirming(false)}>キャンセル</button>
-              <button type="button" onClick={handleExchange}>交換する</button>
+              <button type="button" data-tutorial="exchange-confirm" onClick={handleExchange}>交換する</button>
             </div>
           </div>
         </div>

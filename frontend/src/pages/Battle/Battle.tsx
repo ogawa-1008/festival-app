@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
 import { battleAssets } from "./battleAssets";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "./Battle.css";
 
@@ -13,6 +14,17 @@ function Battle() {
     const { questId } = useParams();
 
     const { quests } = useGame();
+    const { active: practice, advance } = useGameTutorial();
+    const [round, setRound] = useState(0);
+    const [isResolving, setIsResolving] = useState(false);
+    const practiceRound = useRef(0);
+    const busy = useRef(false);
+    const turnTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const departureTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    useEffect(() => () => {
+        clearTimeout(turnTimer.current);
+        clearTimeout(departureTimer.current);
+    }, []);
 
     const [playerHp, setPlayerHp] = useState(3);
     const [monsterHp, setMonsterHp] = useState(3);
@@ -71,7 +83,7 @@ function Battle() {
     };
 
     const handleHandSelect = (playerHand: Hand) => {
-        if (isBattleOverRef.current) return; // 連打を防ぐガードです
+        if (isBattleOverRef.current || busy.current) return;
 
         const hands: Hand[] = [
             "rock",
@@ -79,8 +91,22 @@ function Battle() {
             "paper",
         ];
 
-        const enemyHand =
-            hands[Math.floor(Math.random() * hands.length)];
+        const playerIndex = hands.indexOf(playerHand);
+        // Rehearse a draw, a loss, then three wins using whichever real hand the
+        // player chooses. Normal hunts continue to use a random opponent.
+        const enemyHand = practice
+            ? hands[(playerIndex + (practiceRound.current === 0 ? 0 : practiceRound.current === 1 ? 2 : 1)) % 3]
+            : hands[Math.floor(Math.random() * hands.length)];
+        if (practice) {
+            practiceRound.current += 1;
+            setRound(practiceRound.current);
+            busy.current = true;
+            setIsResolving(true);
+            turnTimer.current = setTimeout(() => {
+                busy.current = false;
+                setIsResolving(false);
+            }, 650);
+        }
 
         const result = judgeWinner(
             playerHand,
@@ -107,12 +133,13 @@ function Battle() {
                 isBattleOverRef.current = true;
                 setIsBattleOver(true);
 
-                setTimeout(() => {
-                    const goldCrown = Math.random() < 0.1;
+                departureTimer.current = setTimeout(() => {
+                    const goldCrown = !practice && Math.random() < 0.1;
+                    if (practice) advance("battle-finished");
                     navigate(
                         `/result/${quest.id}?outcome=victory${
                             goldCrown ? "&crown=1" : ""
-                        }`
+                        }`, { replace: practice }
                     );
                 }, 1200);
 
@@ -219,7 +246,7 @@ function Battle() {
             MESSAGE
         ========================= */}
 
-                <section className="battle-message">
+                <section className="battle-message" key={round} role="status" aria-live="polite">
                     {message}
                 </section>
 
@@ -272,7 +299,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("rock")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isResolving}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -294,7 +321,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("scissors")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isResolving}
                         >
                             <div className="janken-image-frame">
                                 <img
@@ -316,7 +343,7 @@ function Battle() {
                             onClick={() =>
                                 handleHandSelect("paper")
                             }
-                            disabled={isBattleOver}
+                            disabled={isBattleOver || isResolving}
                         >
                             <div className="janken-image-frame">
                                 <img

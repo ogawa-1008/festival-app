@@ -10,6 +10,7 @@ import {
 import { quests as initialQuests } from "../data/quests";
 import { progressData } from "../data/progress";
 import { findCampus, type CampusId } from "../data/campuses";
+import { practiceStorageKey } from "../components/Tutorial/tutorialSteps";
 
 type MaterialStock = Record<number, number>;
 
@@ -62,41 +63,57 @@ const initialGameState: GameState = {
   activities: [],
 };
 
-function loadGameState(): GameState {
+function loadGameState(practiceCampus?: CampusId): GameState {
+  const defaults = practiceCampus ? {
+    ...initialGameState,
+    campusId: practiceCampus,
+    // One practice hunt supplies exactly the materials still needed for exchange.
+    materials: Object.fromEntries(progressData.materials.map((material) => [
+      material.id,
+      Math.max(0, material.required - (initialQuests[0].rewardMaterials.find((reward) => reward.id === material.id)?.amount ?? 0)),
+    ])),
+  } : initialGameState;
   if (typeof window === "undefined") {
-    return initialGameState;
+    return defaults;
   }
 
   try {
-    const saved = window.localStorage.getItem(storageKey);
+    const saved = practiceCampus
+      ? window.sessionStorage.getItem(practiceStorageKey)
+      : window.localStorage.getItem(storageKey);
 
     if (!saved) {
-      return initialGameState;
+      return defaults;
     }
 
     const parsed = JSON.parse(saved) as Partial<GameState>;
 
     return {
-      ...initialGameState,
+      ...defaults,
       ...parsed,
-      campusId: findCampus(parsed.campusId)?.id ?? null,
-      quests: parsed.quests ?? initialGameState.quests,
-      materials: parsed.materials ?? initialGameState.materials,
-      activities: parsed.activities ?? initialGameState.activities,
+      campusId: practiceCampus ?? findCampus(parsed.campusId)?.id ?? null,
+      quests: parsed.quests ?? defaults.quests,
+      materials: parsed.materials ?? defaults.materials,
+      activities: parsed.activities ?? defaults.activities,
     };
   } catch {
-    return initialGameState;
+    return defaults;
   }
 }
 
 const GameContext = createContext<GameContextType | null>(null);
 
-export function GameProvider({ children }: { children: ReactNode }) {
-  const [gameState, setGameState] = useState<GameState>(loadGameState);
+export function GameProvider({ children, practiceCampus }: { children: ReactNode; practiceCampus?: CampusId }) {
+  const [gameState, setGameState] = useState<GameState>(() => loadGameState(practiceCampus));
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(gameState));
-  }, [gameState]);
+    if (practiceCampus) {
+      try { window.sessionStorage.setItem(practiceStorageKey, JSON.stringify(gameState)); }
+      catch { /* Practice can continue without persistence. */ }
+    } else {
+      window.localStorage.setItem(storageKey, JSON.stringify(gameState));
+    }
+  }, [gameState, practiceCampus]);
 
   const value = useMemo<GameContextType>(() => {
     const resolveBattle = (

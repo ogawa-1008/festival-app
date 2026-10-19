@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "./Result.css";
 
@@ -12,8 +13,9 @@ function Result() {
     const [searchParams] = useSearchParams();
 
     const { quests, resolveBattle } = useGame();
+    const { active: practice, step, advance } = useGameTutorial();
 
-    const [claimed, setClaimed] = useState(false);
+    const [claimed, setClaimed] = useState(practice && step === "result-home");
 
     const quest = quests.find(
         (item) => item.id === questId
@@ -48,6 +50,7 @@ function Result() {
         setClaimed(true);
 
         resolveBattle(quest.id, outcome, isGoldCrown);
+        if (practice) advance("reward-claimed");
     };
 
     return (
@@ -179,6 +182,7 @@ function Result() {
                 <button
                     type="button"
                     className="result-claim-button"
+                    data-tutorial="claim-reward"
                     onClick={handleClaimReward}
                     disabled={claimed}
                 >
@@ -191,7 +195,11 @@ function Result() {
                     <button
                         type="button"
                         className="result-claim-button"
-                        onClick={() => navigate("/")}
+                        data-tutorial="result-home"
+                        onClick={() => {
+                            if (practice) advance("result-home");
+                            navigate("/", { replace: practice });
+                        }}
                     >
                         ホームへ戻る
                     </button>

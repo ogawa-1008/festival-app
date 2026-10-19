@@ -3,12 +3,14 @@ import { useState } from "react";
 import { mapAreas } from "../../data/maps";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "./Map.css";
 
 function Map() {
+  const { active, step, advance } = useGameTutorial();
   const [selectedAreaId, setSelectedAreaId] =
-    useState<number | null>(null);
+    useState<number | null>(active && step === "map-home" ? 1 : null);
   const { quests, rank } = useGame();
 
   return (
@@ -38,12 +40,14 @@ function Map() {
                 {/* マップカード */}
                 <button
                   type="button"
+                  data-tutorial={area.id === 1 ? "map-field" : undefined}
                   className={`map-card ${
                     isSelected
                       ? "map-card-active"
                       : ""
                   }`}
                   onClick={() => {
+                    if (active) advance("field-open");
                     setSelectedAreaId(
                       isSelected
                         ? null

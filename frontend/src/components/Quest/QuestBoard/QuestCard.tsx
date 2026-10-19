@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
+import { useGameTutorial } from "../../Tutorial/useGameTutorial";
 
 import "./QuestCard.css";
 
@@ -14,19 +15,22 @@ function QuestCard({
   position,
 }: QuestCardProps) {
   const navigate = useNavigate();
+  const { active, advance } = useGameTutorial();
 
   const handleQuestClick = () => {
     if (quest.completed) {
       return;
     }
 
-    navigate("/qr-scanner");
+    if (active) advance("quest-open");
+    navigate("/qr-scanner", { replace: active });
   };
 
   return (
     <button
       className={`quest-card quest-${position}`}
       type="button"
+      data-tutorial-quest={quest.id}
       onClick={handleQuestClick}
     >
       <div className="quest-paper">

@@ -3,12 +3,14 @@ import { progressData } from "../../data/progress";
 import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "./Progress.css";
 
 function Progress() {
   const { materials, weaponClaimed } = useGame();
   const navigate = useNavigate();
+  const { active, advance } = useGameTutorial();
 
   const handleCreateWeapon = () => {
     const hasEnoughMaterials = progressData.materials.every((material) => {
@@ -21,7 +23,8 @@ function Progress() {
       return;
     }
 
-    navigate("/exchange/weapon");
+    if (active) advance("craft-open");
+    navigate("/exchange/weapon", { replace: active });
   };
 
   return (

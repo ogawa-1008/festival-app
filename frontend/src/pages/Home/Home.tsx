@@ -17,7 +17,7 @@ function Home() {
   const navigate = useNavigate();
   const { rank, campusId } = useGame();
   const campus = findCampus(campusId);
-  const startTutorial = useGameTutorial();
+  const { startTutorial } = useGameTutorial();
 
   return (
     <main className="home">

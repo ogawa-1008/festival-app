@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useGameTutorial } from "../Tutorial/useGameTutorial";
 import "./BottomNavigation.css";
 
 type PageType = "home" | "map" | "progress";
@@ -80,6 +81,11 @@ function BottomNavigation({
   homeIcon,
 }: BottomNavigationProps) {
   const navigate = useNavigate();
+  const { active: tutorialActive, advance } = useGameTutorial();
+  const goTo = (page: { key: PageType; path: string }) => {
+    if (tutorialActive) advance(`nav-${page.key}`);
+    navigate(page.path, { replace: tutorialActive });
+  };
 
   const pages: {
     key: PageType;
@@ -138,7 +144,7 @@ function BottomNavigation({
         type="button"
         aria-label={leftPage.label}
         data-tutorial={`nav-${leftPage.key}`}
-        onClick={() => navigate(leftPage.path)}
+        onClick={() => goTo(leftPage)}
       >
         {leftPage.icon}
       </button>
@@ -171,7 +177,7 @@ function BottomNavigation({
         type="button"
         aria-label={rightPage.label}
         data-tutorial={`nav-${rightPage.key}`}
-        onClick={() => navigate(rightPage.path)}
+        onClick={() => goTo(rightPage)}
       >
         {rightPage.icon}
       </button>

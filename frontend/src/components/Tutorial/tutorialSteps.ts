@@ -1,131 +1,93 @@
 import type { DriveStep } from "driver.js";
 
 export const tutorialStorageKey = "festival-game-tutorial:v1";
-const activeTutorialKey = "festival-game-tutorial:active:v1";
-
-type TutorialStep = DriveStep & { path: string };
+const activeTutorialKey = "festival-game-tutorial:active:v2";
+export const practiceStorageKey = "festival-game-tutorial:game:v2";
+export type TutorialStep = DriveStep & { id: string; path: string; action?: string };
 
 export function readActiveTutorialStep(pathname: string, steps: TutorialStep[]) {
   try {
     const saved = sessionStorage.getItem(activeTutorialKey);
-    if (saved === null) return null;
-    const index = Number(saved);
-    return Number.isInteger(index) && steps[index]?.path === pathname ? index : null;
-  } catch {
-    return null;
-  }
+    return steps.some((step) => step.id === saved && step.path === pathname) ? saved : null;
+  } catch { return null; }
 }
-
-export function saveActiveTutorialStep(index: number) {
-  try {
-    sessionStorage.setItem(activeTutorialKey, String(index));
-  } catch {
-    // Persistence is optional; the guide still runs in this tab.
-  }
+export function saveActiveTutorialStep(id: string) {
+  try { sessionStorage.setItem(activeTutorialKey, id); } catch { /* Storage is optional. */ }
 }
-
-export function hasSeenTutorial() {
-  try {
-    return ["completed", "dismissed"].includes(localStorage.getItem(tutorialStorageKey) ?? "");
-  } catch {
-    return false;
-  }
-}
-
-export function saveTutorialStatus(completed: boolean) {
-  try {
-    localStorage.setItem(tutorialStorageKey, completed ? "completed" : "dismissed");
-  } catch {
-    // The current session still works when browser storage is unavailable.
-  }
+export function clearPractice() {
   try {
     sessionStorage.removeItem(activeTutorialKey);
-  } catch {
-    // Storage may be disabled by browser settings.
-  }
+    sessionStorage.removeItem(practiceStorageKey);
+  } catch { /* The in-memory session still works. */ }
 }
-
+export function hasSeenTutorial() {
+  try { return ["completed", "dismissed"].includes(localStorage.getItem(tutorialStorageKey) ?? ""); }
+  catch { return false; }
+}
+export function saveTutorialStatus(completed: boolean) {
+  try { localStorage.setItem(tutorialStorageKey, completed ? "completed" : "dismissed"); }
+  catch { /* The in-memory session still works. */ }
+  clearPractice();
+}
 export function createTutorialSteps(questId: string): TutorialStep[] {
   return [
-    {
-      path: "/",
-      popover: {
-        title: "狩猟へようこそ",
-        description: "QRコードを読み取って、じゃんけんでモンスターに挑戦！ 素材を集めると特典と交換できます。画面を見ながら遊び方を確認しましょう。<br><br>ガイドは右上の×で終了でき、メニューからいつでも見直せます。",
-        nextBtnText: "ガイドを始める",
-      },
-    },
-    {
-      path: "/",
-      element: '[data-tutorial="quest"]',
-      popover: {
-        title: "クエストを選ぶ",
-        description: "挑戦したいクエストのカードをタップすると、QRコードの読み取り画面が開きます。会場にあるクエスト用のQRコードを探しましょう。",
-        side: "bottom",
-      },
-    },
-    {
-      path: "/",
-      element: '[data-tutorial="nav-map"]',
-      popover: {
-        title: "マップで確認",
-        description: "マップでは、校舎ごとのフィールドやモンスターを確認できます。会場をまわるときに使ってみましょう。",
-        side: "top",
-      },
-    },
-    {
-      path: "/qr-scanner",
-      element: '[data-tutorial="qr-camera"]',
-      popover: {
-        title: "QRを読み取る",
-        description: "「カメラを起動」を押して使用を許可し、QRコードを枠の中に合わせます。読み取り後は、準備が整うとバトルが始まります。<br><br>ガイド中はカメラを起動しません。",
-        side: "bottom",
-      },
-    },
-    {
-      path: `/battle/${questId}`,
-      element: '[data-tutorial="monster-hp"]',
-      popover: {
-        title: "討伐のルール",
-        description: "じゃんけんに勝つと相手のHPが減り、0にすると討伐成功！ 負けると自分のHPが減ります。力尽きても、調査結果から素材とハンターランク経験値を獲得できます。",
-        side: "bottom",
-      },
-    },
-    {
-      path: `/battle/${questId}`,
-      element: '[data-tutorial="battle-hands"]',
-      popover: {
-        title: "手を選んで攻撃",
-        description: "グーはチョキに、チョキはパーに、パーはグーに勝ちます。あいこのときは、もう一度手を選びましょう。<br><br>ガイド中の操作でバトルの結果は変わりません。",
-        side: "top",
-      },
-    },
-    {
-      path: "/progress",
-      element: '[data-tutorial="required-materials"]',
-      popover: {
-        title: "素材を集めよう",
-        description: "「進捗」では、武器の特典に必要な素材と所持数を確認できます。クエストに挑戦して、必要な数を集めましょう。",
-        side: "bottom",
-      },
-    },
-    {
-      path: "/progress",
-      element: '[data-tutorial="create-weapon"]',
-      popover: {
-        title: "特典と交換",
-        description: "素材が揃ったら「武器を作成する」から交換画面へ進めます。交換は1回限りです。受け取り画面を運営スタッフに提示してください。<br><br>ガイド中は素材の消費や交換は行いません。",
-        side: "top",
-      },
-    },
-    {
-      path: "/",
-      element: '[data-tutorial="home-menu"]',
-      popover: {
-        title: "さあ、出発！",
-        description: "遊び方は、このメニューの「遊び方ガイド」からいつでも確認できます。素材やスタンプの一覧もここから開けます。クエストに挑戦してみましょう！",
-        side: "bottom",
-      },
-    },
+    { id: "welcome", path: "/", action: "begin", popover: {
+      title: "操作を体験しよう",
+      description: "光っているボタンを実際に押して、狩猟から特典交換まで練習しましょう。<br><br>練習用のQRと素材を使います。実際のカメラ・報酬・交換履歴には影響しません。×でいつでも終了できます。",
+      showButtons: ["next", "close"], nextBtnText: "練習を始める",
+    } },
+    { id: "map", path: "/", action: "nav-map", element: '[data-tutorial="nav-map"]', popover: {
+      title: "会場を確認しよう", description: "まずは「マップ」を押して、モンスターがいるフィールドを確認しましょう。", side: "top",
+    } },
+    { id: "field", path: "/map", action: "field-open", element: '[data-tutorial="map-field"]', popover: {
+      title: "フィールドを開く", description: "このフィールドを押してみましょう。場所やモンスターの情報が開きます。", side: "top",
+    } },
+    { id: "map-home", path: "/map", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
+      title: "クエストへ向かおう", description: "フィールドの情報を確認できました。「ホーム」を押してクエストを選びましょう。", side: "top",
+    } },
+    { id: "quest", path: "/", action: "quest-open", element: `[data-tutorial-quest="${questId}"]`, popover: {
+      title: "クエストを選ぶ", description: "このクエストを押してください。QRコードの読み取り画面へ進みます。", side: "top",
+    } },
+    { id: "camera", path: "/qr-scanner", action: "camera-start", element: '[data-tutorial="camera-start"]', popover: {
+      title: "カメラを起動する", description: "「カメラを起動」を押しましょう。今回は練習用の映像が開きます。本番ではカメラの使用を許可してください。", side: "top",
+    } },
+    { id: "scan", path: "/qr-scanner", action: "qr-scanned", element: '[data-tutorial="practice-scan"]', popover: {
+      title: "QRを読み取る", description: "練習用QRを押して、読み取りを体験しましょう。本番では会場のQRを枠に合わせると自動で読み取ります。", side: "top",
+    } },
+    { id: "loading", path: `/quest-loading/${questId}`, action: "battle-ready", element: ".departure-heading", popover: {
+      title: "狩猟フィールドへ", description: "QRを読み取れました。準備が整うとバトルが始まります。少しお待ちください。", side: "bottom",
+    } },
+    { id: "battle", path: `/battle/${questId}`, action: "battle-finished", element: '[data-tutorial="battle-hands"]', popover: {
+      title: "手を選んで狩猟しよう", description: "手を押して、あいこ・負け・勝ちを練習。勝つと相手、負けると自分のHPが減ります。相手のHPが0になるまで続けましょう。", side: "top",
+      popoverClass: "festival-tour festival-ui festival-tour--battle",
+    } },
+    { id: "reward", path: `/result/${questId}`, action: "reward-claimed", element: '[data-tutorial="claim-reward"]', popover: {
+      title: "討伐成功！", description: "獲得できる素材を確認して「報酬を受け取る」を押しましょう。今回は練習用の素材です。", side: "top",
+    } },
+    { id: "result-home", path: `/result/${questId}`, action: "result-home", element: '[data-tutorial="result-home"]', popover: {
+      title: "素材を受け取りました", description: "「ホームへ戻る」を押してください。集めた素材で特典を交換してみましょう。", side: "top",
+    } },
+    { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', popover: {
+      title: "集めた素材を確認", description: "「進捗」を押すと、特典に必要な素材と所持数を確認できます。", side: "top",
+    } },
+    { id: "craft", path: "/progress", action: "craft-open", element: '[data-tutorial="create-weapon"]', popover: {
+      title: "素材が揃いました", description: "必要な素材がすべて揃いました。「武器を作成する」を押して、特典の交換画面を開きましょう。", side: "top",
+    } },
+    { id: "exchange", path: "/exchange/weapon", action: "exchange-open", element: '[data-tutorial="exchange-open"]', popover: {
+      title: "交換内容を確認", description: "必要な素材を確認して「特典と交換する」を押してください。確認ダイアログが開きます。", side: "top",
+    } },
+    { id: "confirm", path: "/exchange/weapon", action: "exchange-confirmed", element: '[data-tutorial="exchange-confirm"]', popover: {
+      title: "交換を確定する", description: "「交換する」を押してみましょう。本番の交換は1回限りです。今回は練習なので実際の特典は交換されません。", side: "top",
+    } },
+    { id: "exchange-back", path: "/exchange/weapon", action: "exchange-back", element: '[data-tutorial="exchange-back"]', popover: {
+      title: "受け取り画面を提示", description: "本番では、この交換済み画面を運営スタッフに見せて特典を受け取ります。確認できたら「武器詳細へ戻る」を押しましょう。", side: "top",
+    } },
+    { id: "finish-home", path: "/progress", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
+      title: "ホームへ戻ろう", description: "「ホーム」を押して、練習を終えましょう。ここまでが狩猟から特典交換までの流れです。", side: "top",
+    } },
+    { id: "complete", path: "/", popover: {
+      title: "いざ、本番の狩猟へ", description: "操作の練習は完了です！ 会場のQRコードを探して、クエストに挑戦しましょう。<br><br>メニューの「遊び方ガイド」からいつでも練習し直せます。",
+      showButtons: ["next", "close"], doneBtnText: "狩猟を始める",
+    } },
   ];
 }

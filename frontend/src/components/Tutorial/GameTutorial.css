@@ -36,3 +36,56 @@
 @media (max-width: 374px) {
   .festival-tour.driver-popover { padding-inline: 18px; }
 }
+
+/* Keep the same Driver instance as controls and routes change, so the spotlight
+   travels between targets rather than flashing a new overlay at each step. */
+.tutorial-scene { animation: tutorial-scene-enter 320ms ease-out both; }
+.festival-tour.driver-popover {
+  width: 320px;
+  padding: 20px 20px 16px;
+  animation: tutorial-note-enter 240ms ease-out both;
+}
+.festival-tour .driver-popover-title { margin-right: 14px; font-size: 24px; line-height: 1.3; }
+.festival-tour .driver-popover-description { margin-top: 12px !important; }
+.festival-tour .driver-popover-footer { margin-top: 14px; }
+.festival-tour .driver-popover-progress-text { font-size: 12px; }
+.festival-tour:focus { outline: none; }
+.tutorial-scene .hp-fill { transition: width 420ms cubic-bezier(.22, 1, .36, 1); }
+.tutorial-scene .battle-message { animation: tutorial-feedback-enter 260ms ease-out both; }
+.tutorial-scene .janken-button { transition: transform 180ms ease-out, opacity 180ms ease-out; }
+.tutorial-scene .janken-button:active { transform: scale(.94); }
+.tutorial-scene .janken-button:disabled { opacity: .6; }
+.qr-practice-preview {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  padding: 24px; box-sizing: border-box;
+  background: radial-gradient(ellipse at center, #363c2b, #10140e 80%);
+  color: #f7edd3; text-align: center;
+  animation: tutorial-scene-enter 400ms ease-out both;
+}
+.qr-practice-preview > span { font-size: 12px; letter-spacing: .12em; }
+.qr-practice-preview > p { margin: 0; font-size: 12px; line-height: 1.5; }
+.qr-practice-code {
+  display: grid; justify-items: center; gap: 12px;
+  padding: 16px; border: 1px solid #a1875c; border-radius: 4px;
+  background: #f7edd3; color: #080606; cursor: pointer; font: inherit;
+}
+.qr-practice-code svg { width: 124px; height: 124px; }
+.qr-practice-code strong { font-size: 14px; }
+@keyframes tutorial-scene-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tutorial-note-enter { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+@keyframes tutorial-feedback-enter { from { opacity: .4; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-scene, .festival-tour.driver-popover, .qr-practice-preview,
+  .tutorial-scene .battle-message { animation: none; }
+  .tutorial-scene .hp-fill, .tutorial-scene .janken-button { transition: none; }
+  .tutorial-scene .janken-button:active { transform: none; }
+}
+/* Leave HP and the battle feedback visible while choosing hands. */
+.festival-tour--battle.driver-popover { top: 16px !important; bottom: auto !important; }
+.festival-tour--battle .driver-popover-title { font-size: 20px; }
+.festival-tour--battle .driver-popover-description { line-height: 1.5; }
+.festival-tour--battle .driver-popover-arrow { display: none; }
+@media (max-height: 700px) {
+  .festival-tour--battle.driver-popover { top: auto !important; bottom: 12px !important; }
+}

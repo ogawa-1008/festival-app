@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
 import { useGame } from "../../context/GameContext";
 import { battleAssets, prepareBattle } from "../Battle/battleAssets";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import "./QuestLoading.css";
 
 type Phase = "preparing" | "ready" | "error";
@@ -12,6 +13,7 @@ export default function QuestLoading() {
   const { questId } = useParams();
   const { quests } = useGame();
   const navigate = useNavigate();
+  const { active: practice, advance } = useGameTutorial();
   const quest = quests.find((item) => item.id === questId);
   const [preparation, setPreparation] = useState<{ questId: string | undefined; phase: Phase }>({ questId, phase: "preparing" });
   const phase = preparation.questId === questId ? preparation.phase : "preparing";
@@ -28,6 +30,7 @@ export default function QuestLoading() {
     let disposed = false;
     let departure: ReturnType<typeof setTimeout> | undefined;
     const timeout = setTimeout(() => controller.abort(new Error("Preparation timed out")), 15000);
+    const startedAt = performance.now();
 
     void prepareBattle(controller.signal).then(() => {
       clearTimeout(timeout);
@@ -35,7 +38,10 @@ export default function QuestLoading() {
       setPreparation({ questId, phase: "ready" });
       // Figma's ready reveal, after the real preparation has completed.
       const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 650;
-      departure = setTimeout(() => navigate(`/battle/${questId}`, { replace: true }), delay);
+      departure = setTimeout(() => {
+        if (practice) advance("battle-ready");
+        navigate(`/battle/${questId}`, { replace: true });
+      }, practice ? Math.max(delay, 2200 - (performance.now() - startedAt)) : delay);
     }).catch(() => {
       clearTimeout(timeout);
       controller.abort();
@@ -48,7 +54,7 @@ export default function QuestLoading() {
       clearTimeout(departure);
       controller.abort();
     };
-  }, [questId, quest, attempt, navigate]);
+  }, [questId, quest, attempt, navigate, practice, advance]);
 
   const ready = phase === "ready";
   const error = !quest || phase === "error";
