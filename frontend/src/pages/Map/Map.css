@@ -412,6 +412,29 @@
   padding-top: 8px;
 }
 
+.map-field-status {
+  padding: var(--space-3);
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-1);
+}
+
+.map-area-detail .field-rewards { padding-inline: 0; }
+.map-area-detail { container-type: inline-size; }
+
+.map-area-detail-content .field-rewards p {
+  padding: 0;
+  border-left: 0;
+  background: none;
+  color: var(--color-text-muted);
+}
+
+.map-area-detail-content .field-rewards p.field-novelty-note {
+  padding: var(--space-2);
+  background: var(--color-bg-panel);
+}
+
 .map-field-quest {
   display: grid;
   gap: 4px;

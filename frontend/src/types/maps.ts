@@ -3,4 +3,10 @@ export type MapArea = {
   buildingName: string;
   areaName: string;
   image: string;
+  questIds: string[];
+  novelty: {
+    name: string;
+    description: string;
+    image?: string;
+  };
 };

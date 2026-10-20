@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { FieldCollectionSummary } from "../../components/FieldCollection/FieldCollection";
 
 import "./Progress.css";
 
@@ -178,6 +179,8 @@ function Progress() {
           </button>
           
         </section>
+
+        <FieldCollectionSummary />
 
       </div>
 

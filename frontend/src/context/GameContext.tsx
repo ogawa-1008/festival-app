@@ -17,6 +17,8 @@ import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "
 import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
 import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage";
+import { mapAreas } from "../data/maps";
+import { restoreFieldNoveltyIds } from "../utils/fieldProgress";
 
 type MaterialStock = Record<number, number>;
 
@@ -36,6 +38,7 @@ type GameState = {
   rankExp: number;
   rankProgressVersion: number;
   weaponClaimed: boolean;
+  obtainedFieldNoveltyIds: number[];
   activities: Activity[];
 };
 
@@ -66,6 +69,7 @@ const initialGameState: GameState = {
   rankExp: 0,
   rankProgressVersion: RANK_PROGRESS_VERSION,
   weaponClaimed: false,
+  obtainedFieldNoveltyIds: [],
   activities: [],
 };
 
@@ -96,7 +100,12 @@ function loadGameState(practiceCampus?: CampusId): GameState {
   try {
     const reader = practiceCampus ? { getItem: () => window.sessionStorage.getItem(practiceStorageKey) } : window.localStorage;
     const saved = loadSavedGame(reader, defaults);
-    return { ...saved, campusId: practiceCampus ?? findCampus(saved.campusId)?.id ?? null, quests: mergeQuestProgress(saved.quests) };
+    return {
+      ...saved,
+      campusId: practiceCampus ?? findCampus(saved.campusId)?.id ?? null,
+      quests: mergeQuestProgress(saved.quests),
+      obtainedFieldNoveltyIds: restoreFieldNoveltyIds(saved.obtainedFieldNoveltyIds, mapAreas),
+    };
   } catch {
     return defaults;
   }

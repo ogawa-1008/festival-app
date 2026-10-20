@@ -137,8 +137,8 @@ function Home() {
                   <span className="side-menu-item-icon">◆</span>
 
                   <span className="side-menu-item-text">
-                    <small>MONSTER STAMP</small>
-                    <strong>スタンプ一覧</strong>
+                    <small>STAMP & NOVELTY</small>
+                    <strong>スタンプ・ノベルティ</strong>
                   </span>
 
                   <span className="side-menu-arrow">›</span>

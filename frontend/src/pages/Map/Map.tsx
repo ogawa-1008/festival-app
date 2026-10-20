@@ -1,9 +1,16 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { mapAreas } from "../../data/maps";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import {
+  FieldCollectionSummary,
+  FieldRewards,
+  FieldStatus,
+} from "../../components/FieldCollection/FieldCollection";
+import { getFieldProgress } from "../../utils/fieldProgress";
 
 import "./Map.css";
 
@@ -11,7 +18,7 @@ function Map() {
   const { active, step, advance } = useGameTutorial();
   const [selectedAreaId, setSelectedAreaId] =
     useState<number | null>(active && step === "map-home" ? 1 : null);
-  const { quests, rank } = useGame();
+  const { quests, obtainedFieldNoveltyIds } = useGame();
 
   return (
     <main className="map-page">
@@ -26,11 +33,13 @@ function Map() {
           <h1>フィールドマップ</h1>
         </header>
 
+        <FieldCollectionSummary />
+
         <div className="map-list">
           {mapAreas.map((area) => {
             const isSelected =
               selectedAreaId === area.id;
-            const areaQuest = quests[area.id - 1];
+            const fieldProgress = getFieldProgress(area, quests, obtainedFieldNoveltyIds);
 
             return (
               <div
@@ -40,6 +49,8 @@ function Map() {
                 {/* マップカード */}
                 <button
                   type="button"
+                  aria-expanded={isSelected}
+                  aria-controls={isSelected ? `map-field-detail-${area.id}` : undefined}
                   data-tutorial={area.id === 1 ? "map-field" : undefined}
                   className={`map-card ${
                     isSelected
@@ -80,9 +91,13 @@ function Map() {
                   </span>
                 </button>
 
+                <div className="map-field-status">
+                  <FieldStatus progress={fieldProgress} />
+                </div>
+
                 {/* 選択したカードの下に詳細を表示 */}
                 {isSelected && (
-                  <div className="map-area-detail">
+                  <div className="map-area-detail" id={`map-field-detail-${area.id}`}>
                     <div className="map-area-detail-header">
                       <span>FIELD INFORMATION</span>
 
@@ -112,26 +127,10 @@ function Map() {
                         <strong>HR {Math.min(area.id, 3)}</strong>
                       </div>
 
-                      {areaQuest && (
-                        <div className="map-field-quest">
-                          <span>MONSTER</span>
-                          <strong>{areaQuest.title}</strong>
-                          <small>
-                            {areaQuest.completed
-                              ? areaQuest.goldCrown
-                                ? "金冠モンスターを討伐済み"
-                                : "討伐済み"
-                              : rank >= Math.min(area.id, 3)
-                                ? "このフィールドで調査できます"
-                                : "ハンターランクを上げよう"}
-                          </small>
-                        </div>
-                      )}
-
-                      <p>
-                        このエリアを探索して
-                        クエストに挑戦しよう！
-                      </p>
+                      <FieldRewards area={area} progress={fieldProgress} />
+                      <Link className="field-collection-link" to={`/stamps#field-${area.id}`}>
+                        コレクションで見る <span aria-hidden="true">›</span>
+                      </Link>
                     </div>
                   </div>
                 )}

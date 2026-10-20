@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
+import FieldCollection from "../../components/FieldCollection/FieldCollection";
 
 import "./Collection.css";
 
@@ -15,12 +16,12 @@ type CollectionProps = {
 
 function Collection({ view }: CollectionProps) {
   const navigate = useNavigate();
-  const { materials, quests, activities } = useGame();
+  const { materials, activities } = useGame();
   const [historyFilter, setHistoryFilter] = useState<"all" | "hunt" | "exchange">("all");
 
   const title = {
     materials: "獲得した素材",
-    stamps: "モンスタースタンプ",
+    stamps: "フィールドコレクション",
     history: "アクティビティ履歴",
   }[view];
 
@@ -45,7 +46,7 @@ function Collection({ view }: CollectionProps) {
             ←
           </button>
           <div>
-            <span>{view === "stamps" ? "MONSTER STAMP" : "HUNTER'S RECORD"}</span>
+            <span>{view === "stamps" ? "STAMP & NOVELTY" : "HUNTER'S RECORD"}</span>
             <h1>{title}</h1>
           </div>
         </header>
@@ -65,24 +66,7 @@ function Collection({ view }: CollectionProps) {
           </section>
         )}
 
-        {view === "stamps" && (
-          <section className="stamp-grid" aria-label="獲得スタンプ一覧">
-            {quests.map((quest) => (
-              <article
-                key={quest.id}
-                className={`stamp-card ${quest.completed ? "stamp-card-earned" : ""}`}
-              >
-                <img src={quest.image} alt={quest.title} />
-                {quest.completed ? (
-                  <span className="stamp-earned">{quest.goldCrown ? "金冠討伐" : "討伐済み"}</span>
-                ) : (
-                  <span className="stamp-locked">未獲得</span>
-                )}
-                <h2>{quest.title}</h2>
-              </article>
-            ))}
-          </section>
-        )}
+        {view === "stamps" && <FieldCollection />}
 
         {view === "history" && (
           <section>
