@@ -175,7 +175,7 @@ function Progress() {
             data-tutorial="create-weapon"
             onClick={handleCreateWeapon}
           >
-            {weaponClaimed ? "交換済み" : "武器を作成する"}
+            {weaponClaimed ? "作成済み" : "武器を作成する"}
           </button>
           
         </section>

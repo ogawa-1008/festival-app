@@ -187,6 +187,19 @@ export function FieldRewards({
         <p className="field-novelty-note">
           交換場所：{area.novelty.redemptionLocation}
         </p>
+        {!progress.noveltyObtained && (
+          progress.redeemable ? (
+            <Link className="field-novelty-redeem" to={`/novelty/${area.id}`}>
+              ステッカーを交換する <span aria-hidden="true">›</span>
+            </Link>
+          ) : (
+            progress.available && (
+              <p className="field-novelty-condition">
+                モンスターをすべて討伐または調査すると交換できます（{progress.attempted} / {progress.total}）
+              </p>
+            )
+          )
+        )}
       </section>
     </div>
   );

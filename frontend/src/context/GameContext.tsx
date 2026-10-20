@@ -19,6 +19,7 @@ import { useStorageSync } from "./useStorageSync";
 import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage";
 import { mapAreas } from "../data/maps";
 import { restoreFieldNoveltyIds } from "../utils/fieldProgress";
+import { getWeaponAttackBonus } from "../utils/playerStats";
 
 type MaterialStock = Record<number, number>;
 
@@ -52,6 +53,8 @@ type GameContextType = GameState & {
     isGoldCrown?: boolean
   ) => void;
   claimWeapon: () => boolean;
+  // ステッカーの交換が成功したことを記録する（在庫の減算は API で行う）
+  claimFieldNovelty: (fieldId: number) => void;
 };
 
 const initialMaterials: MaterialStock = Object.fromEntries(
@@ -74,7 +77,7 @@ const initialGameState: GameState = {
 };
 
 // クエストの定義（素材・手数・ステータス・EXP）は常に data/quests.ts を使い、
-// 保存データからは進行度（討伐済み・金冠）だけを引き継ぐ。定義を変えてもキャッシュ削除が不要になる
+// 保存データからは進行度（討伐済み・金冠・調査済み）だけを引き継ぐ。定義を変えてもキャッシュ削除が不要になる
 function mergeQuestProgress(savedQuests: GameState["quests"]): GameState["quests"] {
   return initialQuests.map((quest) => {
     const saved = Array.isArray(savedQuests)
@@ -85,6 +88,7 @@ function mergeQuestProgress(savedQuests: GameState["quests"]): GameState["quests
       ...quest,
       completed: saved?.completed === true,
       goldCrown: saved?.goldCrown === true,
+      investigated: saved?.investigated === true,
     };
   });
 }
@@ -230,11 +234,13 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
         return {
           ...current,
-          quests: current.quests.map((item) =>
-            item.id === questId && outcome === "victory"
+          quests: current.quests.map((item) => {
+            if (item.id !== questId) return item;
+
+            return outcome === "victory"
               ? { ...item, completed: true, goldCrown: item.goldCrown || isGoldCrown }
-              : item
-          ),
+              : { ...item, investigated: true };
+          }),
           materials,
           rank: nextRank,
           rankExp: nextExp,
@@ -275,8 +281,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
             {
               id: `${Date.now()}-weapon-exchange`,
               type: "exchange",
-              title: `${progressData.weaponName}のスマホ壁紙を交換`,
-              detail: "特典を受け取れます。運営スタッフにこの画面を提示してください。",
+              title: `${progressData.weaponName}を作成`,
+              detail: `攻撃力 +${getWeaponAttackBonus()}`,
               createdAt: new Date().toISOString(),
             },
             ...current.activities,
@@ -286,10 +292,36 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
       return true;
     };
+    const claimFieldNovelty = (fieldId: number) => {
+      if (!canUpdateGame()) return;
+      setGameState((current) => {
+        const area = mapAreas.find((item) => item.id === fieldId);
+
+        if (!area || current.obtainedFieldNoveltyIds.includes(fieldId)) return current;
+
+        return {
+          ...current,
+          obtainedFieldNoveltyIds: restoreFieldNoveltyIds(
+            [...current.obtainedFieldNoveltyIds, fieldId],
+            mapAreas,
+          ),
+          activities: [
+            {
+              id: `${Date.now()}-novelty-${fieldId}`,
+              type: "exchange",
+              title: `${area.novelty.name}を交換`,
+              detail: `交換場所：${area.novelty.redemptionLocation}`,
+              createdAt: new Date().toISOString(),
+            },
+            ...current.activities,
+          ],
+        };
+      });
+    };
     const selectCampus = (campusId: CampusId) => {
       if (canUpdateGame()) setGameState((current) => ({ ...current, campusId }));
     };
-    return { ...gameState, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon };
+    return { ...gameState, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon, claimFieldNovelty };
   }, [gameState, requiresUpdate, canUpdateGame]);
 
   return (

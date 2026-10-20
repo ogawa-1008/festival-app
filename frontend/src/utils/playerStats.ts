@@ -29,3 +29,8 @@ export function getPlayerStats(state: { weaponClaimed: boolean }): PlayerStats {
     attack: PLAYER_BASE_ATTACK + attackBonus,
   };
 }
+
+// 武器を作成したときに上がる攻撃力（画面の表示用）
+export function getWeaponAttackBonus(weaponId: string = AGITO_WEAPON_ID) {
+  return weapons.find((weapon) => weapon.id === weaponId)?.attackBonus ?? 0;
+}

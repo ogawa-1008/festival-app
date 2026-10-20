@@ -5,6 +5,7 @@ import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { getWeaponAttackBonus } from "../../utils/playerStats";
 
 import "./Exchange.css";
 
@@ -21,17 +22,19 @@ function Exchange() {
     if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
   }, []);
 
+  const attackBonus = getWeaponAttackBonus();
+
   const hasEnoughMaterials = progressData.materials.every(
     (material) => (materials[material.id] ?? 0) >= material.required
   );
 
-  // スワイプで確定したら交換し、「交換完了」を少し見せてから交換済み画面にする
+  // スワイプで確定したら武器を作成し、「作成完了」を少し見せてから作成済み画面にする
   const handleExchange = () => {
     if (!claimWeapon()) return false;
 
     setIsFinishing(true);
     if (practice) advance("exchange-confirmed");
-    // 交換済みの表示は weaponClaimed で切り替わる。ここでは確認画面を閉じるだけ
+    // 作成済みの表示は weaponClaimed で切り替わる。ここでは確認画面を閉じるだけ
     finishTimerRef.current = setTimeout(() => {
       setIsConfirming(false);
       setIsFinishing(false);
@@ -43,8 +46,8 @@ function Exchange() {
   return (
     <main className="exchange-page">
       <section className="exchange-card">
-        <span className="exchange-eyebrow">REWARD EXCHANGE</span>
-        <h1>{progressData.weaponName} スマホ壁紙</h1>
+        <span className="exchange-eyebrow">WEAPON CRAFT</span>
+        <h1>{progressData.weaponName}</h1>
         <img
           src={progressData.weaponImage}
           alt={progressData.weaponName}
@@ -53,11 +56,17 @@ function Exchange() {
 
         {weaponClaimed ? (
           <div className="exchange-complete">
-            <h2>{practice ? "交換の練習ができました" : "交換済みです"}</h2>
-            <p>{practice ? "これは練習用の画面です。実際の特典は受け取れません。本番では交換済み画面を運営スタッフに提示してください。" : "運営スタッフにこの画面を提示して、スマホ壁紙を受け取ってください。"}</p>
+            <h2>{practice ? "作成の練習ができました" : "作成済みです"}</h2>
+            <p>
+              攻撃力が +{attackBonus} 上がりました。モンスターに与えるダメージが増えます。
+              {practice && "（練習用の画面です。本番の攻撃力には影響しません）"}
+            </p>
           </div>
         ) : (
           <>
+            <p className="exchange-effect">
+              作成すると攻撃力が +{attackBonus} 上がります
+            </p>
             <div className="exchange-materials">
               {progressData.materials.map((material) => (
                 <p key={material.id}>
@@ -73,7 +82,7 @@ function Exchange() {
               disabled={!hasEnoughMaterials || requiresUpdate}
               onClick={() => { setIsConfirming(true); if (practice) advance("exchange-open"); }}
             >
-              {hasEnoughMaterials ? "特典と交換する" : "素材が不足しています"}
+              {hasEnoughMaterials ? "武器を作成する" : "素材が不足しています"}
             </button>
           </>
         )}
@@ -89,14 +98,14 @@ function Exchange() {
         <div className="exchange-modal" role="dialog" aria-modal="true" aria-labelledby="exchange-title">
           <div>
             <h2 id="exchange-title">
-              {isFinishing ? "交換が完了しました" : "交換しますか？"}
+              {isFinishing ? "武器を作成しました" : "武器を作成しますか？"}
             </h2>
-            <p>素材を消費すると、同じ特典はもう交換できません。</p>
+            <p>素材を消費して{progressData.weaponName}を作成します。作成は1回だけです。</p>
             <div className="exchange-modal-actions">
               <div data-tutorial="exchange-confirm">
               <SwipeToConfirm
-                label="右にスライドして交換"
-                confirmedLabel="交換完了"
+                label="右にスライドして作成"
+                confirmedLabel="作成完了"
                 disabled={requiresUpdate}
                 onConfirm={handleExchange}
               />

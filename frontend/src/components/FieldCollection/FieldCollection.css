@@ -336,3 +336,29 @@
     margin-inline: 0;
   }
 }
+
+/* ステッカーの交換へ進むボタンと、交換の条件 */
+
+.field-novelty-redeem {
+  display: block;
+
+  margin-top: var(--space-3);
+  padding: 12px;
+
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+
+  color: var(--color-accent);
+
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+}
+
+.field-rewards p.field-novelty-condition {
+  margin: var(--space-2) 0 0;
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-sm);
+}

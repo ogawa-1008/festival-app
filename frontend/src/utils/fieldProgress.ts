@@ -12,14 +12,21 @@ export function getFieldProgress(
     return quest ? [quest] : [];
   });
   const earned = fieldQuests.filter((quest) => quest.completed).length;
+  // 討伐または調査したクエストの数（ステッカーの交換条件）
+  const attempted = fieldQuests.filter(
+    (quest) => quest.completed || quest.investigated,
+  ).length;
   const available =
     area.questIds.length > 0 && fieldQuests.length === area.questIds.length;
   return {
     quests: fieldQuests,
     earned,
+    attempted,
     total: area.questIds.length,
     available,
     complete: available && earned === area.questIds.length,
+    // フィールドのモンスターをすべて討伐または調査したらステッカーを交換できる
+    redeemable: available && attempted === area.questIds.length,
     // 討伐済みとノベルティの受取済みは別の記録として扱う。
     noveltyObtained: obtainedNoveltyIds.includes(area.id),
   };

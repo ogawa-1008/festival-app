@@ -17,6 +17,7 @@ import Battle from "./pages/Battle/Battle.tsx";
 import Result from "./pages/Result/Result.tsx";
 import Collection from "./pages/Collection/Collection.tsx";
 import Exchange from "./pages/Exchange/Exchange.tsx";
+import NoveltyRedeem from "./pages/NoveltyRedeem/NoveltyRedeem.tsx";
 import { GameProvider, useGame } from "./context/GameContext";
 import { BattleSessionProvider } from "./context/BattleSessionContext";
 
@@ -81,6 +82,7 @@ function App() {
                 <Route path="/stamps" element={<Collection view="stamps" />} />
                 <Route path="/history" element={<Collection view="history" />} />
                 <Route path="/exchange/weapon" element={<Exchange />} />
+                <Route path="/novelty/:fieldId" element={<NoveltyRedeem />} />
               </Routes>
             </GameTutorial>
           </div>
