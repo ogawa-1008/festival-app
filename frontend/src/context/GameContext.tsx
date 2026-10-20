@@ -305,15 +305,15 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       return true;
     };
     const claimFieldNovelty = (fieldId: number) => {
-      if (!canUpdateGame()) return false;
-      if (!mapAreas.some((item) => item.id === fieldId)) return false;
-      setGameState((current) => {
-        const area = mapAreas.find((item) => item.id === fieldId);
+      const area = mapAreas.find((item) => item.id === fieldId);
 
-        if (!area || current.obtainedFieldNoveltyIds.includes(fieldId)) return current;
+      if (!area || !canUpdateGame()) return false;
+      setGameState((current) => {
+        if (current.obtainedFieldNoveltyIds.includes(fieldId)) return current;
 
         return {
           ...current,
+          // mapAreas の順に並べて保存する
           obtainedFieldNoveltyIds: restoreFieldNoveltyIds(
             [...current.obtainedFieldNoveltyIds, fieldId],
             mapAreas,

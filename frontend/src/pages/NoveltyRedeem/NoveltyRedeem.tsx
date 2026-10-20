@@ -47,6 +47,9 @@ function NoveltyRedeem() {
     area && campusId && progress?.redeemable && !progress.noveltyObtained && !practice,
   );
 
+  // 残り数を取得し直す回数（在庫が補充されたか確認するため）
+  const [stockCheck, setStockCheck] = useState(0);
+
   // 交換前に残り数を表示する（取得できなくても交換はできる）
   useEffect(() => {
     if (!area || !campusId || !canRedeem) return;
@@ -66,7 +69,7 @@ function NoveltyRedeem() {
     return () => {
       cancelled = true;
     };
-  }, [area, campusId, canRedeem]);
+  }, [area, campusId, canRedeem, stockCheck]);
 
   if (!area || !progress) {
     return (
@@ -157,6 +160,20 @@ function NoveltyRedeem() {
               <p className="novelty-error" role="alert">
                 {ERROR_MESSAGES[error ?? "out-of-stock"]}
               </p>
+            )}
+
+            {outOfStock && (
+              <button
+                type="button"
+                className="novelty-back"
+                onClick={() => {
+                  setError(null);
+                  setRemaining(undefined);
+                  setStockCheck((value) => value + 1);
+                }}
+              >
+                残り数を確認し直す
+              </button>
             )}
 
             {!cannotRetry && (

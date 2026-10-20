@@ -30,7 +30,7 @@ function Collection({ view }: CollectionProps) {
       ? true
       : historyFilter === "hunt"
         ? activity.type === "hunt" || activity.type === "investigation"
-        : activity.type === "exchange"
+        : activity.type === "exchange" || activity.type === "craft"
   );
 
   return (
@@ -73,7 +73,7 @@ function Collection({ view }: CollectionProps) {
             <div className="history-filters" aria-label="履歴を絞り込む">
               <button type="button" className={historyFilter === "all" ? "selected" : ""} onClick={() => setHistoryFilter("all")}>すべて</button>
               <button type="button" className={historyFilter === "hunt" ? "selected" : ""} onClick={() => setHistoryFilter("hunt")}>討伐・調査</button>
-              <button type="button" className={historyFilter === "exchange" ? "selected" : ""} onClick={() => setHistoryFilter("exchange")}>交換</button>
+              <button type="button" className={historyFilter === "exchange" ? "selected" : ""} onClick={() => setHistoryFilter("exchange")}>交換・作成</button>
             </div>
             <div className="collection-list">
               {visibleActivities.length === 0 ? (

@@ -1,5 +1,6 @@
 // ノベルティ（フィールドのステッカー）の在庫 API
 // 接続先は VITE_API_BASE_URL。未設定なら同じドメインの /api を使う（開発中は Vite の proxy で転送する）
+// ※ 別のドメインを指定する場合は、API 側に CORS の設定が必要（今の API には無い）
 
 const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 

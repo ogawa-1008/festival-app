@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext";
+import { useGameTutorial } from "../Tutorial/useGameTutorial";
 import { mapAreas } from "../../data/maps";
 import type { MapArea } from "../../types/maps";
 import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
@@ -103,6 +104,9 @@ export function FieldRewards({
   area: MapArea;
   progress: FieldProgress;
 }) {
+  // 練習中は交換できないので、交換ボタンを出さない
+  const { active: practice } = useGameTutorial();
+
   return (
     <div className="field-rewards">
       <section
@@ -187,7 +191,7 @@ export function FieldRewards({
         <p className="field-novelty-note">
           交換場所：{area.novelty.redemptionLocation}
         </p>
-        {!progress.noveltyObtained && (
+        {!progress.noveltyObtained && !practice && (
           progress.redeemable ? (
             <Link className="field-novelty-redeem" to={`/novelty/${area.id}`}>
               ステッカーを交換する <span aria-hidden="true">›</span>
