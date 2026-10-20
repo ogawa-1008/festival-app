@@ -137,8 +137,8 @@ function Home() {
                   <span className="side-menu-item-icon">◆</span>
 
                   <span className="side-menu-item-text">
-                    <small>STAMP & NOVELTY</small>
-                    <strong>スタンプ・ノベルティ</strong>
+                    <small>STAMP & STICKER</small>
+                    <strong>スタンプ・ステッカー</strong>
                   </span>
 
                   <span className="side-menu-arrow">›</span>

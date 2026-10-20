@@ -8,7 +8,7 @@ import "./FieldCollection.css";
 
 type FieldProgress = ReturnType<typeof getFieldProgress>;
 
-function GiftIcon() {
+function StickerIcon() {
   return (
     <svg
       viewBox="0 0 48 48"
@@ -17,7 +17,7 @@ function GiftIcon() {
       strokeWidth="1.8"
       aria-hidden="true"
     >
-      <path d="M8 23h32v18H8zM5 16h38v7H5zM24 16v25M24 16C10 17 10 3 18 7c4 2 6 9 6 9Zm0 0C38 17 38 3 30 7c-4 2-6 9-6 9Z" />
+      <path d="M39 28V13a5 5 0 0 0-5-5H13a5 5 0 0 0-5 5v21a5 5 0 0 0 5 5h15Zm0 0H28v11M17 19l7-4 7 4-7 9Z" />
     </svg>
   );
 }
@@ -74,7 +74,7 @@ export function FieldCollectionSummary({
       </div>
       {showLink && (
         <Link className="field-collection-link" to="/stamps">
-          スタンプ・ノベルティを見る <span aria-hidden="true">›</span>
+          スタンプ・ステッカーを見る <span aria-hidden="true">›</span>
         </Link>
       )}
     </section>
@@ -90,7 +90,7 @@ export function FieldStatus({ progress }: { progress: FieldProgress }) {
       </span>
       <span className={progress.noveltyObtained ? "field-status-earned" : ""}>
         <span aria-hidden="true">{progress.noveltyObtained ? "✓" : "◇"}</span>{" "}
-        ノベルティ {progress.noveltyObtained ? "獲得済み" : "未獲得"}
+        ステッカー {progress.noveltyObtained ? "獲得済み" : "未獲得"}
       </span>
     </span>
   );
@@ -160,10 +160,10 @@ export function FieldRewards({
       </section>
       <section
         className={`field-novelty ${progress.noveltyObtained ? "field-novelty--earned" : ""}`}
-        aria-label={`${area.areaName}のノベルティ`}
+        aria-label={`${area.areaName}のステッカー`}
       >
         <div className="field-section-heading">
-          <h3>フィールドノベルティ</h3>
+          <h3>フィールド報酬・ステッカー</h3>
           <span className="field-state-label">
             {progress.noveltyObtained ? "✓ 獲得済み" : "未獲得"}
           </span>
@@ -173,7 +173,7 @@ export function FieldRewards({
             {area.novelty.image ? (
               <img src={area.novelty.image} alt="" />
             ) : (
-              <GiftIcon />
+              <StickerIcon />
             )}
           </div>
           <div>
@@ -185,9 +185,7 @@ export function FieldRewards({
           </div>
         </div>
         <p className="field-novelty-note">
-          {progress.noveltyObtained
-            ? "このフィールドのノベルティは獲得済みです。"
-            : "受取方法・条件は会場でご確認ください。"}
+          交換場所：{area.novelty.redemptionLocation}
         </p>
       </section>
     </div>

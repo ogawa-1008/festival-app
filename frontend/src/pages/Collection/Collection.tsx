@@ -46,7 +46,7 @@ function Collection({ view }: CollectionProps) {
             ←
           </button>
           <div>
-            <span>{view === "stamps" ? "STAMP & NOVELTY" : "HUNTER'S RECORD"}</span>
+            <span>{view === "stamps" ? "STAMP & STICKER" : "HUNTER'S RECORD"}</span>
             <h1>{title}</h1>
           </div>
         </header>

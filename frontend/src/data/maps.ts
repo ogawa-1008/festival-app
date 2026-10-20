@@ -8,8 +8,9 @@ export const mapAreas: MapArea[] = [
     image: "/images/maps/image.png",
     questIds: ["quest-001"],
     novelty: {
-      name: "瘴気の谷限定ノベルティ",
-      description: "特典の詳細は会場でご確認ください。",
+      name: "瘴気の谷 オリジナルステッカー",
+      description: "フィールド報酬のステッカーです。",
+      redemptionLocation: "現地のフォトスポット",
     },
   },
   {
@@ -19,8 +20,9 @@ export const mapAreas: MapArea[] = [
     image: "/images/maps/image copy.png",
     questIds: ["quest-002"],
     novelty: {
-      name: "古代樹の森限定ノベルティ",
-      description: "特典の詳細は会場でご確認ください。",
+      name: "古代樹の森 オリジナルステッカー",
+      description: "フィールド報酬のステッカーです。",
+      redemptionLocation: "現地のフォトスポット",
     },
   },
   {
@@ -30,8 +32,9 @@ export const mapAreas: MapArea[] = [
     image: "/images/maps/image copy 2.png",
     questIds: ["quest-003"],
     novelty: {
-      name: "陸珊瑚の台地限定ノベルティ",
-      description: "特典の詳細は会場でご確認ください。",
+      name: "陸珊瑚の台地 オリジナルステッカー",
+      description: "フィールド報酬のステッカーです。",
+      redemptionLocation: "現地のフォトスポット",
     },
   },
   {
@@ -41,8 +44,9 @@ export const mapAreas: MapArea[] = [
     image: "/images/maps/image copy 3.png",
     questIds: [],
     novelty: {
-      name: "大蟻塚限定ノベルティ",
-      description: "特典の詳細は会場でご確認ください。",
+      name: "大蟻塚 オリジナルステッカー",
+      description: "フィールド報酬のステッカーです。",
+      redemptionLocation: "現地のフォトスポット",
     },
   },
 ];
