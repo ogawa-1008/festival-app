@@ -29,7 +29,7 @@ function Collection({ view }: CollectionProps) {
     historyFilter === "all"
       ? true
       : historyFilter === "hunt"
-        ? activity.type !== "exchange"
+        ? activity.type === "hunt" || activity.type === "investigation"
         : activity.type === "exchange"
   );
 
@@ -81,7 +81,7 @@ function Collection({ view }: CollectionProps) {
               ) : (
                 visibleActivities.map((activity) => (
                   <article key={activity.id} className="history-row">
-                    <span>{activity.type === "exchange" ? "◆" : "⚔"}</span>
+                    <span>{activity.type === "exchange" ? "◆" : activity.type === "craft" ? "⚒" : "⚔"}</span>
                     <div>
                       <h2>{activity.title}</h2>
                       <p>{activity.detail}</p>

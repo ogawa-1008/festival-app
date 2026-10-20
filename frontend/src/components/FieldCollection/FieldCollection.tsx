@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext";
 import { mapAreas } from "../../data/maps";
 import type { MapArea } from "../../types/maps";
-import { getFieldProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
 import "./FieldCollection.css";
 
 type FieldProgress = ReturnType<typeof getFieldProgress>;
@@ -195,7 +195,7 @@ export function FieldRewards({
           ) : (
             progress.available && (
               <p className="field-novelty-condition">
-                モンスターをすべて討伐または調査すると交換できます（{progress.attempted} / {progress.total}）
+                {getRedeemConditionText(progress)}
               </p>
             )
           )

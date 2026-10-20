@@ -25,7 +25,7 @@ type MaterialStock = Record<number, number>;
 
 export type Activity = {
   id: string;
-  type: "hunt" | "investigation" | "exchange";
+  type: "hunt" | "investigation" | "exchange" | "craft";
   title: string;
   detail: string;
   createdAt: string;
@@ -54,7 +54,8 @@ type GameContextType = GameState & {
   ) => void;
   claimWeapon: () => boolean;
   // ステッカーの交換が成功したことを記録する（在庫の減算は API で行う）
-  claimFieldNovelty: (fieldId: number) => void;
+  // 記録できなかったら false（新しいバージョンのデータがある場合など）
+  claimFieldNovelty: (fieldId: number) => boolean;
 };
 
 const initialMaterials: MaterialStock = Object.fromEntries(
@@ -78,7 +79,18 @@ const initialGameState: GameState = {
 
 // クエストの定義（素材・手数・ステータス・EXP）は常に data/quests.ts を使い、
 // 保存データからは進行度（討伐済み・金冠・調査済み）だけを引き継ぐ。定義を変えてもキャッシュ削除が不要になる
-function mergeQuestProgress(savedQuests: GameState["quests"]): GameState["quests"] {
+// investigated を記録する前に調査したクエストは、履歴の「調査」から補う
+function mergeQuestProgress(
+  savedQuests: GameState["quests"],
+  activities: Activity[] = [],
+): GameState["quests"] {
+  const investigatedIds = new Set(
+    (Array.isArray(activities) ? activities : [])
+      .filter((activity) => activity?.type === "investigation")
+      .map((activity) => initialQuests.find((quest) => String(activity.id).includes(`-${quest.id}-`))?.id)
+      .filter(Boolean),
+  );
+
   return initialQuests.map((quest) => {
     const saved = Array.isArray(savedQuests)
       ? savedQuests.find((item) => item?.id === quest.id)
@@ -88,7 +100,7 @@ function mergeQuestProgress(savedQuests: GameState["quests"]): GameState["quests
       ...quest,
       completed: saved?.completed === true,
       goldCrown: saved?.goldCrown === true,
-      investigated: saved?.investigated === true,
+      investigated: saved?.investigated === true || investigatedIds.has(quest.id),
     };
   });
 }
@@ -107,7 +119,7 @@ function loadGameState(practiceCampus?: CampusId): GameState {
     return {
       ...saved,
       campusId: practiceCampus ?? findCampus(saved.campusId)?.id ?? null,
-      quests: mergeQuestProgress(saved.quests),
+      quests: mergeQuestProgress(saved.quests, saved.activities),
       obtainedFieldNoveltyIds: restoreFieldNoveltyIds(saved.obtainedFieldNoveltyIds, mapAreas),
     };
   } catch {
@@ -280,7 +292,7 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
           activities: [
             {
               id: `${Date.now()}-weapon-exchange`,
-              type: "exchange",
+              type: "craft",
               title: `${progressData.weaponName}を作成`,
               detail: `攻撃力 +${getWeaponAttackBonus()}`,
               createdAt: new Date().toISOString(),
@@ -293,7 +305,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       return true;
     };
     const claimFieldNovelty = (fieldId: number) => {
-      if (!canUpdateGame()) return;
+      if (!canUpdateGame()) return false;
+      if (!mapAreas.some((item) => item.id === fieldId)) return false;
       setGameState((current) => {
         const area = mapAreas.find((item) => item.id === fieldId);
 
@@ -317,6 +330,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
           ],
         };
       });
+
+      return true;
     };
     const selectCampus = (campusId: CampusId) => {
       if (canUpdateGame()) setGameState((current) => ({ ...current, campusId }));

@@ -19,10 +19,10 @@ function getClaimedWeaponIds(state: { weaponClaimed: boolean }) {
 }
 
 export function getPlayerStats(state: { weaponClaimed: boolean }): PlayerStats {
-  const claimed = getClaimedWeaponIds(state);
-  const attackBonus = weapons
-    .filter((weapon) => claimed.includes(weapon.id))
-    .reduce((sum, weapon) => sum + weapon.attackBonus, 0);
+  const attackBonus = getClaimedWeaponIds(state).reduce(
+    (sum, weaponId) => sum + getWeaponAttackBonus(weaponId),
+    0,
+  );
 
   return {
     maxHp: PLAYER_MAX_HP,

@@ -32,6 +32,13 @@ export function getFieldProgress(
   };
 }
 
+// ステッカーを交換できる条件の説明（交換画面とスタンプ画面で共通）
+export function getRedeemConditionText(progress: { available: boolean; attempted: number; total: number }) {
+  return progress.available
+    ? `このフィールドのモンスターをすべて討伐または調査すると交換できます（${progress.attempted} / ${progress.total}）`
+    : "このフィールドのクエストは準備中です。";
+}
+
 export function restoreFieldNoveltyIds(
   value: unknown,
   areas: MapArea[],

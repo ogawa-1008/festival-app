@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { mapAreas } from "../src/data/maps.ts";
 import { quests } from "../src/data/quests.ts";
@@ -27,9 +27,14 @@ test("a field without quests can never be redeemed", () => {
   assert.equal(getFieldProgress(empty, all, []).redeemable, false);
 });
 
+const realFetch = globalThis.fetch;
 const mockFetch = (handler) => {
   globalThis.fetch = async (url, init) => handler(String(url), init);
 };
+// 差し替えた fetch をほかのテストに持ち越さない
+afterEach(() => {
+  globalThis.fetch = realFetch;
+});
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 test("redeem calls the API and returns the remaining stock", async () => {
@@ -57,4 +62,10 @@ test("redeem maps 409, 404, other errors and network failures", async () => {
 test("stock list is parsed per field", async () => {
   mockFetch(() => json(200, { campus: "tokyo", novelties: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] }));
   assert.deepEqual(await fetchNoveltyStocks("tokyo"), { ok: true, value: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] });
+});
+
+test("the condition text shows attempted / total, or that the field is not ready", async () => {
+  const { getRedeemConditionText } = await import("../src/utils/fieldProgress.ts");
+  assert.match(getRedeemConditionText({ available: true, attempted: 1, total: 2 }), /（1 \/ 2）/);
+  assert.equal(getRedeemConditionText({ available: false, attempted: 0, total: 0 }), "このフィールドのクエストは準備中です。");
 });

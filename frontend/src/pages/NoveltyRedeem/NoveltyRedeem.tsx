@@ -10,14 +10,14 @@ import {
   redeemNovelty,
   type NoveltyApiError,
 } from "../../api/noveltyApi";
-import { getFieldProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
 
 import "./NoveltyRedeem.css";
 
 const ERROR_MESSAGES: Record<NoveltyApiError, string> = {
   "out-of-stock": "このステッカーは在庫がなくなりました。近くのスタッフに声をかけてください。",
   "not-found": "この校舎ではこのステッカーを交換できません。近くのスタッフに声をかけてください。",
-  network: "通信できませんでした。電波のよい場所で、もう一度お試しください。",
+  network: "通信できませんでした。電波のよい場所で、もう一度お試しください。交換できたか分からないときは、近くのスタッフに声をかけてください。",
   server: "交換できませんでした。少し待ってから、もう一度お試しください。",
 };
 
@@ -40,6 +40,8 @@ function NoveltyRedeem() {
   const [isRedeeming, setIsRedeeming] = useState(false);
   // スワイプ部品は1回確定すると戻らないため、失敗したら作り直す
   const [attempt, setAttempt] = useState(0);
+  // 交換は成功したが、この端末に記録できなかった（新しいバージョンのデータがあるなど）
+  const [unrecorded, setUnrecorded] = useState(false);
 
   const canRedeem = Boolean(
     area && campusId && progress?.redeemable && !progress.noveltyObtained && !practice,
@@ -91,7 +93,7 @@ function NoveltyRedeem() {
 
       if (result.ok) {
         setRemaining(result.value.remaining);
-        claimFieldNovelty(area.id);
+        if (!claimFieldNovelty(area.id)) setUnrecorded(true);
         return;
       }
 
@@ -104,6 +106,8 @@ function NoveltyRedeem() {
   };
 
   const outOfStock = remaining === 0 || error === "out-of-stock";
+  // 何度試しても成功しない状態（在庫切れ・この校舎で交換できない）
+  const cannotRetry = outOfStock || error === "not-found";
 
   return (
     <main className="novelty-page">
@@ -118,21 +122,21 @@ function NoveltyRedeem() {
         <p className="novelty-description">{area.novelty.description}</p>
         <p className="novelty-location">交換場所：{area.novelty.redemptionLocation}</p>
 
-        {progress.noveltyObtained ? (
+        {progress.noveltyObtained || unrecorded ? (
           <div className="novelty-done" role="status">
             <h2>交換済みです</h2>
-            <p>このフィールドのステッカーは受け取り済みです。</p>
+            <p>
+              {unrecorded
+                ? "交換は完了しました。スタッフにこの画面を見せて、ステッカーを受け取ってください。（この端末には記録できなかったため、あとで開き直すと未交換と表示されます。もう一度交換しないでください）"
+                : "このフィールドのステッカーは受け取り済みです。"}
+            </p>
           </div>
         ) : practice ? (
           <p className="novelty-note">練習中はステッカーを交換できません。</p>
         ) : requiresUpdate ? (
           <p className="novelty-note">新しいバージョンに更新してから交換してください。</p>
         ) : !progress.redeemable ? (
-          <p className="novelty-note">
-            {progress.available
-              ? `このフィールドのモンスターをすべて討伐または調査すると交換できます（${progress.attempted} / ${progress.total}）`
-              : "このフィールドのクエストは準備中です。"}
-          </p>
+          <p className="novelty-note">{getRedeemConditionText(progress)}</p>
         ) : !campusId ? (
           <p className="novelty-note">校舎を選んでから交換してください。</p>
         ) : (
@@ -155,7 +159,7 @@ function NoveltyRedeem() {
               </p>
             )}
 
-            {!outOfStock && (
+            {!cannotRetry && (
               <SwipeToConfirm
                 key={attempt}
                 label={isRedeeming ? "交換しています…" : "右にスライドして交換"}
