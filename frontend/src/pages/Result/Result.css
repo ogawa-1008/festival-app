@@ -19,7 +19,8 @@
 
   color: #ffffff;
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 
@@ -40,7 +41,8 @@
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 
@@ -63,12 +65,9 @@
 
   color: #c8b48e;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
 
   letter-spacing: 4px;
@@ -84,10 +83,7 @@
 
   color: #f0dfb7;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 28px;
   font-weight: bold;
@@ -118,14 +114,11 @@
 
   margin-bottom: 8px;
 
-  color: #d8c39c;
+  color: var(--color-text-warm);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
 
   letter-spacing: 3px;
@@ -370,12 +363,9 @@
 
   color: #bfa67d;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 
   letter-spacing: 3px;
 
@@ -388,9 +378,9 @@
 .result-quest h2 {
   margin: 5px 0 0;
 
-  color: #f0e4cb;
+  color: var(--color-text);
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: bold;
 
   line-height: 1.25;
@@ -406,6 +396,41 @@
 }
 
 
+/* 別クエストのQRから案内されたときの説明 */
+
+.result-notice {
+  margin: 6px 0 0;
+
+  padding: 6px 8px;
+
+  border-radius: var(--radius-sm);
+
+  background: rgba(232, 192, 122, 0.15);
+
+  color: var(--color-text);
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+
+/* 手数切れメッセージ */
+
+.result-timeout-message {
+  margin: 6px 0 0;
+
+  color: #e8c07a;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+
+  text-shadow:
+    0 1px 2px #000;
+}
+
+
 /* =========================================================
    REWARD
 ========================================================= */
@@ -414,7 +439,7 @@
   flex-shrink: 0;
 
   width: 100%;
-  height: 104px;
+  height: auto;
 
   margin-top: 15px;
 
@@ -475,12 +500,9 @@
 .result-section-title h2 {
   margin: 0;
 
-  color: #d8c39c;
+  color: var(--color-text-warm);
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 11px;
 
@@ -590,7 +612,7 @@
 
   color: #eee2c9;
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: bold;
 
   line-height: 1.25;
@@ -613,7 +635,7 @@
 
   padding-left: 5px;
 
-  color: #d8c39c;
+  color: var(--color-text-warm);
 
   font-size: 11px;
   font-weight: bold;
@@ -643,7 +665,7 @@
   border:
     2px solid #9b835d;
 
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 
   background:
     linear-gradient(
@@ -654,7 +676,7 @@
 
   color: #ffffff;
 
-  font-size: 14px;
+  font-size: var(--font-size-md);
   font-weight: bold;
 
   letter-spacing: 1px;
@@ -700,7 +722,7 @@
 .result-error h1 {
   margin: 0;
 
-  font-size: 20px;
+  font-size: var(--font-size-xl);
 }
 
 .result-error button {
@@ -713,7 +735,7 @@
   border:
     2px solid #8d7652;
 
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 
   background: #2b2017;
 
@@ -769,7 +791,7 @@
   }
 
   .result-header-subtitle {
-    font-size: 8px;
+    font-size: var(--font-size-2xs);
   }
 
   .result-header h1 {
@@ -777,7 +799,7 @@
   }
 
   .result-section-label {
-    font-size: 8px;
+    font-size: var(--font-size-2xs);
     margin-bottom: 6px;
   }
 
@@ -802,11 +824,11 @@
   }
 
   .result-quest h2 {
-    font-size: 12px;
+    font-size: var(--font-size-sm);
   }
 
   .result-reward {
-    height: 94px;
+    height: auto;
     margin-top: 10px;
   }
 
@@ -826,7 +848,7 @@
 
   .result-reward-name {
     margin-left: 5px;
-    font-size: 8px;
+    font-size: var(--font-size-2xs);
   }
 
   .result-reward-amount {
@@ -836,6 +858,99 @@
   .result-claim-button {
     height: 46px;
     margin-top: 10px;
-    font-size: 12px;
+    font-size: var(--font-size-sm);
+  }
+}
+.result-exp-panel {
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #30291f, #171512);
+}
+
+.result-exp-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-exp-heading strong {
+  color: var(--color-text);
+  font-size: 22px;
+}
+
+.result-rank-exp {
+  color: var(--color-gold);
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.result-exp-track {
+  position: relative;
+  height: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-deep);
+  overflow: hidden;
+}
+
+.result-exp-fill,
+.result-exp-added {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  border-radius: inherit;
+}
+
+.result-exp-fill {
+  background: linear-gradient(90deg, #a77e38, #f4d58b);
+}
+
+.result-exp-added {
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #7cad8c, #d3edac);
+}
+
+.result-exp-panel.is-animating .result-exp-fill {
+  border-radius: 999px 0 0 999px;
+}
+
+.result-exp-numbers {
+  margin-top: 6px;
+  color: #e8dcc3;
+  text-align: right;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.result-exp-status {
+  min-height: 18px;
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.result-exp-panel.is-rank-up {
+  border-color: var(--color-gold);
+  box-shadow: inset 0 0 12px rgba(244, 213, 139, 0.16);
+}
+
+.result-exp-panel.is-rank-up .result-exp-status {
+  color: var(--color-gold);
+  font-weight: bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-clear-stamp {
+    animation: none;
+    opacity: 1;
   }
 }

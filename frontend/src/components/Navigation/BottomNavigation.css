@@ -6,8 +6,8 @@
 
   transform: translateX(-50%);
 
-  width: min(100%, 430px);
-  height: 82px;
+  width: min(100%, var(--app-max-width));
+  height: var(--bottom-nav-height);
 
   display: flex;
   align-items: flex-end;
@@ -31,7 +31,7 @@
   box-shadow:
     0 -4px 12px rgba(0, 0, 0, 0.45);
 
-  z-index: 100;
+  z-index: var(--z-nav);
 }
 
 
@@ -79,7 +79,7 @@
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
   border: 3px solid #4a4a4a;
 
@@ -137,9 +137,9 @@
 
   gap: 2px;
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
-  border: 3px solid #c8ff00;
+  border: 3px solid var(--color-accent-strong);
 
   background:
     radial-gradient(
@@ -172,12 +172,9 @@
 }
 
 .nav-center-button span {
-  font-family:
-    "Hiragino Kaku Gothic ProN",
-    "Yu Gothic",
-    sans-serif;
+  font-family: var(--font-sans);
 
-  font-size: 12px;
+  font-size: var(--font-size-sm);
 
   font-weight: bold;
 
@@ -193,15 +190,4 @@
 
 .nav-center-button:active {
   transform: scale(0.95);
-}
-
-
-/* ========================================
-   PC表示
-======================================== */
-
-@media (min-width: 431px) {
-  .bottom-navigation {
-    width: 430px;
-  }
 }

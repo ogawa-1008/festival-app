@@ -15,7 +15,7 @@ export type BattleState = {
 };
 
 export const hunterMaxHp = 100;
-export const turnFeedbackMs = 800;
+export const turnFeedbackMs = 1500;
 // Festival pacing: roughly 4 / 5 / 6 winning hands per hunt, with enough
 // tolerance for losses that a short visit can still end in a successful hunt.
 export const battleBalances: Record<string, BattleBalance> = {
@@ -39,13 +39,18 @@ export function practiceEnemyHand(player: Hand, round: number): Hand {
   // Experience a draw, a loss, then wins until the same real HP rules conclude.
   return hands[(hands.indexOf(player) + (round === 0 ? 0 : round === 1 ? 2 : 1)) % 3];
 }
+export function judgeWinner(player: Hand, enemy: Hand): "player" | "enemy" | "draw" {
+  if (player === enemy) return "draw";
+  return hands[(hands.indexOf(player) + 1) % 3] === enemy ? "player" : "enemy";
+}
 export function resolveTurn(state: BattleState, balance: BattleBalance, player: Hand, enemy: Hand, random = Math.random): BattleState {
   if (state.status !== "playing") return state;
   const round = state.round + 1;
-  if (player === enemy) return { ...state, round, outcome: "draw", damage: 0 };
-  const won = hands[(hands.indexOf(player) + 1) % 3] === enemy;
+  const outcome = judgeWinner(player, enemy);
+  if (outcome === "draw") return { ...state, round, outcome, damage: 0 };
+  const won = outcome === "player";
   const range = won ? balance.playerDamage : balance.monsterDamage;
-  const rolled = range.min + Math.floor(random() * (range.max - range.min + 1));
+  const rolled = range.min === range.max ? range.min : range.min + Math.floor(random() * (range.max - range.min + 1));
   const damage = Math.min(rolled, won ? state.monsterHp : state.playerHp);
   const monsterHp = state.monsterHp - (won ? damage : 0);
   const playerHp = state.playerHp - (won ? 0 : damage);

@@ -1,0 +1,207 @@
+/* =========================================================
+   グローバル CSS（アプリ全体で使う共通の値と基本スタイル）
+
+   1. 共通の値（CSS 変数）: 色・フォント・文字サイズ・余白・角丸・重なり順
+   2. 基本スタイル: アプリ全体に当てるリセットや共通部品のスタイル
+
+   ルール
+   - 新しく書く CSS では、色・フォント・文字サイズ・余白・角丸・重なり順に
+     下の変数を使う（値を直接書かない）
+   - ほぼ同じ色を新しく足さない。近い色があればその変数を使う
+   - どうしても新しい値が必要なときは、ここに変数を追加してから使う
+
+   画面幅の区切り（メディアクエリでは CSS 変数が使えないため値で書く）
+   - 360px: 小さいスマホ
+   - 380px: 標準より狭いスマホ
+   - 430px: アプリの最大幅（これより広い画面では中央に寄せて表示）
+     ※ --app-max-width を変えるときは、メディアクエリの 430px と、
+       まだ 430px を直接書いている幅の指定も合わせて直す（「430px」で全ファイルを検索する）
+
+   重なり順
+   - 画面全体にかかる層（モヤ・帯・ナビ・確認画面・通知）は --z-* の変数を使う
+   - 1つの部品の中だけでの重なりは 1〜30 の小さい数で書いてよい（--z-raised より下）
+========================================================= */
+
+:root {
+  /* ---------- 背景 ---------- */
+
+  /* 一番暗い背景（アプリより広い画面の外側・カメラ画面など） */
+  --color-bg-base: #111;
+  /* アプリ本体 */
+  --color-bg-app: #2b251d;
+  /* 一番暗い背景（グラデーションの奥など） */
+  --color-bg-deep: #171411;
+  /* パネル・確認画面 */
+  --color-bg-panel: #21180f;
+  /* パネルより一段明るい面（ボタン・通知など） */
+  --color-bg-raised: #30271d;
+  /* 確認画面の後ろを暗くする幕 */
+  --color-overlay: rgba(0, 0, 0, 0.72);
+
+  /* ---------- 枠線 ---------- */
+
+  --color-border: #81704e;
+  --color-border-muted: #756246;
+  --color-border-strong: #b89a68;
+  /* 暗い枠（未獲得・無効な項目など、目立たせたくないもの） */
+  --color-border-subtle: #5e4d36;
+
+  /* ---------- 文字 ---------- */
+
+  /* 本文 */
+  --color-text: #f2eadb;
+  /* 補足・説明文 */
+  --color-text-muted: #c9bea9;
+  /* 金色がかった補足の文字（金の飾りの近くの見出し・ラベルなど） */
+  --color-text-warm: #d8c39c;
+  /* 英字の小見出しなど、さらに控えめな文字 */
+  --color-text-subtle: #a89a78;
+  /* 暗い面の上で目立たせたい明るい文字（通知など） */
+  --color-text-highlight: #fff4cf;
+  /* アクセント色の上に載せる文字 */
+  --color-text-on-accent: #21180f;
+
+  /* ---------- 強調 ---------- */
+
+  /* 黄緑（決定・完了・進捗） */
+  --color-accent: #cfec42;
+  /* 蛍光の黄緑（QR 読み取りなど、暗い背景の上で特に目立たせたいもの） */
+  --color-accent-strong: #c8ff00;
+  /* 金（称号・特別な強調） */
+  --color-gold: #f4d58b;
+  /* 赤（危険・失敗） */
+  --color-danger: #e2483d;
+  --color-danger-text: #ffaaaa;
+  /* 緑（HPなど） */
+  --color-success: #7fcf36;
+  /* キーボード操作時のフォーカスの枠 */
+  --color-focus: var(--color-text-highlight);
+
+  /* ---------- フォント ---------- */
+
+  /* 本文（英字は Times、和文は明朝） */
+  --font-serif: "Times New Roman", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  /* 和文の見出し */
+  --font-mincho: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  /* 英字の飾り文字（REWARD EXCHANGE など） */
+  --font-display: Georgia, "Times New Roman", serif;
+  /* ゴシック（数字・細かい説明など） */
+  --font-sans: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+
+  /* ---------- 文字サイズ ---------- */
+
+  --font-size-2xs: 8px;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  /* 本文で一番多く使う大きさ */
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+
+  /* ---------- 余白 ---------- */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* ---------- 角丸 ---------- */
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* ---------- 重なり順（下から順に） ---------- */
+
+  /* 画面内で少し浮かせる要素（部品内の重なり 1〜30 より上） */
+  --z-raised: 40;
+  /* 画面全体にかかる演出（赤いモヤなど） */
+  --z-overlay: 50;
+  /* 画面中央の帯（ターン帯・討伐の帯） */
+  --z-banner: 60;
+  /* 下部のナビゲーション */
+  --z-nav: 100;
+  /* 確認画面 */
+  --z-modal: 200;
+  /* 保存の失敗・更新の案内など、一番上に出す通知 */
+  --z-toast: 300;
+
+  /* ---------- レイアウト ---------- */
+
+  --app-max-width: 430px;
+  --app-gutter: 16px;
+  /* 下部ナビゲーションの高さ（その上に出す通知の位置にも使う） */
+  --bottom-nav-height: 82px;
+
+  /* ---------- 動き ---------- */
+
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+}
+
+
+/* =========================================================
+   基本スタイル
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-y: auto;
+
+  background: var(--color-bg-base);
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  font-family: var(--font-serif);
+}
+
+button {
+  font: inherit;
+}
+
+/* キーボード操作でフォーカスしたときだけ枠を出す（タップでは出ない）
+   部品ごとにフォーカスの見た目を作る場合も、この太さ・色に合わせる */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* 保存の失敗・新しいバージョンの案内（下部ナビの上に出す） */
+.game-save-notice {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, calc(100% - var(--app-gutter) * 2));
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-raised);
+  color: var(--color-text-highlight);
+  font-size: var(--font-size-base);
+  z-index: var(--z-toast);
+}

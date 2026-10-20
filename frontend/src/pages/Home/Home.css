@@ -38,20 +38,8 @@
 
   width: 100%;
 
-  /*
-   * クエストボードは absolute なので、
-   * その高さを自分で確保する
-   *
-   * クエスト③
-   * top 695px
-   * height 315px
-   * ↓
-   * 約1010px
-   *
-   * さらにボード開始位置などを考慮して
-   * 十分なスクロール領域を確保する
-   */
-  min-height: 1400px;
+  /* ヘッダーとロゴの下から本文を配置する */
+  padding-top: 200px;
 
   /*
    * 下部固定ナビに隠れないための余白
@@ -80,6 +68,7 @@
 
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 
   box-sizing: border-box;
 
@@ -163,7 +152,8 @@
 
   position: relative;
 
-  width: 132px;
+  flex: 1;
+  min-width: 0;
 
   height: 100%;
 
@@ -180,47 +170,12 @@
 }
 
 /* ========================================
-
-   Hunter Rank本体
-
-   ボーダーの中央に配置
-
-======================================== */
-
-.home-rank-area .hunter-rank {
-
-  position: relative !important;
-
-  top: auto !important;
-
-  left: auto !important;
-
-  right: auto !important;
-
-  bottom: auto !important;
-
-  width: 118px !important;
-
-  height: 58px !important;
-
-  margin: 0 !important;
-
-  transform: none !important;
-
-  flex-shrink: 0;
-
-  box-sizing: border-box;
-
-  z-index: 3;
-
-}
-
-/* ========================================
    ハンバーガーメニュー
 ======================================== */
 
 .hamburger-button {
   position: relative;
+  flex-shrink: 0;
 
   width: 52px;
   height: 52px;
@@ -238,7 +193,7 @@
 
   border: 2px solid rgba(130, 130, 130, 0.85);
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
   background:
     radial-gradient(
@@ -339,23 +294,15 @@
 ======================================== */
 
 .quest-list-title {
-  position: absolute;
+  position: relative;
 
-  top: 195px;
-
-  left: 0;
-  right: 0;
-
-  margin: 0;
+  margin: 24px 0 36px;
 
   text-align: center;
 
   color: #f1eadb;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
   font-size: 23px;
 
@@ -376,6 +323,67 @@
   /* 重要 */
   pointer-events: none;
 }
+
+/* CTAと一覧を通常のフローに置き、本文の高さを確保 */
+.home .quest-board {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  margin: 0 auto;
+}
+
+.home-qr-cta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 80px;
+  margin: 0 16px;
+  padding: 14px 12px;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #f1e2bd, #d9c18e);
+  box-shadow: inset 0 0 0 2px #654426, 0 4px 10px rgba(0, 0, 0, 0.4);
+  color: #302417;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.home-qr-cta:active {
+  filter: brightness(1.1);
+}
+
+.home-qr-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.home-qr-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.home-qr-text strong {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.home-qr-text > span {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.home-qr-arrow {
+  flex-shrink: 0;
+  font-size: 28px;
+  line-height: 1;
+}
+
 /* ========================================
    MENU OVERLAY
 ======================================== */
@@ -399,9 +407,9 @@
 
   box-sizing: border-box;
 
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--color-overlay);
 
-  z-index: 200;
+  z-index: var(--z-modal);
 
   overflow: hidden;
 
@@ -557,10 +565,7 @@
 
   color: #a99570;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: clamp(7px, 2vw, 9px);
 
@@ -583,10 +588,7 @@
 
   color: #eee1c1;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: clamp(27px, 8vw, 31px);
 
@@ -645,7 +647,7 @@
 
   color: #b79763;
 
-  font-size: 8px;
+  font-size: var(--font-size-2xs);
 
   text-shadow:
     0 2px 3px #000;
@@ -746,7 +748,7 @@
 
   border: 2px solid #92734b;
 
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
 
   background:
     radial-gradient(
@@ -757,12 +759,9 @@
 
   color: #e8d4ac;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
-  font-size: 20px;
+  font-size: var(--font-size-xl);
 
   font-weight: bold;
 
@@ -796,10 +795,7 @@
 .side-menu-item-text small {
   color: #a8926d;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 7px;
 
@@ -813,14 +809,11 @@
 .side-menu-item-text strong {
   margin-top: 3px;
 
-  color: #f0e4cb;
+  color: var(--color-text);
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    serif;
+  font-family: var(--font-mincho);
 
-  font-size: 16px;
+  font-size: var(--font-size-lg);
 
   font-weight: 900;
 
@@ -844,9 +837,7 @@
 
   color: #b69a6b;
 
-  font-family:
-    Georgia,
-    serif;
+  font-family: var(--font-display);
 
   font-size: 28px;
 
@@ -912,10 +903,7 @@
 
   color: #8e7959;
 
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  font-family: var(--font-display);
 
   font-size: 6px;
 
@@ -963,11 +951,11 @@
   }
 
   .side-menu-item-text strong {
-    font-size: 14px;
+    font-size: var(--font-size-md);
   }
 
   .side-menu-arrow {
-    font-size: 24px;
+    font-size: var(--font-size-2xl);
   }
 }
 
@@ -989,9 +977,9 @@
 
   box-sizing: border-box;
 
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--color-overlay);
 
-  z-index: 200;
+  z-index: var(--z-modal);
 
   overflow: hidden;
 }

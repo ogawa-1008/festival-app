@@ -1,4 +1,5 @@
 import type { Quest } from "../types/quest";
+import { battleBalances } from "../game/battle.ts";
 
 export const quests: Quest[] = [
   {
@@ -20,6 +21,15 @@ export const quests: Quest[] = [
         amount: 2,
       },
     ],
+
+    maxTurns: 30,
+
+    monsterHp: battleBalances["quest-001"].monsterMaxHp,
+    monsterAttack: (battleBalances["quest-001"].monsterDamage.min + battleBalances["quest-001"].monsterDamage.max) / 2,
+    monsterAttackMin: battleBalances["quest-001"].monsterDamage.min,
+    monsterAttackMax: battleBalances["quest-001"].monsterDamage.max,
+
+    rewardExp: 100,
 
     completed: false,
   },
@@ -44,6 +54,15 @@ export const quests: Quest[] = [
       },
     ],
 
+    maxTurns: 30,
+
+    monsterHp: battleBalances["quest-002"].monsterMaxHp,
+    monsterAttack: (battleBalances["quest-002"].monsterDamage.min + battleBalances["quest-002"].monsterDamage.max) / 2,
+    monsterAttackMin: battleBalances["quest-002"].monsterDamage.min,
+    monsterAttackMax: battleBalances["quest-002"].monsterDamage.max,
+
+    rewardExp: 120,
+
     completed: false,
   },
 
@@ -66,6 +85,15 @@ export const quests: Quest[] = [
         amount: 1,
       },
     ],
+
+    maxTurns: 30,
+
+    monsterHp: battleBalances["quest-003"].monsterMaxHp,
+    monsterAttack: (battleBalances["quest-003"].monsterDamage.min + battleBalances["quest-003"].monsterDamage.max) / 2,
+    monsterAttackMin: battleBalances["quest-003"].monsterDamage.min,
+    monsterAttackMax: battleBalances["quest-003"].monsterDamage.max,
+
+    rewardExp: 150,
 
     completed: false,
   },

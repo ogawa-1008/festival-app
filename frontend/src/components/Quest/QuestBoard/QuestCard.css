@@ -78,11 +78,7 @@
 
   color: #302417;
 
-  font-family:
-    "Hiragino Mincho ProN",
-    "Yu Mincho",
-    "Times New Roman",
-    serif;
+  font-family: var(--font-mincho);
 }
 
 
@@ -118,7 +114,7 @@
 
   color: #684523;
 
-  font-size: 12px;
+  font-size: var(--font-size-sm);
 
   z-index: 2;
 }
@@ -146,7 +142,7 @@
 
 
 .quest-type {
-  font-size: 14px;
+  font-size: var(--font-size-md);
 
   font-weight: 900;
 
@@ -157,7 +153,7 @@
 
 
 .quest-symbol {
-  font-size: 13px;
+  font-size: var(--font-size-base);
 
   color: #76522e;
 }
@@ -178,7 +174,7 @@
 
   text-align: center;
 
-  font-size: 20px;
+  font-size: var(--font-size-xl);
 
   line-height: 1.25;
 
@@ -203,7 +199,7 @@
 
   text-align: center;
 
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 
   color: #493421;
 }
@@ -253,7 +249,7 @@
 
 
 .quest-monster-mark {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
 
   font-size: 52px;
 

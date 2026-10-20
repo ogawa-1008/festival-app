@@ -2,6 +2,7 @@ import type { DriveStep } from "driver.js";
 
 export const tutorialStorageKey = "festival-game-tutorial:v1";
 const activeTutorialKey = "festival-game-tutorial:active:v2";
+export const practiceBattleStorageKey = "festival-game-tutorial:battle:v2";
 export const practiceStorageKey = "festival-game-tutorial:game:v2";
 export type TutorialStep = DriveStep & { id: string; path: string; action?: string };
 
@@ -18,6 +19,7 @@ export function clearPractice() {
   try {
     sessionStorage.removeItem(activeTutorialKey);
     sessionStorage.removeItem(practiceStorageKey);
+    sessionStorage.removeItem(practiceBattleStorageKey);
   } catch { /* The in-memory session still works. */ }
 }
 export function hasSeenTutorial() {
@@ -76,10 +78,10 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
     { id: "exchange", path: "/exchange/weapon", action: "exchange-open", element: '[data-tutorial="exchange-open"]', popover: {
       title: "交換内容を確認", description: "必要な素材を確認して「特典と交換する」を押してください。確認ダイアログが開きます。", side: "top",
     } },
-    { id: "confirm", path: "/exchange/weapon", action: "exchange-confirmed", element: '[data-tutorial="exchange-confirm"]', popover: {
-      title: "交換を確定する", description: "「交換する」を押してみましょう。本番の交換は1回限りです。今回は練習なので実際の特典は交換されません。", side: "top",
+    { id: "confirm", path: "/exchange/weapon", action: "exchange-confirmed", element: '[data-tutorial="exchange-confirm"]', waitForElement: 2000, popover: {
+      title: "スライドして交換", description: "つまみを右端までスライドして離しましょう。キーボードではスライダーを選び、右矢印を10回押して確定できます。本番の交換は1回限りです。", side: "top",
     } },
-    { id: "exchange-back", path: "/exchange/weapon", action: "exchange-back", element: '[data-tutorial="exchange-back"]', popover: {
+    { id: "exchange-back", path: "/exchange/weapon", action: "exchange-back", element: '[data-tutorial="exchange-back"]', waitForElement: 2000, popover: {
       title: "受け取り画面を提示", description: "本番では、この交換済み画面を運営スタッフに見せて特典を受け取ります。確認できたら「武器詳細へ戻る」を押しましょう。", side: "top",
     } },
     { id: "finish-home", path: "/progress", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {

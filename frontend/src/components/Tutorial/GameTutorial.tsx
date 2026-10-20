@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { Driver } from "driver.js";
+import { BattleSessionProvider } from "../../context/BattleSessionContext";
 import { GameProvider, useGame } from "../../context/GameContext";
 import { GameTutorialContext } from "./useGameTutorial";
 import { clearPractice, createTutorialSteps, hasSeenTutorial, readActiveTutorialStep, saveActiveTutorialStep, saveTutorialStatus, type TutorialStep } from "./tutorialSteps";
@@ -81,18 +82,40 @@ function TutorialOverlay({ stepId, steps, advance, finish }: {
     const step = steps[index];
     if (!tour || !step || step.path !== pathname) return;
     saveActiveTutorialStep(stepId);
-    const target = typeof step.element === "string" ? document.querySelector(step.element) : null;
+    let target: Element | null = null;
     // Keep the highlighted real controls keyboard accessible; other controls must
     // not bypass the practice sequence. Driver's own focus loop includes target.
-    const blocked = Array.from(document.querySelectorAll<HTMLElement>(".app button, .app a, .app input, .app select, .app textarea, .app [tabindex]"))
-      .filter((element) => !target?.contains(element));
-    const previous = blocked.map((element) => element.inert);
-    blocked.forEach((element) => { element.inert = true; });
+    const previous = new Map<HTMLElement, boolean>();
+    const updateControls = () => {
+      target = typeof step.element === "string" ? document.querySelector(step.element) : null;
+      for (const element of document.querySelectorAll<HTMLElement>(".app button, .app a, .app input, .app select, .app textarea, .app [tabindex]")) {
+        if (!previous.has(element)) previous.set(element, element.inert);
+        element.inert = target?.contains(element) ? previous.get(element)! : true;
+      }
+    };
+    updateControls();
+    const observer = new MutationObserver(updateControls);
+    const app = document.querySelector(".app");
+    if (app) observer.observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-tutorial"] });
     tour.setConfig({ ...tour.getConfig(), overlayOpacity: stepId === "battle" ? .42 : .68 });
+    const onSliderTab = (event: KeyboardEvent) => {
+      if (stepId !== "confirm" || event.key !== "Tab") return;
+      const close = document.querySelector<HTMLElement>(".festival-tour .driver-popover-close-btn");
+      const slider = target?.querySelector<HTMLInputElement>('input[type="range"]');
+      const controls = [close, slider].filter((element): element is HTMLElement => !!element && !element.hasAttribute("disabled"));
+      if (!controls.length) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const current = controls.indexOf(document.activeElement as HTMLElement);
+      controls[(current + (event.shiftKey ? -1 : 1) + controls.length) % controls.length].focus({ preventScroll: true });
+    };
+    window.addEventListener("keydown", onSliderTab, true);
     const frame = requestAnimationFrame(() => tour.drive(index));
     return () => {
       cancelAnimationFrame(frame);
-      blocked.forEach((element, i) => { element.inert = previous[i]; });
+      window.removeEventListener("keydown", onSliderTab, true);
+      observer.disconnect();
+      previous.forEach((inert, element) => { element.inert = inert; });
     };
   }, [tour, stepId, steps, pathname]);
 
@@ -162,8 +185,10 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
   return (
     <GameTutorialContext.Provider value={value}>
       {active ? <GameProvider practiceCampus={campusId}>
+        <BattleSessionProvider practice>
         <div className="tutorial-scene" key={pathname}>{children}</div>
         <TutorialOverlay stepId={step!} steps={steps} advance={advance} finish={finish} />
+        </BattleSessionProvider>
       </GameProvider> : children}
     </GameTutorialContext.Provider>
   );

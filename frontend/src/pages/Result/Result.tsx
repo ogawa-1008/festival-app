@@ -1,31 +1,39 @@
-import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
-import { progressData } from "../../data/progress";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { useSessionScreen } from "../../context/useSessionScreen";
+import { progressData } from "../../data/progress";
+import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
+import { getRewardExp } from "../../utils/questReward";
+
+import { useExpRewardAnimation } from "./useExpRewardAnimation";
 
 import "./Result.css";
 
 function Result() {
     const navigate = useNavigate();
     const { questId } = useParams();
-    const [searchParams] = useSearchParams();
+    const location = useLocation();
+    const { active: practice, advance } = useGameTutorial();
 
-    const { quests, resolveBattle } = useGame();
-    const { active: practice, step, advance } = useGameTutorial();
+    // 別クエストのQRを読んで、このリザルトへ案内された場合の説明
+    const notice =
+        (location.state as { notice?: string } | null)?.notice ?? null;
 
-    const [claimed, setClaimed] = useState(practice && step === "result-home");
+    const { quests, rankExp, requiresUpdate, canUpdateGame, resolveBattle } = useGame();
+    const { session, claimReward } = useBattleSession();
+    const screenStatus = useSessionScreen(questId);
+    const [receipt, setReceipt] = useState<{ fromExp: number; gainedExp: number } | null>(null);
+    const { frame, animateReward } = useExpRewardAnimation();
+    const expPanel = useRef<HTMLDivElement>(null);
 
     const quest = quests.find(
         (item) => item.id === questId
     );
 
-    const outcome = searchParams.get("outcome") === "failure"
-        ? "failure"
-        : "victory";
-    const isGoldCrown = searchParams.get("crown") === "1";
-    const rewardRate = outcome === "victory" ? 1 : 0.5;
 
     if (!quest) {
         return (
@@ -44,13 +52,53 @@ function Result() {
         );
     }
 
-    const handleClaimReward = () => {
-        if (claimed) return;
+    // 別タブで開いているかの確認中は何も表示しない
+    if (screenStatus === "checking") {
+        return null;
+    }
 
-        setClaimed(true);
+    // 別タブで開いているリザルトはこのタブでは表示しない
+    if (
+        screenStatus === "elsewhere"
+        || !session
+        || session.questId !== quest.id
+        || session.endReason === null
+    ) {
+        return <Navigate to="/" replace />;
+    }
+
+    const outcome = session.endReason === "victory"
+        ? "victory"
+        : "failure";
+    const isTimeout = session.endReason === "timeout";
+    const isGoldCrown = session.goldCrown;
+    const rewardRate = outcome === "victory" ? 1 : 0.5;
+    const claimed = session.claimed;
+    const rewardExp = getBattleRankReward(
+        rankExp,
+        getRewardExp(quest.id, outcome)
+    ).gainedExp;
+    const displayedExp = receipt?.gainedExp ?? (claimed ? 0 : rewardExp);
+    const progress = frame ?? getRankProgress(rankExp);
+    const beforeRank = receipt ? getRankProgress(receipt.fromExp).rank : progress.rank;
+    const rankedUp = claimed && !frame?.isAnimating && progress.rank > beforeRank;
+    const expStatus = !claimed ? "報酬を受け取るとEXPが加算されます"
+        : frame?.isAnimating ? "EXPを加算中…"
+        : rankedUp ? `RANK UP! HR ${beforeRank} → ${progress.rank}`
+        : progress.isMax ? "ハンターランク上限に到達"
+        : displayedExp > 0 ? `${displayedExp} EXPを獲得しました` : "受取済みの報酬です";
+
+    const handleClaimReward = () => {
+        if (!canUpdateGame()) return;
+        // 受け取り済みなら false（再読み込み・戻る操作での二重受け取りを防ぐ）
+        if (!claimReward()) return;
+
+        setReceipt({ fromExp: rankExp, gainedExp: rewardExp });
+        animateReward(rankExp, rewardExp);
 
         resolveBattle(quest.id, outcome, isGoldCrown);
         if (practice) advance("reward-claimed");
+        expPanel.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
     };
 
     return (
@@ -58,7 +106,7 @@ function Result() {
             <div className="result-content">
 
                 {/* =========================
-            HEADER
+            ヘッダー
         ========================= */}
 
                 <header className="result-header">
@@ -71,7 +119,7 @@ function Result() {
 
 
                 {/* =========================
-            MONSTER + STAMP
+            モンスターと討伐スタンプ
         ========================= */}
 
                 <section className="result-monster-area">
@@ -104,7 +152,7 @@ function Result() {
 
 
                 {/* =========================
-            QUEST
+            クエスト情報
         ========================= */}
 
                 <section className="result-quest">
@@ -117,11 +165,25 @@ function Result() {
                         {quest.title}
                     </h2>
 
+                    {notice && !claimed && (
+                        <p className="result-notice">
+                            {notice}
+                        </p>
+                    )}
+
+                    {isTimeout && (
+                        <p className="result-timeout-message">
+                            モンスターに逃げられてしまった……
+                            <br />
+                            もう一度挑戦してみよう！
+                        </p>
+                    )}
+
                 </section>
 
 
                 {/* =========================
-            REWARD
+            報酬
         ========================= */}
 
                 <section className="result-reward">
@@ -130,6 +192,42 @@ function Result() {
                         <span />
                         <h2>REWARD</h2>
                         <span />
+                    </div>
+
+                    <div className={`result-exp-panel${frame?.isAnimating ? " is-animating" : ""}${rankedUp ? " is-rank-up" : ""}`} ref={expPanel}>
+                        <div className="result-exp-heading">
+                            <strong>HR {progress.rank}</strong>
+                            <span className="result-rank-exp">
+                                {displayedExp > 0
+                                    ? `+${claimed ? frame?.addedExp ?? displayedExp : displayedExp} EXP`
+                                    : progress.isMax ? "HR MAX" : "+0 EXP（受取済み）"}
+                            </span>
+                        </div>
+                        <div
+                            className="result-exp-track"
+                            role="progressbar"
+                            aria-label="ハンターランク経験値"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={Math.round(progress.progressPercent * 100) / 100}
+                            aria-valuetext={progress.isMax ? "HR100、上限に到達" : `HR${progress.rank}、${progress.progressExp} / ${progress.requiredExp} EXP`}
+                        >
+                            <div className="result-exp-fill" style={{ transform: `scaleX(${(frame?.isAnimating ? frame.goldProgressPercent : progress.progressPercent) / 100})` }} />
+                            {frame?.isAnimating && (
+                                <div
+                                    className="result-exp-added"
+                                    aria-hidden="true"
+                                    style={{
+                                        transform: `translateX(${frame.baseProgressPercent}%) scaleX(${Math.max(0, frame.progressPercent - frame.baseProgressPercent) / 100})`,
+                                        opacity: frame.addedOpacity,
+                                    }}
+                                />
+                            )}
+                        </div>
+                        <div className="result-exp-numbers">
+                            {progress.isMax ? "MAX" : `${progress.progressExp} / ${progress.requiredExp} EXP`}
+                        </div>
+                        <p className="result-exp-status" role="status">{expStatus}</p>
                     </div>
 
                     <div className="result-reward-list">
@@ -176,7 +274,7 @@ function Result() {
 
 
                 {/* =========================
-            CLAIM BUTTON
+            報酬受取ボタン
         ========================= */}
 
                 <button
@@ -184,7 +282,7 @@ function Result() {
                     className="result-claim-button"
                     data-tutorial="claim-reward"
                     onClick={handleClaimReward}
-                    disabled={claimed}
+                    disabled={claimed || requiresUpdate}
                 >
                     {claimed
                         ? "報酬を受け取りました"

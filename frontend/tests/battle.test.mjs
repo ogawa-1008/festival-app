@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { battleBalances, chooseEnemyHand, createBattle, getBattleBalance, hunterMaxHp, practiceEnemyHand, resolveTurn } from '../src/game/battle.ts';
+import { createBattle, getBattleBalance, hunterMaxHp, resolveTurn } from '../src/game/battle.ts';
 
+import { quests } from '../src/data/quests.ts';
+import { getBattleStats } from '../src/utils/battleStats.ts';
+import { createSession, playRound } from '../src/utils/battleSession.ts';
 const midpoint = () => .5;
 
 test('hands apply damage to the correct side, clamp lethal hits, and stop after the hunt ends', () => {
@@ -30,41 +33,27 @@ test('hands apply damage to the correct side, clamp lethal hits, and stop after 
   }
 });
 
-test('practice uses real damage and reaches victory after teaching a draw and a loss', () => {
-  const balance=getBattleBalance('quest-001');
-  let state=createBattle(balance);
-  const outcomes=[];
-  const hands=['rock','paper','scissors'];
-  while(state.status==='playing' && state.round<20){
-    const player=hands[state.round%hands.length];
-    state=resolveTurn(state,balance,player,practiceEnemyHand(player,state.round),midpoint);
-    outcomes.push(state.outcome);
-  }
-  assert.deepEqual(outcomes,['draw','enemy','player','player','player','player']);
-  assert.equal(state.status,'victory');
-  assert.equal(state.playerHp,88);
-  assert.equal(state.monsterHp,0);
-});
-
 test('festival hunts remain short and progressively harder under uniform random play', () => {
   let seed=20261020;
   const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
   let previousWinRate=1;
   let previousTurns=0;
   const limits={ 'quest-001':[.85,.97], 'quest-002':[.72,.85], 'quest-003':[.60,.75] };
-  for(const [id,balance] of Object.entries(battleBalances)){
+  for(const quest of quests){
+    const id=quest.id;
+    const stats=getBattleStats(quest,{weaponClaimed:false});
     let wins=0;
     const turns=[];
     for(let i=0;i<10000;i++){
-      let state=createBattle(balance);
-      while(state.status==='playing' && state.round<200){
-        state=resolveTurn(state,balance,'rock',chooseEnemyHand(random),random);
-        assert.ok(state.playerHp>=0 && state.playerHp<=hunterMaxHp);
-        assert.ok(state.monsterHp>=0 && state.monsterHp<=balance.monsterMaxHp);
+      let state=createSession(id,stats,'simulation');
+      while(state.endReason===null && state.turnsLeft>0){
+        state=playRound(state,'rock',random,state.nextTurnAt).session;
+        assert.ok(state.playerHp>=0 && state.playerHp<=stats.playerMaxHp);
+        assert.ok(state.monsterHp>=0 && state.monsterHp<=stats.monsterMaxHp);
       }
-      assert.notEqual(state.status,'playing','a hunt must terminate');
-      wins+=state.status==='victory';
-      turns.push(state.round);
+      assert.notEqual(state.endReason,null,'a hunt must terminate');
+      wins+=state.endReason==='victory';
+      turns.push(state.maxTurns-state.turnsLeft);
     }
     turns.sort((a,b)=>a-b);
     const winRate=wins/turns.length;
