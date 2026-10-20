@@ -50,7 +50,6 @@
 .festival-tour .driver-popover-footer { margin-top: 14px; }
 .festival-tour .driver-popover-progress-text { font-size: 12px; }
 .festival-tour:focus { outline: none; }
-.tutorial-scene .hp-fill { transition: width 420ms cubic-bezier(.22, 1, .36, 1); }
 .tutorial-scene .battle-message { animation: tutorial-feedback-enter 260ms ease-out both; }
 .tutorial-scene .janken-button { transition: transform 180ms ease-out, opacity 180ms ease-out; }
 .tutorial-scene .janken-button:active { transform: scale(.94); }

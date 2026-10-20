@@ -1,24 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { useGame } from "../../context/GameContext";
 import { battleAssets } from "./battleAssets";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-
+import { chooseEnemyHand, createBattle, getBattleBalance, hunterMaxHp, practiceEnemyHand, resolveTurn, turnFeedbackMs, type Hand } from "../../game/battle";
 import "./Battle.css";
 
-type Hand = "rock" | "scissors" | "paper";
-
 function Battle() {
-    const navigate = useNavigate();
     const { questId } = useParams();
+    return <BattleEncounter key={questId} questId={questId} />;
+}
 
+function BattleEncounter({ questId }: { questId: string | undefined }) {
+    const navigate = useNavigate();
     const { quests } = useGame();
     const { active: practice, advance } = useGameTutorial();
-    const [round, setRound] = useState(0);
-    const [isResolving, setIsResolving] = useState(false);
-    const practiceRound = useRef(0);
+    const quest = quests.find((item) => item.id === questId);
+    const balance = getBattleBalance(questId ?? "");
+    const [battle, setBattle] = useState(() => createBattle(balance));
+    const hpRef = useRef(battle);
     const busy = useRef(false);
+    const [isResolving, setIsResolving] = useState(false);
     const turnTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const departureTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     useEffect(() => () => {
@@ -26,154 +28,45 @@ function Battle() {
         clearTimeout(departureTimer.current);
     }, []);
 
-    const [playerHp, setPlayerHp] = useState(3);
-    const [monsterHp, setMonsterHp] = useState(3);
-
-    const [message, setMessage] =
-        useState("じゃんけんでモンスターを倒せ！");
-
-    const [isBattleOver, setIsBattleOver] =
-        useState(false);
-
-    // stateだとレンダリングが発生しちゃうからRefで同期的に管理する処理
-    const hpRef = useRef({ player: 3, monster: 3 });
-    const isBattleOverRef = useRef(false);
-
-    const quest = quests.find(
-        (item) => item.id === questId
-    );
-
-    if (!quest) {
-        return (
-            <main className="battle-page">
-                <div className="battle-error">
-                    <h1>クエストが見つかりません</h1>
-
-                    <button
-                        type="button"
-                        onClick={() => navigate("/")}
-                    >
-                        ホームへ戻る
-                    </button>
-                </div>
-            </main>
-        );
-    }
-
-    const judgeWinner = (
-        player: Hand,
-        enemy: Hand
-    ) => {
-        if (player === enemy) {
-            return "draw";
-        }
-
-        if (
-            (player === "rock" &&
-                enemy === "scissors") ||
-            (player === "scissors" &&
-                enemy === "paper") ||
-            (player === "paper" &&
-                enemy === "rock")
-        ) {
-            return "player";
-        }
-
-        return "enemy";
-    };
+    const { playerHp, monsterHp, round } = battle;
+    const isBattleOver = battle.status !== "playing";
+    const message = battle.status === "victory" ? "モンスターを討伐した！"
+        : battle.status === "failure" ? "力尽きてしまった……"
+        : battle.outcome === "draw" ? "あいこ！ HPは変わりません"
+        : battle.outcome === "player" ? `勝利！ モンスターに${battle.damage}ダメージ！`
+        : battle.outcome === "enemy" ? `敗北…… ${battle.damage}ダメージを受けた！`
+        : "じゃんけんでモンスターを倒せ！";
 
     const handleHandSelect = (playerHand: Hand) => {
-        if (isBattleOverRef.current || busy.current) return;
-
-        const hands: Hand[] = [
-            "rock",
-            "scissors",
-            "paper",
-        ];
-
-        const playerIndex = hands.indexOf(playerHand);
-        // Rehearse a draw, a loss, then three wins using whichever real hand the
-        // player chooses. Normal hunts continue to use a random opponent.
+        if (!quest || hpRef.current.status !== "playing" || busy.current) return;
+        busy.current = true;
+        setIsResolving(true);
         const enemyHand = practice
-            ? hands[(playerIndex + (practiceRound.current === 0 ? 0 : practiceRound.current === 1 ? 2 : 1)) % 3]
-            : hands[Math.floor(Math.random() * hands.length)];
-        if (practice) {
-            practiceRound.current += 1;
-            setRound(practiceRound.current);
-            busy.current = true;
-            setIsResolving(true);
-            turnTimer.current = setTimeout(() => {
-                busy.current = false;
-                setIsResolving(false);
-            }, 650);
+            ? practiceEnemyHand(playerHand, hpRef.current.round)
+            : chooseEnemyHand();
+        // Practice uses the same HP/damage rules with a stable midpoint roll.
+        const next = resolveTurn(hpRef.current, balance, playerHand, enemyHand, practice ? () => .5 : Math.random);
+        hpRef.current = next;
+        setBattle(next);
+        turnTimer.current = setTimeout(() => {
+            busy.current = false;
+            setIsResolving(false);
+        }, turnFeedbackMs);
+        if (next.status === "victory") {
+            departureTimer.current = setTimeout(() => {
+                const goldCrown = !practice && Math.random() < .1;
+                if (practice) advance("battle-finished");
+                navigate(`/result/${quest.id}?outcome=victory${goldCrown ? "&crown=1" : ""}`, { replace: practice });
+            }, 1200);
         }
-
-        const result = judgeWinner(
-            playerHand,
-            enemyHand
-        );
-
-        if (result === "draw") {
-            setMessage("あいこ！ もう一度！");
-            return;
-        }
-
-        if (result === "player") {
-            const nextMonsterHp =
-                Math.max(0, hpRef.current.monster - 1);
-
-            hpRef.current.monster = nextMonsterHp;
-            setMonsterHp(nextMonsterHp);
-
-            if (nextMonsterHp <= 0) {
-                setMessage(
-                    "モンスターを討伐した！"
-                );
-
-                isBattleOverRef.current = true;
-                setIsBattleOver(true);
-
-                departureTimer.current = setTimeout(() => {
-                    const goldCrown = !practice && Math.random() < 0.1;
-                    if (practice) advance("battle-finished");
-                    navigate(
-                        `/result/${quest.id}?outcome=victory${
-                            goldCrown ? "&crown=1" : ""
-                        }`, { replace: practice }
-                    );
-                }, 1200);
-
-                return;
-            }
-
-            setMessage(
-                "勝利！ モンスターにダメージ！"
-            );
-
-            return;
-        }
-
-        const nextPlayerHp =
-            Math.max(0, hpRef.current.player - 1);
-
-        hpRef.current.player = nextPlayerHp;
-        setPlayerHp(nextPlayerHp);
-
-        if (nextPlayerHp <= 0) {
-            setMessage(
-                "力尽きてしまった……"
-            );
-
-            isBattleOverRef.current = true;
-            setIsBattleOver(true);
-
-            return;
-        }
-
-        setMessage(
-            "敗北…… ダメージを受けた！"
-        );
     };
+
+    if (!quest) {
+        return <main className="battle-page"><div className="battle-error">
+            <h1>クエストが見つかりません</h1>
+            <button type="button" onClick={() => navigate("/")}>ホームへ戻る</button>
+        </div></main>;
+    }
 
     return (
         <main className="battle-page">
@@ -224,18 +117,17 @@ function Battle() {
                     <div className="monster-hp" data-tutorial="monster-hp">
                         <span>MONSTER HP</span>
 
-                        <div className="hp-bar">
+                        <div className="hp-bar" role="meter" aria-label="モンスターの体力" aria-valuemin={0} aria-valuemax={balance.monsterMaxHp} aria-valuenow={monsterHp}>
                             <div
                                 className="hp-fill monster-hp-fill"
                                 style={{
-                                    width: `${(monsterHp / 3) * 100
-                                        }%`,
+                                    transform: `scaleX(${monsterHp / balance.monsterMaxHp})`,
                                 }}
                             />
                         </div>
 
                         <div className="hp-number">
-                            {monsterHp} / 3
+                            {monsterHp} / {balance.monsterMaxHp}
                         </div>
                     </div>
 
@@ -261,18 +153,17 @@ function Battle() {
                     </div>
 
                     <div className="player-hp">
-                        <div className="hp-bar">
+                        <div className="hp-bar" role="meter" aria-label="ハンターの体力" aria-valuemin={0} aria-valuemax={hunterMaxHp} aria-valuenow={playerHp}>
                             <div
                                 className="hp-fill player-hp-fill"
                                 style={{
-                                    width: `${(playerHp / 3) * 100
-                                        }%`,
+                                    transform: `scaleX(${playerHp / hunterMaxHp})`,
                                 }}
                             />
                         </div>
 
                         <span>
-                            HP {playerHp} / 3
+                            HP {playerHp} / {hunterMaxHp}
                         </span>
                     </div>
 
