@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../Tutorial/useGameTutorial";
-import { mapAreas } from "../../data/maps";
+import { useMapAreas } from "../../context/useMapAreas";
 import type { MapArea } from "../../types/maps";
 import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
 import "./FieldCollection.css";
@@ -32,6 +32,7 @@ export function FieldCollectionSummary({
   heading?: string;
 }) {
   const { quests, obtainedFieldNoveltyIds } = useGame();
+  const mapAreas = useMapAreas();
   const fields = mapAreas.map((area) => ({
     area,
     ...getFieldProgress(area, quests, obtainedFieldNoveltyIds),
@@ -217,6 +218,7 @@ export function FieldRewards({
 
 export default function FieldCollection() {
   const { quests, obtainedFieldNoveltyIds } = useGame();
+  const mapAreas = useMapAreas();
   const { hash } = useLocation();
   useEffect(() => {
     if (/^#field-\d+$/.test(hash))
@@ -239,7 +241,9 @@ export default function FieldCollection() {
             <header
               className="field-collection-cover"
               style={{
-                backgroundImage: `linear-gradient(0deg, var(--color-bg-deep), transparent), url("${area.image}")`,
+                backgroundImage: area.image
+                  ? `linear-gradient(0deg, var(--color-bg-deep), transparent), url("${area.image}")`
+                  : "linear-gradient(0deg, var(--color-bg-deep), var(--color-bg-raised))",
               }}
             >
               <span className="field-cover-number">

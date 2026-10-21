@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
-import { mapAreas } from "../../data/maps";
+import { useMapAreas } from "../../context/useMapAreas";
 import {
   fetchNoveltyStocks,
   redeemNovelty,
@@ -36,6 +36,7 @@ function NoveltyRedeem() {
   const { campusId, quests, obtainedFieldNoveltyIds, requiresUpdate, claimFieldNovelty } = useGame();
   const { active: practice } = useGameTutorial();
 
+  const mapAreas = useMapAreas();
   const area = mapAreas.find((item) => String(item.id) === fieldIdParam);
   const progress = area ? getFieldProgress(area, quests, obtainedFieldNoveltyIds) : null;
 

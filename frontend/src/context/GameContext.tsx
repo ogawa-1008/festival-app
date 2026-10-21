@@ -9,15 +9,24 @@ import {
   type ReactNode,
 } from "react";
 
-import { quests as initialQuests } from "../data/quests";
+import { practiceQuest } from "../data/quests";
 import { progressData } from "../data/progress";
 import { findCampus, type CampusId } from "../data/campuses";
 import { practiceStorageKey } from "../components/Tutorial/tutorialSteps";
 import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
 import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
-import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage";
-import { mapAreas } from "../data/maps";
+import {
+  CAMPUS_STORAGE_KEY,
+  GAME_STORAGE_KEY,
+  getCampusGameKey,
+  getCampusLoadKey,
+  loadSavedGame,
+  readSelectedCampus,
+  saveGame,
+} from "../utils/gameStorage";
+import { getCampusQuests, getMapAreas } from "../data/maps";
+import type { Quest } from "../types/quest";
 import { restoreFieldNoveltyIds } from "../utils/fieldProgress";
 import { getWeaponAttackBonus } from "../utils/playerStats";
 import { hasEnoughWeaponMaterials } from "../utils/weaponMaterials";
@@ -34,7 +43,7 @@ export type Activity = {
 
 type GameState = {
   campusId: CampusId | null;
-  quests: typeof initialQuests;
+  quests: Quest[];
   materials: MaterialStock;
   rank: number;
   rankExp: number;
@@ -68,7 +77,7 @@ const initialMaterials: MaterialStock = Object.fromEntries(
 
 const initialGameState: GameState = {
   campusId: null,
-  quests: initialQuests,
+  quests: [],
   materials: initialMaterials,
   rank: 0,
   rankExp: 0,
@@ -78,21 +87,22 @@ const initialGameState: GameState = {
   activities: [],
 };
 
-// クエストの定義（素材・手数・ステータス・EXP）は常に data/quests.ts を使い、
+// クエストの定義（素材・手数・ステータス・EXP）は常に校舎のデータ（data/campuses）を使い、
 // 保存データからは進行度（討伐済み・金冠・調査済み）だけを引き継ぐ。定義を変えてもキャッシュ削除が不要になる
 // investigated を記録する前に調査したクエストは、履歴の「調査」から補う
 function mergeQuestProgress(
+  baseQuests: Quest[],
   savedQuests: GameState["quests"],
   activities: Activity[] = [],
 ): GameState["quests"] {
   const investigatedIds = new Set(
     (Array.isArray(activities) ? activities : [])
       .filter((activity) => activity?.type === "investigation")
-      .map((activity) => initialQuests.find((quest) => String(activity.id).includes(`-${quest.id}-`))?.id)
+      .map((activity) => baseQuests.find((quest) => String(activity.id).includes(`-${quest.id}-`))?.id)
       .filter(Boolean),
   );
 
-  return initialQuests.map((quest) => {
+  return baseQuests.map((quest) => {
     const saved = Array.isArray(savedQuests)
       ? savedQuests.find((item) => item?.id === quest.id)
       : undefined;
@@ -105,26 +115,61 @@ function mergeQuestProgress(
     };
   });
 }
-function loadGameState(practiceCampus?: CampusId): GameState {
-  const defaults = practiceCampus ? {
-    ...initialGameState, campusId: practiceCampus,
-    materials: Object.fromEntries(progressData.materials.map((material) => [material.id, Math.max(0, material.required - (initialQuests[0].rewardMaterials.find((reward) => reward.id === material.id)?.amount ?? 0))])),
-  } : initialGameState;
+// 校舎の初期状態。練習中は練習用のクエストも加える
+function createCampusState(campusId: CampusId, practice: boolean): GameState {
+  const campusQuests = getCampusQuests(campusId);
+
+  return {
+    ...initialGameState,
+    campusId,
+    quests: practice ? [practiceQuest, ...campusQuests] : campusQuests,
+  };
+}
+
+// 進み具合は校舎ごとに保存する。campusId を省くと、選んでいる校舎（localStorage）を読む
+function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | null): GameState {
   if (typeof window === "undefined") {
-    return defaults;
+    return initialGameState;
+  }
+
+  if (practiceCampus) {
+    const defaults = {
+      ...createCampusState(practiceCampus, true),
+      materials: Object.fromEntries(progressData.materials.map((material) => [material.id, Math.max(0, material.required - (practiceQuest.rewardMaterials.find((reward) => reward.id === material.id)?.amount ?? 0))])),
+    };
+
+    try {
+      const saved = loadSavedGame({ getItem: () => window.sessionStorage.getItem(practiceStorageKey) }, defaults);
+      return {
+        ...saved,
+        campusId: practiceCampus,
+        quests: mergeQuestProgress(defaults.quests, saved.quests, saved.activities),
+        obtainedFieldNoveltyIds: [],
+      };
+    } catch {
+      return defaults;
+    }
   }
 
   try {
-    const reader = practiceCampus ? { getItem: () => window.sessionStorage.getItem(practiceStorageKey) } : window.localStorage;
-    const saved = loadSavedGame(reader, defaults);
+    const storage = window.localStorage;
+    const campusId = campusOverride !== undefined
+      ? campusOverride
+      : findCampus(readSelectedCampus(storage))?.id ?? null;
+
+    if (!campusId) return initialGameState;
+
+    const defaults = createCampusState(campusId, false);
+    const saved = loadSavedGame(storage, defaults, getCampusLoadKey(storage, campusId));
+
     return {
       ...saved,
-      campusId: practiceCampus ?? findCampus(saved.campusId)?.id ?? null,
-      quests: mergeQuestProgress(saved.quests, saved.activities),
-      obtainedFieldNoveltyIds: restoreFieldNoveltyIds(saved.obtainedFieldNoveltyIds, mapAreas),
+      campusId,
+      quests: mergeQuestProgress(defaults.quests, saved.quests, saved.activities),
+      obtainedFieldNoveltyIds: restoreFieldNoveltyIds(saved.obtainedFieldNoveltyIds, getMapAreas(campusId)),
     };
   } catch {
-    return defaults;
+    return campusOverride ? createCampusState(campusOverride, false) : initialGameState;
   }
 }
 function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean {
@@ -133,14 +178,21 @@ function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean
       window.sessionStorage.setItem(practiceStorageKey, JSON.stringify(gameState));
       return true;
     }
+    // 校舎を選ぶ前は保存するものがない
+    if (!gameState.campusId) return true;
+
     const storage = window.localStorage;
+    const key = getCampusGameKey(gameState.campusId);
     if (
       gameState.rankProgressVersion > RANK_PROGRESS_VERSION
-      || loadSavedGame(storage, initialGameState).rankProgressVersion > RANK_PROGRESS_VERSION
+      || loadSavedGame(storage, initialGameState, key).rankProgressVersion > RANK_PROGRESS_VERSION
     ) return false;
+    if (storage.getItem(CAMPUS_STORAGE_KEY) !== gameState.campusId) {
+      storage.setItem(CAMPUS_STORAGE_KEY, gameState.campusId);
+    }
     // 同じ内容を別タブへ書き戻し続けないようにする。
-    return storage.getItem(GAME_STORAGE_KEY) === JSON.stringify(gameState)
-      || saveGame(storage, gameState);
+    return storage.getItem(key) === JSON.stringify(gameState)
+      || saveGame(storage, gameState, key);
   } catch {
     // ブラウザによっては localStorage 自体へのアクセスが拒否される。
     return false;
@@ -154,12 +206,17 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
   const [saveFailed, setSaveFailed] = useState(false);
   const pendingSave = useRef<GameState | null>(null);
   const requiresUpdate = gameState.rankProgressVersion > RANK_PROGRESS_VERSION;
+  // 操作直前の確認で、今の校舎の保存データを読み直すのに使う
+  const campusRef = useRef(gameState.campusId);
+  useEffect(() => {
+    campusRef.current = gameState.campusId;
+  }, [gameState.campusId]);
 
   // 操作直前にも確認し、storage イベントが届く前の受取・交換を防ぐ。
   const canUpdateGame = useCallback(() => {
     if (practiceCampus) return true;
     if (requiresUpdate) return false;
-    const latest = loadGameState();
+    const latest = loadGameState(undefined, campusRef.current);
     if (latest.rankProgressVersion > RANK_PROGRESS_VERSION) {
       pendingSave.current = null;
       setSaveFailed(false);
@@ -181,7 +238,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
   }, [gameState, canUpdateGame, practiceCampus]);
 
   // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
-  useStorageSync(GAME_STORAGE_KEY, () => {
+  // 別タブで校舎を変えた場合も、表示に戻ったときに選んでいる校舎の進み具合を読み直す
+  useStorageSync(gameState.campusId ? getCampusGameKey(gameState.campusId) : GAME_STORAGE_KEY, () => {
     // 将来版を検出したら、未保存の旧形式データも書き戻さない。
     if (!canUpdateGame()) return;
     // 未保存の進行は保持し、同期で読み直す前に保存を再試行する。
@@ -303,7 +361,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       return true;
     };
     const claimFieldNovelty = (fieldId: number) => {
-      const area = mapAreas.find((item) => item.id === fieldId);
+      const areas = getMapAreas(gameState.campusId);
+      const area = areas.find((item) => item.id === fieldId);
 
       if (!area || !canUpdateGame()) return false;
       setGameState((current) => {
@@ -311,10 +370,10 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
         return {
           ...current,
-          // mapAreas の順に並べて保存する
+          // フィールドの順に並べて保存する
           obtainedFieldNoveltyIds: restoreFieldNoveltyIds(
             [...current.obtainedFieldNoveltyIds, fieldId],
-            mapAreas,
+            areas,
           ),
           activities: [
             {
@@ -331,8 +390,15 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
       return true;
     };
+    // 校舎を変えると、その校舎の進み具合に切り替える（進み具合は校舎ごとに別）
     const selectCampus = (campusId: CampusId) => {
-      if (canUpdateGame()) setGameState((current) => ({ ...current, campusId }));
+      if (!canUpdateGame()) return;
+      try {
+        window.localStorage.setItem(CAMPUS_STORAGE_KEY, campusId);
+      } catch {
+        // 保存できなくても、この画面では選んだ校舎で続ける
+      }
+      setGameState(loadGameState(undefined, campusId));
     };
     return { ...gameState, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon, claimFieldNovelty };
   }, [gameState, requiresUpdate, canUpdateGame]);

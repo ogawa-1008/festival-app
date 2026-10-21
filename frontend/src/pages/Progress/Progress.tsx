@@ -4,7 +4,7 @@ import PageTitle from "../../components/PageTitle/PageTitle";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
-import { mapAreas } from "../../data/maps";
+import { useMapAreas } from "../../context/useMapAreas";
 import { progressData } from "../../data/progress";
 import { getFieldProgress } from "../../utils/fieldProgress";
 import { getWallpaperProgress } from "../../utils/hunterRankReward";
@@ -20,6 +20,7 @@ function Progress() {
   const enoughMaterials = countEnoughWeaponMaterials(materials);
   const canCraft = !weaponClaimed && !requiresUpdate && hasEnoughWeaponMaterials(materials);
 
+  const mapAreas = useMapAreas();
   const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds));
   // 練習中はステッカーをもらえないので、もらえる枚数に数えない
   const redeemableStickers = active

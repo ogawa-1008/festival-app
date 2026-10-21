@@ -1,13 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mapAreas } from "../src/data/maps.ts";
-import { quests } from "../src/data/quests.ts";
+import { practiceQuest } from "../src/data/quests.ts";
 import {
   getFieldProgress,
   restoreFieldNoveltyIds,
 } from "../src/utils/fieldProgress.ts";
 import { loadSavedGame, saveGame } from "../src/utils/gameStorage.ts";
 import { RANK_PROGRESS_VERSION } from "../src/utils/hunterRank.ts";
+
+// 実際の校舎のデータ（モンスターが未定）に左右されないよう、テスト用のフィールドとクエストを使う
+const quests = ["a", "b", "c"].map((id) => ({ ...practiceQuest, id: `quest-${id}`, qrCode: id }));
+const area = (id, questIds) => ({
+  id,
+  buildingName: `${id}号館`,
+  areaName: `field-${id}`,
+  photoSpotMonster: "monster",
+  questIds,
+  novelty: { name: "sticker", description: "", redemptionLocation: "" },
+});
+const mapAreas = [area(1, ["quest-a"]), area(2, ["quest-b"]), area(3, ["quest-c"]), area(4, [])];
 
 test("field stamps follow quest IDs after reordering, while novelty receipts remain independent", () => {
   const progress = quests
