@@ -223,7 +223,7 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
         // EXP はクエストごとの報酬（調査は3割）。ランクの上限処理は getBattleRankReward に任せる
         const { gainedExp, rank: nextRank, rankExp: nextExp } =
           getBattleRankReward(current.rankExp, getRewardExp(quest.id, outcome));
-        const expDetail = gainedExp > 0 ? `HR EXP +${gainedExp}` : "HR MAX";
+        const expDetail = gainedExp > 0 ? `経験値 +${gainedExp}` : "ハンターランク上限";
         const materials = { ...current.materials };
 
         rewards.forEach((reward) => {

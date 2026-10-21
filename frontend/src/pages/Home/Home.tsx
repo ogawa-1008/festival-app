@@ -132,7 +132,7 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => navigate("/stamps")}
+                  onClick={() => navigate("/progress/fields")}
                 >
                   <span className="side-menu-item-icon">◆</span>
 

@@ -4,17 +4,18 @@
 
 .progress-page {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
 
   box-sizing: border-box;
 
+  /* ホーム・コレクション・交換画面と同じ茶色のグラデーション */
   background:
     radial-gradient(
-      ellipse at center,
-      rgba(20, 65, 35, 0.5),
-      transparent 65%
-    ),
-    #001f10;
+      ellipse at center top,
+      #55452f 0%,
+      #352c21 42%,
+      #211d18 100%
+    );
 
   color: #ffffff;
 
@@ -33,10 +34,8 @@
 
   box-sizing: border-box;
 
-  padding:
-    20px
-    14px
-    150px;
+  /* 余白はフィールドマップ（.map-content）と同じにする */
+  padding: 18px 16px 105px;
 
   overflow: visible;
 }
@@ -73,12 +72,12 @@
   background:
     linear-gradient(
       180deg,
-      rgba(5, 40, 25, 0.95),
-      rgba(0, 28, 15, 0.95)
+      rgba(48, 38, 27, 0.95),
+      rgba(28, 22, 16, 0.95)
     );
 
-  border-top: 2px solid #344b3d;
-  border-bottom: 2px solid #344b3d;
+  border-top: 2px solid var(--color-border-muted);
+  border-bottom: 2px solid var(--color-border-muted);
 
   overflow: hidden;
 }
@@ -99,8 +98,8 @@
 
   transform: translateX(-50%);
 
-  border-left: 2px solid #344b3d;
-  border-right: 2px solid #344b3d;
+  border-left: 2px solid var(--color-border-muted);
+  border-right: 2px solid var(--color-border-muted);
 }
 
 .weapon-title-frame::before {
@@ -153,13 +152,13 @@
   background:
     radial-gradient(
       ellipse at center,
-      #06150d 0%,
+      #1a140e 0%,
       #000 68%
     );
 
-  border-left: 2px solid #28372e;
-  border-right: 2px solid #28372e;
-  border-bottom: 2px solid #28372e;
+  border-left: 2px solid var(--color-border-subtle);
+  border-right: 2px solid var(--color-border-subtle);
+  border-bottom: 2px solid var(--color-border-subtle);
 
   overflow: hidden;
 }
@@ -206,12 +205,12 @@
   background:
     linear-gradient(
       180deg,
-      rgba(0, 40, 20, 0.98),
-      rgba(0, 29, 15, 0.98)
+      rgba(48, 38, 27, 0.98),
+      rgba(28, 22, 16, 0.98)
     );
 
-  border-top: 2px solid #38473f;
-  border-bottom: 2px solid #38473f;
+  border-top: 2px solid var(--color-border-muted);
+  border-bottom: 2px solid var(--color-border-muted);
 }
 
 
@@ -227,14 +226,14 @@
 
   transform: translateY(-50%);
 
-  border-top: 2px solid #3c4b42;
-  border-bottom: 2px solid #3c4b42;
+  border-top: 2px solid var(--color-border-muted);
+  border-bottom: 2px solid var(--color-border-muted);
 }
 
 .decorative-line.left {
   left: 0;
 
-  border-right: 2px solid #3c4b42;
+  border-right: 2px solid var(--color-border-muted);
 
   clip-path: polygon(
     0 0,
@@ -248,7 +247,7 @@
 .decorative-line.right {
   right: 0;
 
-  border-left: 2px solid #3c4b42;
+  border-left: 2px solid var(--color-border-muted);
 
   clip-path: polygon(
     15% 0,
@@ -267,7 +266,7 @@
 
   margin: 0;
 
-  color: #65d9ff;
+  color: var(--color-gold);
 
   font-family: var(--font-mincho);
 
@@ -456,9 +455,10 @@
 
 
 .material-x {
-  color: #777;
+  color: var(--color-text-subtle);
 
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-sm);
+  font-weight: normal;
 }
 
 
@@ -467,28 +467,30 @@
 ======================================== */
 
 .material-owned {
-  width: 62px;
-
   min-width: 62px;
 
   display: flex;
 
-  align-items: center;
+  flex-direction: column;
 
-  justify-content: flex-end;
+  align-items: flex-end;
 
-  gap: 7px;
+  justify-content: center;
+
+  gap: 4px;
 
   padding-right: 2px;
 }
 
 
 .owned-icon {
-  color: #d98c68;
+  color: var(--color-text-subtle);
 
-  font-size: 19px;
+  font-size: var(--font-size-xs);
 
   line-height: 1;
+
+  white-space: nowrap;
 }
 
 
@@ -506,98 +508,17 @@
 
 
 /* ========================================
-   必要費用
-======================================== */
-
-.money-area {
-  width: 100%;
-}
-
-
-.money-content {
-  width: 100%;
-
-  min-height: 82px;
-
-  box-sizing: border-box;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: flex-end;
-
-  padding: 10px 14px;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(0, 35, 18, 0.98),
-      rgba(0, 27, 14, 0.98)
-    );
-
-  border-bottom: 2px solid #34453b;
-}
-
-
-.money-icon {
-  width: 36px;
-  height: 36px;
-
-  margin-right: auto;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border: 2px solid #b8aa6b;
-
-  border-radius: var(--radius-circle);
-
-  color: #e0d58e;
-
-  font-size: 18px;
-
-  font-weight: 900;
-}
-
-
-.money-number {
-  color: #f4f0d0;
-
-  font-size: 34px;
-
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  text-shadow:
-    0 2px 3px #000;
-}
-
-
-.money-unit {
-  margin-left: 7px;
-
-  color: #f4f0d0;
-
-  font-size: var(--font-size-2xl);
-
-  font-weight: 900;
-}
-
-
-/* ========================================
    スマートフォン調整
 ======================================== */
 
-@media (max-width: 430px) {
-
+@media (max-width: 380px) {
   .progress-content {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
+}
+
+@media (max-width: 430px) {
 
   .weapon-image-area {
     height: 285px;
@@ -621,20 +542,15 @@
   }
 
   .material-owned {
-    width: 58px;
     min-width: 58px;
-  }
-
-  .money-number {
-    font-size: var(--font-size-3xl);
   }
 }
 
 /* =========================
-   武器作成ボタン
+   作成・交換ボタン（進捗の各ページで共通）
 ========================= */
 
-.create-weapon-area {
+.progress-action-area {
   width: 100%;
   margin-top: 24px;
   display: flex;
@@ -642,7 +558,7 @@
   box-sizing: border-box;
 }
 
-.create-weapon-button {
+.progress-action-button {
   width: min(100%, 360px);
   height: 56px;
 
@@ -675,10 +591,370 @@
   cursor: pointer;
 }
 
-.create-weapon-button:active {
+/* Link でも button と同じ見た目にする */
+.progress-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  text-decoration: none;
+}
+
+.progress-action-button:disabled:active {
+  transform: none;
+}
+
+/* ステッカーの各行の下に置く小さめのボタン */
+.progress-action-area.is-compact {
+  margin-top: var(--space-2);
+}
+
+.progress-action-button.is-compact {
+  width: 100%;
+  height: 44px;
+
+  font-size: var(--font-size-md);
+  letter-spacing: 2px;
+}
+
+.progress-action-button:active {
   transform: scale(0.97);
 
   box-shadow:
     inset 0 0 8px rgba(0, 0, 0, 0.6),
     0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+
+/* ========================================
+   進捗のトップ・各ページの見出し
+======================================== */
+
+.progress-sub-header {
+  margin-bottom: var(--space-1);
+}
+
+/* 戻るボタン：指で押しやすい大きさ（高さ44px以上）で、行き先を言葉で示す */
+.progress-sub-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  min-height: 44px;
+
+  margin-bottom: var(--space-3);
+  padding: 0 var(--space-4) 0 var(--space-3);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-bg-panel);
+
+  color: var(--color-text);
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-md);
+  font-weight: bold;
+
+  text-decoration: none;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.progress-sub-back:active {
+  transform: scale(0.97);
+
+  background: var(--color-bg-raised);
+}
+
+.progress-sub-back-icon {
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: var(--radius-circle);
+
+  background: var(--color-bg-raised);
+
+  color: var(--color-gold);
+
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+/* 見出し（PageTitle）は戻るボタンの下の行に置く */
+.progress-sub-header-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* 進捗のトップの入口カード */
+
+.progress-hub {
+  display: grid;
+  gap: 14px;
+}
+
+.progress-hub-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: var(--space-4);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-bg-panel);
+
+  color: var(--color-text);
+
+  text-decoration: none;
+}
+
+.progress-hub-card--highlight {
+  border-color: var(--color-accent);
+}
+
+.progress-hub-icon {
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-circle);
+
+  color: var(--color-gold);
+
+  font-size: var(--font-size-lg);
+}
+
+.progress-hub-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-hub-text strong {
+  display: block;
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-md);
+}
+
+.progress-hub-text small {
+  display: block;
+
+  margin-top: var(--space-2);
+
+  color: var(--color-gold);
+
+  font-size: var(--font-size-sm);
+}
+
+.progress-hub-card--highlight .progress-hub-text small {
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+.progress-hub-arrow {
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-xl);
+}
+
+
+/* ========================================
+   ステッカー・壁紙（武器の作成と同じ部品の追加分）
+======================================== */
+
+.progress-reward-list {
+  display: grid;
+  gap: 14px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ステッカー名は省略せず折り返す */
+.progress-reward-list .material-main h3 {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.progress-reward-icon {
+  color: var(--color-gold);
+}
+
+.progress-reward-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.progress-reward-sub {
+  margin: var(--space-1) 0 0;
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-xs);
+}
+
+.progress-reward-state {
+  flex-shrink: 0;
+
+  padding-left: var(--space-2);
+
+  text-align: right;
+}
+
+.progress-reward-pending {
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-sm);
+
+  white-space: nowrap;
+}
+
+.progress-reward-note {
+  margin: var(--space-3) 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+
+  text-align: center;
+}
+
+.progress-action-button:disabled {
+  border-color: var(--color-border-muted);
+
+  background: var(--color-bg-raised);
+
+  color: var(--color-text-subtle);
+
+  box-shadow: none;
+  text-shadow: none;
+
+  cursor: default;
+}
+
+.wallpaper-rank-badge {
+  color: var(--color-gold);
+
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.wallpaper-rank-of {
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-sm);
+}
+
+/* ホームのハンターランクのバーと同じ見た目 */
+.wallpaper-progress {
+  width: 100%;
+  height: 10px;
+
+  margin-top: var(--space-2);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-bg-deep);
+
+  overflow: hidden;
+}
+
+.wallpaper-progress-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: linear-gradient(90deg, #a77e38, var(--color-gold));
+}
+
+.progress-reward-pending-label {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-xs);
+}
+
+/* 手順の説明（番号付き） */
+.progress-steps {
+  display: grid;
+  gap: var(--space-2);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+
+  counter-reset: progress-step;
+}
+
+.progress-steps li {
+  position: relative;
+
+  padding: var(--space-3) var(--space-3) var(--space-3) 48px;
+
+  border: 1px solid var(--color-border-muted);
+
+  background: rgba(12, 14, 12, 0.85);
+
+  color: var(--color-text);
+
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+
+  counter-increment: progress-step;
+}
+
+.progress-steps li::before {
+  content: counter(progress-step);
+
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+
+  width: 24px;
+  height: 24px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-circle);
+
+  color: var(--color-gold);
+
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+.progress-steps small {
+  display: block;
+
+  margin-top: var(--space-1);
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-sm);
 }

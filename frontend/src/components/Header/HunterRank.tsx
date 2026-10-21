@@ -16,7 +16,7 @@ function HunterRank({ rankExp }: HunterRankProps) {
         <div className="hunter-rank-number">{rank}</div>
       </div>
       <div className="hunter-rank-experience">
-        <div className="hunter-rank-next">{isMax ? "上限に到達" : "次のHRまで"}</div>
+        <div className="hunter-rank-next">{isMax ? "上限に到達" : "次のランクまで"}</div>
         <div
           className="hunter-rank-progress"
           role="progressbar"
@@ -24,7 +24,7 @@ function HunterRank({ rankExp }: HunterRankProps) {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={progressPercent}
-          aria-valuetext={isMax ? "HR100、上限に到達" : expText}
+          aria-valuetext={isMax ? "ハンターランク100、上限に到達" : expText}
         >
           <div className="hunter-rank-progress-fill" style={{ width: `${progressPercent}%` }} />
         </div>

@@ -72,7 +72,10 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
     { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', popover: {
       title: "集めた素材を確認", description: "「進捗」を押すと、武器の作成に必要な素材と所持数を確認できます。", side: "top",
     } },
-    { id: "craft", path: "/progress", action: "craft-open", element: '[data-tutorial="create-weapon"]', popover: {
+    { id: "progress-hub", path: "/progress", action: "weapons-open", element: '[data-tutorial="progress-weapons"]', popover: {
+      title: "武器の作成を開く", description: "進捗では、武器・ステッカー・スマホ壁紙・スタンプの集まり具合を確認できます。「武器を作る」を押しましょう。", side: "bottom",
+    } },
+    { id: "craft", path: "/progress/weapons", action: "craft-open", element: '[data-tutorial="create-weapon"]', popover: {
       title: "素材が揃いました", description: "必要な素材がすべて揃いました。「武器を作成する」を押して、武器の作成画面を開きましょう。", side: "top",
     } },
     { id: "exchange", path: "/exchange/weapon", action: "exchange-open", element: '[data-tutorial="exchange-open"]', popover: {
@@ -84,7 +87,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
     { id: "exchange-back", path: "/exchange/weapon", action: "exchange-back", element: '[data-tutorial="exchange-back"]', waitForElement: 2000, popover: {
       title: "武器を作成しました", description: "武器を作成すると攻撃力が上がり、モンスターに与えるダメージが増えます。確認できたら「武器詳細へ戻る」を押しましょう。", side: "top",
     } },
-    { id: "finish-home", path: "/progress", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
+    { id: "finish-home", path: "/progress/weapons", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
       title: "ホームへ戻ろう", description: "「ホーム」を押して、練習を終えましょう。ここまでが狩猟から武器の作成までの流れです。", side: "top",
     } },
     { id: "complete", path: "/", popover: {

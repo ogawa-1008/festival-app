@@ -76,8 +76,8 @@ function NoveltyRedeem() {
       <main className="novelty-page">
         <section className="novelty-card">
           <h1>フィールドが見つかりません</h1>
-          <button type="button" className="novelty-back" onClick={() => navigate("/stamps")}>
-            スタンプ・ステッカーへ戻る
+          <button type="button" className="novelty-back" onClick={() => navigate("/progress/stickers")}>
+            ステッカー一覧へ戻る
           </button>
         </section>
       </main>
@@ -188,8 +188,8 @@ function NoveltyRedeem() {
           </>
         )}
 
-        <Link className="novelty-back" to={`/stamps#field-${area.id}`}>
-          スタンプ・ステッカーへ戻る
+        <Link className="novelty-back" to="/progress/stickers">
+          ステッカー一覧へ戻る
         </Link>
       </section>
     </main>

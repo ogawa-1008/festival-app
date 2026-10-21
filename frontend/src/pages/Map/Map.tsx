@@ -12,6 +12,7 @@ import {
 } from "../../components/FieldCollection/FieldCollection";
 import { getFieldProgress } from "../../utils/fieldProgress";
 
+import PageTitle from "../../components/PageTitle/PageTitle";
 import "./Map.css";
 
 function Map() {
@@ -25,13 +26,7 @@ function Map() {
       <div className="map-background" />
 
       <div className="map-content">
-        <header className="map-header">
-          <span className="map-header-subtitle">
-            FIELD MAP
-          </span>
-
-          <h1>フィールドマップ</h1>
-        </header>
+        <PageTitle eyebrow="FIELD MAP" title="フィールドマップ" />
 
         <FieldCollectionSummary />
 
@@ -122,13 +117,13 @@ function Map() {
                       </div>
 
                       <div className="map-detail-row">
-                        <span>RECOMMENDED HR</span>
+                        <span>RECOMMENDED RANK</span>
 
-                        <strong>HR {Math.min(area.id, 3)}</strong>
+                        <strong>ハンターランク {Math.min(area.id, 3)}</strong>
                       </div>
 
                       <FieldRewards area={area} progress={fieldProgress} />
-                      <Link className="field-collection-link" to={`/stamps#field-${area.id}`}>
+                      <Link className="field-collection-link" to={`/progress/fields#field-${area.id}`}>
                         コレクションで見る <span aria-hidden="true">›</span>
                       </Link>
                     </div>

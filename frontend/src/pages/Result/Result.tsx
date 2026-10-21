@@ -84,8 +84,8 @@ function Result() {
     const rankedUp = claimed && !frame?.isAnimating && progress.rank > beforeRank;
     const expStatus = !claimed ? "報酬を受け取るとEXPが加算されます"
         : frame?.isAnimating ? "EXPを加算中…"
-        : rankedUp ? `RANK UP! HR ${beforeRank} → ${progress.rank}`
-        : progress.isMax ? "ハンターランク上限に到達"
+        : rankedUp ? `ランクアップ！ ハンターランク ${beforeRank} → ${progress.rank}`
+        : progress.isMax ? "ハンターランクの上限に到達"
         : displayedExp > 0 ? `${displayedExp} EXPを獲得しました` : "受取済みの報酬です";
 
     const handleClaimReward = () => {
@@ -196,11 +196,11 @@ function Result() {
 
                     <div className={`result-exp-panel${frame?.isAnimating ? " is-animating" : ""}${rankedUp ? " is-rank-up" : ""}`} ref={expPanel}>
                         <div className="result-exp-heading">
-                            <strong>HR {progress.rank}</strong>
+                            <strong>ハンターランク {progress.rank}</strong>
                             <span className="result-rank-exp">
                                 {displayedExp > 0
                                     ? `+${claimed ? frame?.addedExp ?? displayedExp : displayedExp} EXP`
-                                    : progress.isMax ? "HR MAX" : "+0 EXP（受取済み）"}
+                                    : progress.isMax ? "ランク上限" : "+0 EXP（受取済み）"}
                             </span>
                         </div>
                         <div
@@ -210,7 +210,7 @@ function Result() {
                             aria-valuemin={0}
                             aria-valuemax={100}
                             aria-valuenow={Math.round(progress.progressPercent * 100) / 100}
-                            aria-valuetext={progress.isMax ? "HR100、上限に到達" : `HR${progress.rank}、${progress.progressExp} / ${progress.requiredExp} EXP`}
+                            aria-valuetext={progress.isMax ? "ハンターランク100、上限に到達" : `ハンターランク${progress.rank}、${progress.progressExp} / ${progress.requiredExp} EXP`}
                         >
                             <div className="result-exp-fill" style={{ transform: `scaleX(${(frame?.isAnimating ? frame.goldProgressPercent : progress.progressPercent) / 100})` }} />
                             {frame?.isAnimating && (

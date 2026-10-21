@@ -4,6 +4,7 @@ import {
   Route,
   useParams,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
 import Home from "./pages/Home/Home";
@@ -12,6 +13,10 @@ import QuestLoading from "./pages/QuestLoading/QuestLoading";
 import GameTutorial from "./components/Tutorial/GameTutorial";
 import Map from "./pages/Map/Map";
 import Progress from "./pages/Progress/Progress";
+import ProgressWeapons from "./pages/Progress/ProgressWeapons";
+import ProgressStickers from "./pages/Progress/ProgressStickers";
+import ProgressWallpaper from "./pages/Progress/ProgressWallpaper";
+import ProgressFields from "./pages/Progress/ProgressFields";
 import QRScanner from "./pages/QRScanner/QRScanner.tsx";
 import Battle from "./pages/Battle/Battle.tsx";
 import Result from "./pages/Result/Result.tsx";
@@ -35,6 +40,11 @@ function ResultRoute() {
   const { questId } = useParams();
 
   return <Result key={questId} />;
+}
+// 以前の /stamps は /progress/fields にまとめた（#field-1 などの位置の指定も引き継ぐ）
+function StampsRedirect() {
+  const { hash } = useLocation();
+  return <Navigate to={`/progress/fields${hash}`} replace />;
 }
 function HomeEntry() {
   const { campusId } = useGame();
@@ -79,7 +89,11 @@ function App() {
                 />
 
                 <Route path="/materials" element={<Collection view="materials" />} />
-                <Route path="/stamps" element={<Collection view="stamps" />} />
+                <Route path="/progress/weapons" element={<ProgressWeapons />} />
+                <Route path="/progress/stickers" element={<ProgressStickers />} />
+                <Route path="/progress/wallpaper" element={<ProgressWallpaper />} />
+                <Route path="/progress/fields" element={<ProgressFields />} />
+                <Route path="/stamps" element={<StampsRedirect />} />
                 <Route path="/history" element={<Collection view="history" />} />
                 <Route path="/exchange/weapon" element={<Exchange />} />
                 <Route path="/novelty/:fieldId" element={<NoveltyRedeem />} />

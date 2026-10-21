@@ -88,7 +88,7 @@ function Exchange() {
         )}
         <button type="button" className="exchange-back" data-tutorial={!isConfirming ? "exchange-back" : undefined} onClick={() => {
           if (practice) advance("exchange-back");
-          navigate("/progress", { replace: practice });
+          navigate("/progress/weapons", { replace: practice });
         }}>
           武器詳細へ戻る
         </button>

@@ -4,11 +4,10 @@ import { useNavigate } from "react-router-dom";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
-import FieldCollection from "../../components/FieldCollection/FieldCollection";
 
 import "./Collection.css";
 
-type CollectionView = "materials" | "stamps" | "history";
+type CollectionView = "materials" | "history";
 
 type CollectionProps = {
   view: CollectionView;
@@ -21,7 +20,6 @@ function Collection({ view }: CollectionProps) {
 
   const title = {
     materials: "獲得した素材",
-    stamps: "フィールドコレクション",
     history: "アクティビティ履歴",
   }[view];
 
@@ -46,7 +44,7 @@ function Collection({ view }: CollectionProps) {
             ←
           </button>
           <div>
-            <span>{view === "stamps" ? "STAMP & STICKER" : "HUNTER'S RECORD"}</span>
+            <span>HUNTER'S RECORD</span>
             <h1>{title}</h1>
           </div>
         </header>
@@ -66,7 +64,6 @@ function Collection({ view }: CollectionProps) {
           </section>
         )}
 
-        {view === "stamps" && <FieldCollection />}
 
         {view === "history" && (
           <section>

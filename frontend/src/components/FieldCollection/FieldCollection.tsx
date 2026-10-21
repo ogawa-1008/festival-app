@@ -9,7 +9,7 @@ import "./FieldCollection.css";
 
 type FieldProgress = ReturnType<typeof getFieldProgress>;
 
-function StickerIcon() {
+export function StickerIcon() {
   return (
     <svg
       viewBox="0 0 48 48"
@@ -25,8 +25,11 @@ function StickerIcon() {
 
 export function FieldCollectionSummary({
   showLink = true,
+  heading = "フィールドの収集状況",
 }: {
   showLink?: boolean;
+  // ページ側に同じ見出しがあるときは別の見出しにして二重に出さない
+  heading?: string;
 }) {
   const { quests, obtainedFieldNoveltyIds } = useGame();
   const fields = mapAreas.map((area) => ({
@@ -37,11 +40,11 @@ export function FieldCollectionSummary({
   const earned = fields.reduce((sum, field) => sum + field.earned, 0);
 
   return (
-    <section className="field-summary" aria-label="フィールドの収集状況">
+    <section className="field-summary" aria-label={heading}>
       <div className="field-summary-heading">
         <div>
           <span className="field-eyebrow">FIELD COLLECTION</span>
-          <h2>フィールドの収集状況</h2>
+          <h2>{heading}</h2>
         </div>
         <strong>
           {earned}
@@ -74,7 +77,7 @@ export function FieldCollectionSummary({
         ))}
       </div>
       {showLink && (
-        <Link className="field-collection-link" to="/stamps">
+        <Link className="field-collection-link" to="/progress/fields">
           スタンプ・ステッカーを見る <span aria-hidden="true">›</span>
         </Link>
       )}
@@ -221,7 +224,7 @@ export default function FieldCollection() {
 
   return (
     <>
-      <FieldCollectionSummary showLink={false} />
+      <FieldCollectionSummary showLink={false} heading="スタンプの獲得状況" />
       <div className="field-collection-list">
         {mapAreas.map((area) => (
           <article
