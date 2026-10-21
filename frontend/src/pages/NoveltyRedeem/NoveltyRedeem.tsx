@@ -30,8 +30,8 @@ function NoveltyRedeem() {
   // マップ・スタンプから開いたときはその画面へ、それ以外はステッカー一覧へ戻る
   const returnTo = (useLocation().state as { returnTo?: string } | null)?.returnTo;
   const back = returnTo
-    ? { to: returnTo, label: "前の画面へ戻る" }
-    : { to: "/progress/stickers", label: "ステッカー一覧へ戻る" };
+    ? { to: returnTo, label: "前の画面へ戻る", replace: true }
+    : { to: "/progress/stickers", label: "ステッカー一覧へ戻る", replace: false };
   const { fieldId: fieldIdParam } = useParams();
   const { campusId, quests, obtainedFieldNoveltyIds, requiresUpdate, claimFieldNovelty } = useGame();
   const { active: practice } = useGameTutorial();
@@ -81,7 +81,7 @@ function NoveltyRedeem() {
       <main className="novelty-page">
         <section className="novelty-card">
           <h1>フィールドが見つかりません</h1>
-          <button type="button" className="novelty-back" onClick={() => navigate(back.to)}>
+          <button type="button" className="novelty-back" onClick={() => navigate(back.to, { replace: back.replace })}>
             {back.label}
           </button>
         </section>
@@ -193,7 +193,7 @@ function NoveltyRedeem() {
           </>
         )}
 
-        <Link className="novelty-back" to={back.to}>
+        <Link className="novelty-back" to={back.to} replace={back.replace}>
           {back.label}
         </Link>
       </section>

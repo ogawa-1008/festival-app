@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
+import { getOwnedMaterial } from "../../utils/weaponMaterials";
 
 import "./Collection.css";
 
@@ -58,7 +59,7 @@ function Collection({ view }: CollectionProps) {
                   <h2>{material.name}</h2>
                   <p>所持数</p>
                 </div>
-                <strong>× {materials[material.id] ?? 0}</strong>
+                <strong>× {getOwnedMaterial(materials, material.id)}</strong>
               </article>
             ))}
           </section>

@@ -41,7 +41,9 @@ function Progress() {
       title: "武器を作る",
       status: weaponClaimed
         ? "作成済み"
-        : canCraft
+        : requiresUpdate
+          ? "アプリの更新が必要です"
+          : canCraft
           ? "素材がそろいました。作れます"
           : `そろった素材 ${enoughMaterials} / ${allMaterials} 種類`,
       highlight: canCraft,

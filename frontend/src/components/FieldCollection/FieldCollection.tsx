@@ -109,9 +109,9 @@ export function FieldRewards({
 }) {
   // 練習中は交換できないので、交換ボタンを出さない
   const { active: practice } = useGameTutorial();
-  // 交換画面の「戻る」で、開いた画面（マップ・スタンプのそのフィールド）へ戻れるようにする
-  const { pathname } = useLocation();
-  const returnTo = pathname === "/progress/fields" ? `${pathname}#field-${area.id}` : pathname;
+  // 交換画面の「戻る」で、開いた画面（マップ・スタンプ）のそのフィールドへ戻れるようにする
+  const { pathname, search } = useLocation();
+  const returnTo = `${pathname}${search}#field-${area.id}`;
 
   return (
     <div className="field-rewards">

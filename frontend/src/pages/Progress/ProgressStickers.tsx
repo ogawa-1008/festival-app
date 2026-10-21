@@ -45,7 +45,7 @@ function ProgressStickers() {
 
               return (
                 <li key={area.id} className="progress-reward-item">
-                  <div className={`material-row ${progress.noveltyObtained || progress.redeemable ? "material-enough" : ""}`}>
+                  <div className={`material-row ${progress.noveltyObtained || canRedeem ? "material-enough" : ""}`}>
                     <div className="material-image-frame progress-reward-icon" aria-hidden="true">
                       {area.novelty.image
                         ? <img className="material-image" src={area.novelty.image} alt="" />

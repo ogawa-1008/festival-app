@@ -6,7 +6,7 @@ import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getWeaponAttackBonus } from "../../utils/playerStats";
-import { hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
+import { getOwnedMaterial, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
 
 import "./Exchange.css";
 
@@ -70,7 +70,7 @@ function Exchange() {
               {progressData.materials.map((material) => (
                 <p key={material.id}>
                   <span>{material.name}</span>
-                  <strong>{materials[material.id] ?? 0} / {material.required}</strong>
+                  <strong>{getOwnedMaterial(materials, material.id)} / {material.required}</strong>
                 </p>
               ))}
             </div>
