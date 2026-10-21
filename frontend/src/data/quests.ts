@@ -1,100 +1,25 @@
 import type { Quest } from "../types/quest";
 import { battleBalances } from "../game/battle.ts";
+import { allCampusQuests } from "./maps.ts";
+import { defineQuest } from "./questDefinition.ts";
 
-export const quests: Quest[] = [
-  {
-    id: "quest-001",
-    title: "ジンオウガを討伐せよ！",
-    description: "森に現れたモンスターを討伐しよう！",
+// 操作の練習で使うクエスト。練習中だけ、選んでいる校舎の最初のフィールドに出る
+export const PRACTICE_QUEST_ID = "quest-001";
 
-    image: "/images/quests/image.png",
+export const practiceQuest: Quest = defineQuest({
+  id: PRACTICE_QUEST_ID,
+  title: "ジンオウガを討伐せよ！",
+  description: "森に現れたモンスターを討伐しよう！",
+  image: "/images/quests/image.png",
+  qrCode: "QUEST_001",
+  monsterHp: battleBalances[PRACTICE_QUEST_ID].monsterMaxHp,
+  monsterDamage: battleBalances[PRACTICE_QUEST_ID].monsterDamage,
+  rewardMaterials: [
+    { id: 1, amount: 1 },
+    { id: 2, amount: 2 },
+  ],
+  rewardExp: 100,
+});
 
-    qrCode: "QUEST_001",
-
-    rewardMaterials: [
-      {
-        id: 1,
-        amount: 1,
-      },
-      {
-        id: 2,
-        amount: 2,
-      },
-    ],
-
-    maxTurns: 30,
-
-    monsterHp: battleBalances["quest-001"].monsterMaxHp,
-    monsterAttack: (battleBalances["quest-001"].monsterDamage.min + battleBalances["quest-001"].monsterDamage.max) / 2,
-    monsterAttackMin: battleBalances["quest-001"].monsterDamage.min,
-    monsterAttackMax: battleBalances["quest-001"].monsterDamage.max,
-
-    rewardExp: 100,
-
-    completed: false,
-  },
-
-  {
-    id: "quest-002",
-    title: "砂漠のモンスターを討伐せよ！",
-    description: "砂漠に現れたモンスターを討伐しよう！",
-
-    image: "/images/quests/image.png",
-
-    qrCode: "QUEST_002",
-
-    rewardMaterials: [
-      {
-        id: 2,
-        amount: 1,
-      },
-      {
-        id: 3,
-        amount: 2,
-      },
-    ],
-
-    maxTurns: 30,
-
-    monsterHp: battleBalances["quest-002"].monsterMaxHp,
-    monsterAttack: (battleBalances["quest-002"].monsterDamage.min + battleBalances["quest-002"].monsterDamage.max) / 2,
-    monsterAttackMin: battleBalances["quest-002"].monsterDamage.min,
-    monsterAttackMax: battleBalances["quest-002"].monsterDamage.max,
-
-    rewardExp: 120,
-
-    completed: false,
-  },
-
-  {
-    id: "quest-003",
-    title: "強大なモンスターを討伐せよ！",
-    description: "強力なモンスターに挑戦しよう！",
-
-    image: "/images/quests/image.png",
-
-    qrCode: "QUEST_003",
-
-    rewardMaterials: [
-      {
-        id: 3,
-        amount: 1,
-      },
-      {
-        id: 4,
-        amount: 1,
-      },
-    ],
-
-    maxTurns: 30,
-
-    monsterHp: battleBalances["quest-003"].monsterMaxHp,
-    monsterAttack: (battleBalances["quest-003"].monsterDamage.min + battleBalances["quest-003"].monsterDamage.max) / 2,
-    monsterAttackMin: battleBalances["quest-003"].monsterDamage.min,
-    monsterAttackMax: battleBalances["quest-003"].monsterDamage.max,
-
-    rewardExp: 150,
-
-    completed: false,
-  },
-];
+// 練習用と全校舎のクエスト（報酬の経験値など、IDから定義を引くときに使う）
+export const quests: Quest[] = [practiceQuest, ...allCampusQuests.map(({ quest }) => quest)];

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { mapAreas } from "../../data/maps";
+import { useMapAreas } from "../../context/useMapAreas";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
@@ -28,6 +28,7 @@ function Map() {
       document.getElementById(`field-${hashAreaId}`)?.scrollIntoView({ block: "start" });
   }, [hashAreaId]);
   const { quests, obtainedFieldNoveltyIds } = useGame();
+  const mapAreas = useMapAreas();
 
   return (
     <main className="map-page">
@@ -39,7 +40,7 @@ function Map() {
         <FieldCollectionSummary />
 
         <div className="map-list">
-          {mapAreas.map((area) => {
+          {mapAreas.map((area, index) => {
             const isSelected =
               selectedAreaId === area.id;
             const fieldProgress = getFieldProgress(area, quests, obtainedFieldNoveltyIds);
@@ -55,7 +56,7 @@ function Map() {
                   type="button"
                   aria-expanded={isSelected}
                   aria-controls={isSelected ? `map-field-detail-${area.id}` : undefined}
-                  data-tutorial={area.id === 1 ? "map-field" : undefined}
+                  data-tutorial={index === 0 ? "map-field" : undefined}
                   className={`map-card ${
                     isSelected
                       ? "map-card-active"
@@ -70,15 +71,17 @@ function Map() {
                     );
                   }}
                 >
-                  <img
-                    src={area.image}
-                    alt={area.areaName}
-                    className="map-card-image"
-                    onError={(event) => {
-                      event.currentTarget.style.display =
-                        "none";
-                    }}
-                  />
+                  {area.image && (
+                    <img
+                      src={area.image}
+                      alt={area.areaName}
+                      className="map-card-image"
+                      onError={(event) => {
+                        event.currentTarget.style.display =
+                          "none";
+                      }}
+                    />
+                  )}
 
                   <div className="map-card-fallback">
                     <span>{area.areaName}</span>
@@ -126,9 +129,11 @@ function Map() {
                       </div>
 
                       <div className="map-detail-row">
-                        <span>RECOMMENDED RANK</span>
+                        <span>PHOTO SPOT</span>
 
-                        <strong>ハンターランク {Math.min(area.id, 3)}</strong>
+                        <strong>
+                          {area.photoSpotMonster}
+                        </strong>
                       </div>
 
                       <FieldRewards area={area} progress={fieldProgress} />

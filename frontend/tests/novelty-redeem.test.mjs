@@ -1,10 +1,20 @@
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mapAreas } from "../src/data/maps.ts";
-import { quests } from "../src/data/quests.ts";
+import { practiceQuest } from "../src/data/quests.ts";
 import { getFieldProgress } from "../src/utils/fieldProgress.ts";
 import { fetchNoveltyStocks, redeemNovelty } from "../src/api/noveltyApi.ts";
 
+// 実際の校舎のデータ（モンスターが未定）に左右されないよう、テスト用のフィールドとクエストを使う
+const quests = [{ ...practiceQuest, id: "quest-a" }, { ...practiceQuest, id: "quest-b" }];
+const area = (id, questIds) => ({
+  id,
+  buildingName: `${id}号館`,
+  areaName: `field-${id}`,
+  photoSpotMonster: "monster",
+  questIds,
+  novelty: { name: "sticker", description: "", redemptionLocation: "" },
+});
+const mapAreas = [area(1, ["quest-a"]), area(2, [])];
 const field = mapAreas.find((area) => area.questIds.length > 0);
 const questOf = (id, patch) => quests.map((quest) => (quest.id === id ? { ...quest, ...patch } : quest));
 

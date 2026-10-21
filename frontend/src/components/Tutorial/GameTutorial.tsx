@@ -5,6 +5,7 @@ import { BattleSessionProvider } from "../../context/BattleSessionContext";
 import { GameProvider, useGame } from "../../context/GameContext";
 import { GameTutorialContext } from "./useGameTutorial";
 import { clearPractice, createTutorialSteps, hasSeenTutorial, readActiveTutorialStep, saveActiveTutorialStep, saveTutorialStatus, type TutorialStep } from "./tutorialSteps";
+import { PRACTICE_QUEST_ID } from "../../data/quests";
 import "driver.js/dist/driver.css";
 import "../Festival/FestivalDesign.css";
 import "./GameTutorial.css";
@@ -123,10 +124,10 @@ function TutorialOverlay({ stepId, steps, advance, finish }: {
 }
 
 export default function GameTutorial({ children }: { children: ReactNode }) {
-  const { campusId, quests } = useGame();
+  const { campusId } = useGame();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const questId = quests[0]?.id ?? "quest-001";
+  const questId = PRACTICE_QUEST_ID;
   const steps = useMemo(() => createTutorialSteps(questId), [questId]);
   const [seen, setSeen] = useState(hasSeenTutorial);
   const [requestedStep, setRequestedStep] = useState<string | null>(() => readActiveTutorialStep(pathname, steps));

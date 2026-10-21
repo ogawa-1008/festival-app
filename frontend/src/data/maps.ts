@@ -1,52 +1,50 @@
-import type { MapArea } from "../types/maps";
+import type { CampusId } from "./campuses.ts";
+import { nagoyaFields } from "./campuses/nagoya.ts";
+import { osakaFields } from "./campuses/osaka.ts";
+import { tokyoFields } from "./campuses/tokyo.ts";
+import type { FieldDefinition, MapArea } from "../types/maps.ts";
+import type { Quest } from "../types/quest.ts";
 
-export const mapAreas: MapArea[] = [
-  {
-    id: 1,
-    buildingName: "バンタン1号館",
-    areaName: "瘴気の谷",
-    image: "/images/maps/image.png",
-    questIds: ["quest-001"],
+const campusFields: Record<CampusId, FieldDefinition[]> = {
+  tokyo: tokyoFields,
+  osaka: osakaFields,
+  nagoya: nagoyaFields,
+};
+
+function toMapArea(field: FieldDefinition): MapArea {
+  return {
+    id: field.building,
+    buildingName: `${field.building}号館`,
+    areaName: field.areaName,
+    image: field.image,
+    photoSpotMonster: field.photoSpotMonster,
+    questIds: field.quests.map((quest) => quest.id),
     novelty: {
-      name: "瘴気の谷 オリジナルステッカー",
+      // ステッカーの絵柄はフォトスポットのモンスターと同じ
+      name: `${field.photoSpotMonster} オリジナルステッカー`,
       description: "フィールド報酬のステッカーです。",
-      redemptionLocation: "現地のフォトスポット",
+      redemptionLocation: `${field.building}号館のフォトスポット`,
     },
-  },
-  {
-    id: 2,
-    buildingName: "バンタン2号館",
-    areaName: "古代樹の森",
-    image: "/images/maps/image copy.png",
-    questIds: ["quest-002"],
-    novelty: {
-      name: "古代樹の森 オリジナルステッカー",
-      description: "フィールド報酬のステッカーです。",
-      redemptionLocation: "現地のフォトスポット",
-    },
-  },
-  {
-    id: 3,
-    buildingName: "バンタン3号館",
-    areaName: "陸珊瑚の台地",
-    image: "/images/maps/image copy 2.png",
-    questIds: ["quest-003"],
-    novelty: {
-      name: "陸珊瑚の台地 オリジナルステッカー",
-      description: "フィールド報酬のステッカーです。",
-      redemptionLocation: "現地のフォトスポット",
-    },
-  },
-  {
-    id: 4,
-    buildingName: "バンタン4号館",
-    areaName: "大蟻塚",
-    image: "/images/maps/image copy 3.png",
-    questIds: [],
-    novelty: {
-      name: "大蟻塚 オリジナルステッカー",
-      description: "フィールド報酬のステッカーです。",
-      redemptionLocation: "現地のフォトスポット",
-    },
-  },
-];
+  };
+}
+
+const campusMapAreas = Object.fromEntries(
+  Object.entries(campusFields).map(([campusId, fields]) => [campusId, fields.map(toMapArea)]),
+) as Record<CampusId, MapArea[]>;
+
+// 校舎のフィールド（号館の番号順）。校舎が未選択なら空
+export function getMapAreas(campusId: CampusId | null): MapArea[] {
+  return campusId ? campusMapAreas[campusId] : [];
+}
+
+// 校舎に出るモンスター（クエスト）の一覧
+export function getCampusQuests(campusId: CampusId | null): Quest[] {
+  return campusId ? campusFields[campusId].flatMap((field) => field.quests) : [];
+}
+
+// すべての校舎のクエスト（QRコードがどの校舎のものかを調べるのに使う）
+export const allCampusQuests: { campusId: CampusId; quest: Quest }[] = (
+  Object.entries(campusFields) as [CampusId, FieldDefinition[]][]
+).flatMap(([campusId, fields]) =>
+  fields.flatMap((field) => field.quests.map((quest) => ({ campusId, quest }))),
+);

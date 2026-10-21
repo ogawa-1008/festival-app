@@ -3,7 +3,9 @@ import { Html5Qrcode } from "html5-qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
-import { quests } from "../../data/quests";
+import { findCampus } from "../../data/campuses";
+import { allCampusQuests } from "../../data/maps";
+import { quests as allQuests } from "../../data/quests";
 import { useGame } from "../../context/GameContext";
 import { getBattleStats } from "../../utils/battleStats";
 import {
@@ -58,14 +60,17 @@ function QRScanner() {
   const { active: practice, step, questId: practiceQuestId, advance } = useGameTutorial();
 
   const { startBattle } = useBattleSession();
-  const { weaponClaimed } = useGame();
+  const { weaponClaimed, quests } = useGame();
 
   // カメラ起動後に別タブで武器を交換しても、読み取った時点の値を使えるよう最新値を持つ
   const weaponClaimedRef = useRef(weaponClaimed);
+  // 読み取れるのは選んでいる校舎のクエストだけ（練習中は練習用のクエストも）
+  const questsRef = useRef(quests);
 
   useEffect(() => {
     weaponClaimedRef.current = weaponClaimed;
-  }, [weaponClaimed]);
+    questsRef.current = quests;
+  }, [weaponClaimed, quests]);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
@@ -172,6 +177,7 @@ function QRScanner() {
       return;
     }
 
+    const quests = questsRef.current;
     const quest = quests.find(
       (item) =>
         item.qrCode === decodedText
@@ -193,7 +199,7 @@ function QRScanner() {
       if (start.type === "confirm") {
         const previousId = start.questId;
         const title =
-          quests.find((item) => item.id === previousId)?.title
+          allQuests.find((item) => item.id === previousId)?.title
             ?? "前回のクエスト";
         const message = start.mode === "takeover"
           ? getTakeOverMessage(title)
@@ -212,7 +218,7 @@ function QRScanner() {
       // 映像だけが黒いまま遷移しないことがある。
       if (start.type === "result") {
         const pendingTitle =
-          quests.find((item) => item.id === start.questId)?.title;
+          allQuests.find((item) => item.id === start.questId)?.title;
 
         // 別クエストのQRを読んだのに前のリザルトへ進む理由を伝える
         navigate(`/result/${start.questId}`, {
@@ -228,8 +234,14 @@ function QRScanner() {
       }
       void stopScanner();
     } else {
+      // ほかの校舎のQRなら、どの校舎のものかを伝える
+      const otherCampus = findCampus(
+        allCampusQuests.find((item) => item.quest.qrCode === decodedText)?.campusId ?? null,
+      );
       setErrorMessage(
-        "このQRコードはクエスト用ではありません"
+        otherCampus
+          ? `このQRコードは${otherCampus.name}のクエストです。選んでいる校舎のQRコードを読み取ってください`
+          : "このQRコードはクエスト用ではありません"
       );
     }
 

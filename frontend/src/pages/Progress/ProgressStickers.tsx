@@ -2,7 +2,7 @@ import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { StickerIcon } from "../../components/FieldCollection/FieldCollection";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
-import { mapAreas } from "../../data/maps";
+import { useMapAreas } from "../../context/useMapAreas";
 import { getFieldProgress } from "../../utils/fieldProgress";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
@@ -12,6 +12,7 @@ import "./Progress.css";
 // 進捗：フィールドのステッカーをもらう（武器の作成ページと同じ部品で組む）
 function ProgressStickers() {
   const { quests, obtainedFieldNoveltyIds } = useGame();
+  const mapAreas = useMapAreas();
   const { active: practice } = useGameTutorial();
 
   return (

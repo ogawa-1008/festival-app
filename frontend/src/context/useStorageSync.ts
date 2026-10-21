@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 
 // 別タブで localStorage の key が更新されたとき・タブが表示に戻ったときに onSync を呼ぶ
 // （スマホでは背景タブの storage イベントが遅れるため、表示に戻った時点でも読み直す）
-export function useStorageSync(key: string, onSync: () => void, enabled = true) {
+export function useStorageSync(key: string | string[], onSync: () => void, enabled = true) {
+  const keys = (Array.isArray(key) ? key : [key]).join("\n");
   const onSyncRef = useRef(onSync);
 
   useEffect(() => {
@@ -12,7 +13,7 @@ export function useStorageSync(key: string, onSync: () => void, enabled = true) 
   useEffect(() => {
     if (!enabled) return;
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== key && event.key !== null) return;
+      if (event.key !== null && !keys.split("\n").includes(event.key)) return;
 
       onSyncRef.current();
     };
@@ -34,5 +35,5 @@ export function useStorageSync(key: string, onSync: () => void, enabled = true) 
       window.removeEventListener("focus", handleVisible);
       document.removeEventListener("visibilitychange", handleVisible);
     };
-  }, [key, enabled]);
+  }, [keys, enabled]);
 }
