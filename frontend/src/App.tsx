@@ -43,8 +43,8 @@ function ResultRoute() {
 }
 // 以前の /stamps は /progress/fields にまとめた（#field-1 などの位置の指定も引き継ぐ）
 function StampsRedirect() {
-  const { hash } = useLocation();
-  return <Navigate to={`/progress/fields${hash}`} replace />;
+  const { search, hash } = useLocation();
+  return <Navigate to={`/progress/fields${search}${hash}`} replace />;
 }
 function HomeEntry() {
   const { campusId } = useGame();

@@ -20,6 +20,7 @@ import { GAME_STORAGE_KEY, loadSavedGame, saveGame } from "../utils/gameStorage"
 import { mapAreas } from "../data/maps";
 import { restoreFieldNoveltyIds } from "../utils/fieldProgress";
 import { getWeaponAttackBonus } from "../utils/playerStats";
+import { hasEnoughWeaponMaterials } from "../utils/weaponMaterials";
 
 type MaterialStock = Record<number, number>;
 
@@ -265,10 +266,7 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       if (!canUpdateGame()) return false;
       const canClaim =
         !gameState.weaponClaimed &&
-        progressData.materials.every(
-          (material) =>
-            (gameState.materials[material.id] ?? 0) >= material.required
-        );
+        hasEnoughWeaponMaterials(gameState.materials);
 
       if (!canClaim) {
         return false;

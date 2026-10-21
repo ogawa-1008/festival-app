@@ -6,6 +6,7 @@ import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getWeaponAttackBonus } from "../../utils/playerStats";
+import { hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
 
 import "./Exchange.css";
 
@@ -24,9 +25,7 @@ function Exchange() {
 
   const attackBonus = getWeaponAttackBonus();
 
-  const hasEnoughMaterials = progressData.materials.every(
-    (material) => (materials[material.id] ?? 0) >= material.required
-  );
+  const hasEnoughMaterials = hasEnoughWeaponMaterials(materials);
 
   // スワイプで確定したら武器を作成し、「作成完了」を少し見せてから作成済み画面にする
   const handleExchange = () => {

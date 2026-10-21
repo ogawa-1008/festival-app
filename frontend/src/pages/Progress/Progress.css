@@ -111,7 +111,8 @@
 }
 
 
-.weapon-title-frame h1 {
+.weapon-title-frame h1,
+.weapon-title-frame h2 {
   position: relative;
 
   margin: 0;

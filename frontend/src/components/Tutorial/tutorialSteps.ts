@@ -70,7 +70,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       title: "素材を受け取りました", description: "「ホームへ戻る」を押してください。集めた素材で武器を作成してみましょう。", side: "top",
     } },
     { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', popover: {
-      title: "集めた素材を確認", description: "「進捗」を押すと、武器の作成に必要な素材と所持数を確認できます。", side: "top",
+      title: "集めた素材を確認", description: "「進捗」を押すと、集めた素材でもらえる報酬を確認できます。", side: "top",
     } },
     { id: "progress-hub", path: "/progress", action: "weapons-open", element: '[data-tutorial="progress-weapons"]', popover: {
       title: "武器の作成を開く", description: "進捗では、武器・ステッカー・スマホ壁紙・スタンプの集まり具合を確認できます。「武器を作る」を押しましょう。", side: "bottom",

@@ -78,7 +78,7 @@ export function FieldCollectionSummary({
       </div>
       {showLink && (
         <Link className="field-collection-link" to="/progress/fields">
-          スタンプ・ステッカーを見る <span aria-hidden="true">›</span>
+          スタンプを見る <span aria-hidden="true">›</span>
         </Link>
       )}
     </section>
@@ -109,6 +109,9 @@ export function FieldRewards({
 }) {
   // 練習中は交換できないので、交換ボタンを出さない
   const { active: practice } = useGameTutorial();
+  // 交換画面の「戻る」で、開いた画面（マップ・スタンプのそのフィールド）へ戻れるようにする
+  const { pathname } = useLocation();
+  const returnTo = pathname === "/progress/fields" ? `${pathname}#field-${area.id}` : pathname;
 
   return (
     <div className="field-rewards">
@@ -196,7 +199,7 @@ export function FieldRewards({
         </p>
         {!progress.noveltyObtained && !practice && (
           progress.redeemable ? (
-            <Link className="field-novelty-redeem" to={`/novelty/${area.id}`}>
+            <Link className="field-novelty-redeem" to={`/novelty/${area.id}`} state={{ returnTo }}>
               ステッカーを交換する <span aria-hidden="true">›</span>
             </Link>
           ) : (

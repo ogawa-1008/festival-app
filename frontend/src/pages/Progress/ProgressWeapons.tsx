@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { getOwnedMaterial, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
 
@@ -11,15 +12,11 @@ import "./Progress.css";
 
 // 進捗：武器の作成（今の武器・必要素材）
 function ProgressWeapons() {
-  const { materials, weaponClaimed } = useGame();
+  const { materials, weaponClaimed, requiresUpdate } = useGame();
   const navigate = useNavigate();
   const { active, advance } = useGameTutorial();
 
-  const hasEnoughMaterials = progressData.materials.every((material) => {
-    const owned = materials[material.id] ?? material.owned;
-
-    return owned >= material.required;
-  });
+  const hasEnoughMaterials = hasEnoughWeaponMaterials(materials);
 
   const handleCreateWeapon = () => {
     if (active) advance("craft-open");
@@ -37,7 +34,7 @@ function ProgressWeapons() {
         <section className="weapon-area">
 
           <div className="weapon-title-frame">
-            <h1>{progressData.weaponName}</h1>
+            <h2>{progressData.weaponName}</h2>
           </div>
 
           <div className="weapon-image-area">
@@ -67,8 +64,7 @@ function ProgressWeapons() {
           <div className="materials-list">
 
             {progressData.materials.map((material) => {
-              const owned =
-                materials[material.id] ?? material.owned;
+              const owned = getOwnedMaterial(materials, material.id);
 
               const isEnough =
                 owned >= material.required;
@@ -139,10 +135,14 @@ function ProgressWeapons() {
 
         </section>
 
-        {/* 素材が足りないとき・作成済みのときは押せない */}
+        {/* 素材が足りないとき・作成済みのとき・アプリの更新が必要なときは押せない */}
         <ProgressActionButton
-          label={weaponClaimed ? "作成済み" : hasEnoughMaterials ? "武器を作成する" : "素材が足りません"}
-          disabled={weaponClaimed || !hasEnoughMaterials}
+          label={weaponClaimed
+            ? "作成済み"
+            : requiresUpdate
+              ? "アプリを更新してください"
+              : hasEnoughMaterials ? "武器を作成する" : "素材が足りません"}
+          disabled={weaponClaimed || requiresUpdate || !hasEnoughMaterials}
           onClick={handleCreateWeapon}
           tutorialId="create-weapon"
         />

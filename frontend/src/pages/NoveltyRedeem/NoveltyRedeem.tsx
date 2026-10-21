@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
@@ -27,6 +27,11 @@ type Remaining = number | null | undefined;
 // フィールドのステッカーをフォトスポットで交換する画面
 function NoveltyRedeem() {
   const navigate = useNavigate();
+  // マップ・スタンプから開いたときはその画面へ、それ以外はステッカー一覧へ戻る
+  const returnTo = (useLocation().state as { returnTo?: string } | null)?.returnTo;
+  const back = returnTo
+    ? { to: returnTo, label: "前の画面へ戻る" }
+    : { to: "/progress/stickers", label: "ステッカー一覧へ戻る" };
   const { fieldId: fieldIdParam } = useParams();
   const { campusId, quests, obtainedFieldNoveltyIds, requiresUpdate, claimFieldNovelty } = useGame();
   const { active: practice } = useGameTutorial();
@@ -76,8 +81,8 @@ function NoveltyRedeem() {
       <main className="novelty-page">
         <section className="novelty-card">
           <h1>フィールドが見つかりません</h1>
-          <button type="button" className="novelty-back" onClick={() => navigate("/progress/stickers")}>
-            ステッカー一覧へ戻る
+          <button type="button" className="novelty-back" onClick={() => navigate(back.to)}>
+            {back.label}
           </button>
         </section>
       </main>
@@ -188,8 +193,8 @@ function NoveltyRedeem() {
           </>
         )}
 
-        <Link className="novelty-back" to="/progress/stickers">
-          ステッカー一覧へ戻る
+        <Link className="novelty-back" to={back.to}>
+          {back.label}
         </Link>
       </section>
     </main>

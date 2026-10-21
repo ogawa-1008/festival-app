@@ -8,20 +8,23 @@ import { mapAreas } from "../../data/maps";
 import { progressData } from "../../data/progress";
 import { getFieldProgress } from "../../utils/fieldProgress";
 import { getWallpaperProgress } from "../../utils/hunterRankReward";
+import { countEnoughWeaponMaterials, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
 
 import "./Progress.css";
 
 // 進捗のトップ：武器・ステッカー・スマホ壁紙・スタンプの入口を並べる
 function Progress() {
-  const { materials, weaponClaimed, quests, obtainedFieldNoveltyIds, rankExp } = useGame();
+  const { materials, weaponClaimed, requiresUpdate, quests, obtainedFieldNoveltyIds, rankExp } = useGame();
   const { active, advance } = useGameTutorial();
 
-  const enoughMaterials = progressData.materials.filter(
-    (material) => (materials[material.id] ?? material.owned) >= material.required,
-  ).length;
+  const enoughMaterials = countEnoughWeaponMaterials(materials);
+  const canCraft = !weaponClaimed && !requiresUpdate && hasEnoughWeaponMaterials(materials);
 
   const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds));
-  const redeemableStickers = fields.filter((field) => field.redeemable && !field.noveltyObtained).length;
+  // 練習中はステッカーをもらえないので、もらえる枚数に数えない
+  const redeemableStickers = active
+    ? 0
+    : fields.filter((field) => field.redeemable && !field.noveltyObtained).length;
   const obtainedStickers = fields.filter((field) => field.noveltyObtained).length;
   const availableFields = fields.filter((field) => field.available).length;
   const stampsEarned = fields.reduce((sum, field) => sum + field.earned, 0);
@@ -38,10 +41,10 @@ function Progress() {
       title: "武器を作る",
       status: weaponClaimed
         ? "作成済み"
-        : enoughMaterials === allMaterials
+        : canCraft
           ? "素材がそろいました。作れます"
           : `そろった素材 ${enoughMaterials} / ${allMaterials} 種類`,
-      highlight: !weaponClaimed && enoughMaterials === allMaterials,
+      highlight: canCraft,
       tutorial: "progress-weapons",
     },
     {
