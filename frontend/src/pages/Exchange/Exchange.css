@@ -3,6 +3,7 @@
 .exchange-eyebrow { color: var(--color-text-subtle); font-weight: bold; font-size: var(--font-size-xs); font-family: var(--font-display); line-height: normal; letter-spacing: 3px; }
 .exchange-card h1 { margin: 8px 0 12px; font-size: 23px; letter-spacing: 2px; }
 .exchange-image { width: 200px; height: 200px; object-fit: contain; border: 1px solid var(--color-border-muted); background: #090806; }
+.exchange-effect { margin: 14px 0 0; color: var(--color-accent); font-size: var(--font-size-md); font-weight: bold; }
 .exchange-materials { margin: 18px 0; text-align: left; border-top: 1px solid var(--color-border-muted); }
 .exchange-materials p { display: flex; justify-content: space-between; gap: 8px; margin: 0; padding: 10px 0; border-bottom: 1px solid #514632; font-size: var(--font-size-base); }
 .exchange-materials strong { color: var(--color-accent); white-space: nowrap; }

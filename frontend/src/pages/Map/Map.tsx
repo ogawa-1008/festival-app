@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import { mapAreas } from "../../data/maps";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
@@ -12,12 +12,21 @@ import {
 } from "../../components/FieldCollection/FieldCollection";
 import { getFieldProgress } from "../../utils/fieldProgress";
 
+import PageTitle from "../../components/PageTitle/PageTitle";
 import "./Map.css";
 
 function Map() {
   const { active, step, advance } = useGameTutorial();
+  const { hash } = useLocation();
+  // ステッカーの交換画面から戻ったとき（#field-N）は、そのフィールドを開いておく
+  const hashAreaId = /^#field-\d+$/.test(hash) ? Number(hash.slice("#field-".length)) : null;
   const [selectedAreaId, setSelectedAreaId] =
-    useState<number | null>(active && step === "map-home" ? 1 : null);
+    useState<number | null>(active && step === "map-home" ? 1 : hashAreaId);
+
+  useEffect(() => {
+    if (hashAreaId !== null)
+      document.getElementById(`field-${hashAreaId}`)?.scrollIntoView({ block: "start" });
+  }, [hashAreaId]);
   const { quests, obtainedFieldNoveltyIds } = useGame();
 
   return (
@@ -25,13 +34,7 @@ function Map() {
       <div className="map-background" />
 
       <div className="map-content">
-        <header className="map-header">
-          <span className="map-header-subtitle">
-            FIELD MAP
-          </span>
-
-          <h1>フィールドマップ</h1>
-        </header>
+        <PageTitle eyebrow="FIELD MAP" title="フィールドマップ" />
 
         <FieldCollectionSummary />
 
@@ -44,6 +47,7 @@ function Map() {
             return (
               <div
                 key={area.id}
+                id={`field-${area.id}`}
                 className="map-area-wrapper"
               >
                 {/* マップカード */}
@@ -122,13 +126,13 @@ function Map() {
                       </div>
 
                       <div className="map-detail-row">
-                        <span>RECOMMENDED HR</span>
+                        <span>RECOMMENDED RANK</span>
 
-                        <strong>HR {Math.min(area.id, 3)}</strong>
+                        <strong>ハンターランク {Math.min(area.id, 3)}</strong>
                       </div>
 
                       <FieldRewards area={area} progress={fieldProgress} />
-                      <Link className="field-collection-link" to={`/stamps#field-${area.id}`}>
+                      <Link className="field-collection-link" to={`/progress/fields#field-${area.id}`}>
                         コレクションで見る <span aria-hidden="true">›</span>
                       </Link>
                     </div>

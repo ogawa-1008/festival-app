@@ -35,4 +35,6 @@ export type Quest = {
 
   completed: boolean;
   goldCrown?: boolean;
+  // 調査（失敗）の報酬を受け取ったか（ステッカーの交換条件「討伐または調査」に使う）
+  investigated?: boolean;
 };

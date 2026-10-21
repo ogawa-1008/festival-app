@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { progressData } from "../../data/progress";
-import FieldCollection from "../../components/FieldCollection/FieldCollection";
+import { getOwnedMaterial } from "../../utils/weaponMaterials";
 
 import "./Collection.css";
 
-type CollectionView = "materials" | "stamps" | "history";
+type CollectionView = "materials" | "history";
 
 type CollectionProps = {
   view: CollectionView;
@@ -21,7 +21,6 @@ function Collection({ view }: CollectionProps) {
 
   const title = {
     materials: "獲得した素材",
-    stamps: "フィールドコレクション",
     history: "アクティビティ履歴",
   }[view];
 
@@ -29,8 +28,8 @@ function Collection({ view }: CollectionProps) {
     historyFilter === "all"
       ? true
       : historyFilter === "hunt"
-        ? activity.type !== "exchange"
-        : activity.type === "exchange"
+        ? activity.type === "hunt" || activity.type === "investigation"
+        : activity.type === "exchange" || activity.type === "craft"
   );
 
   return (
@@ -46,7 +45,7 @@ function Collection({ view }: CollectionProps) {
             ←
           </button>
           <div>
-            <span>{view === "stamps" ? "STAMP & STICKER" : "HUNTER'S RECORD"}</span>
+            <span>HUNTER'S RECORD</span>
             <h1>{title}</h1>
           </div>
         </header>
@@ -60,20 +59,19 @@ function Collection({ view }: CollectionProps) {
                   <h2>{material.name}</h2>
                   <p>所持数</p>
                 </div>
-                <strong>× {materials[material.id] ?? 0}</strong>
+                <strong>× {getOwnedMaterial(materials, material.id)}</strong>
               </article>
             ))}
           </section>
         )}
 
-        {view === "stamps" && <FieldCollection />}
 
         {view === "history" && (
           <section>
             <div className="history-filters" aria-label="履歴を絞り込む">
               <button type="button" className={historyFilter === "all" ? "selected" : ""} onClick={() => setHistoryFilter("all")}>すべて</button>
               <button type="button" className={historyFilter === "hunt" ? "selected" : ""} onClick={() => setHistoryFilter("hunt")}>討伐・調査</button>
-              <button type="button" className={historyFilter === "exchange" ? "selected" : ""} onClick={() => setHistoryFilter("exchange")}>交換</button>
+              <button type="button" className={historyFilter === "exchange" ? "selected" : ""} onClick={() => setHistoryFilter("exchange")}>交換・作成</button>
             </div>
             <div className="collection-list">
               {visibleActivities.length === 0 ? (
@@ -81,7 +79,7 @@ function Collection({ view }: CollectionProps) {
               ) : (
                 visibleActivities.map((activity) => (
                   <article key={activity.id} className="history-row">
-                    <span>{activity.type === "exchange" ? "◆" : "⚔"}</span>
+                    <span>{activity.type === "exchange" ? "◆" : activity.type === "craft" ? "⚒" : "⚔"}</span>
                     <div>
                       <h2>{activity.title}</h2>
                       <p>{activity.detail}</p>

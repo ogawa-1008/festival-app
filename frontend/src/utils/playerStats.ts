@@ -19,13 +19,18 @@ function getClaimedWeaponIds(state: { weaponClaimed: boolean }) {
 }
 
 export function getPlayerStats(state: { weaponClaimed: boolean }): PlayerStats {
-  const claimed = getClaimedWeaponIds(state);
-  const attackBonus = weapons
-    .filter((weapon) => claimed.includes(weapon.id))
-    .reduce((sum, weapon) => sum + weapon.attackBonus, 0);
+  const attackBonus = getClaimedWeaponIds(state).reduce(
+    (sum, weaponId) => sum + getWeaponAttackBonus(weaponId),
+    0,
+  );
 
   return {
     maxHp: PLAYER_MAX_HP,
     attack: PLAYER_BASE_ATTACK + attackBonus,
   };
+}
+
+// 武器を作成したときに上がる攻撃力（画面の表示用）
+export function getWeaponAttackBonus(weaponId: string = AGITO_WEAPON_ID) {
+  return weapons.find((weapon) => weapon.id === weaponId)?.attackBonus ?? 0;
 }

@@ -35,7 +35,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
   return [
     { id: "welcome", path: "/", action: "begin", popover: {
       title: "操作を体験しよう",
-      description: "光っているボタンを実際に押して、狩猟から特典交換まで練習しましょう。<br><br>練習用のQRと素材を使います。実際のカメラ・報酬・交換履歴には影響しません。×でいつでも終了できます。",
+      description: "光っているボタンを実際に押して、狩猟から武器の作成まで練習しましょう。<br><br>練習用のQRと素材を使います。実際のカメラ・報酬・交換履歴には影響しません。×でいつでも終了できます。",
       showButtons: ["next", "close"], nextBtnText: "練習を始める",
     } },
     { id: "map", path: "/", action: "nav-map", element: '[data-tutorial="nav-map"]', popover: {
@@ -67,25 +67,28 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       title: "討伐成功！", description: "獲得できる素材を確認して「報酬を受け取る」を押しましょう。今回は練習用の素材です。", side: "top",
     } },
     { id: "result-home", path: `/result/${questId}`, action: "result-home", element: '[data-tutorial="result-home"]', popover: {
-      title: "素材を受け取りました", description: "「ホームへ戻る」を押してください。集めた素材で特典を交換してみましょう。", side: "top",
+      title: "素材を受け取りました", description: "「ホームへ戻る」を押してください。集めた素材で武器を作成してみましょう。", side: "top",
     } },
     { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', popover: {
-      title: "集めた素材を確認", description: "「進捗」を押すと、特典に必要な素材と所持数を確認できます。", side: "top",
+      title: "集めた素材を確認", description: "「進捗」を押すと、集めた素材でもらえる報酬を確認できます。", side: "top",
     } },
-    { id: "craft", path: "/progress", action: "craft-open", element: '[data-tutorial="create-weapon"]', popover: {
-      title: "素材が揃いました", description: "必要な素材がすべて揃いました。「武器を作成する」を押して、特典の交換画面を開きましょう。", side: "top",
+    { id: "progress-hub", path: "/progress", action: "weapons-open", element: '[data-tutorial="progress-weapons"]', popover: {
+      title: "武器の作成を開く", description: "進捗では、武器・ステッカー・スマホ壁紙・スタンプの集まり具合を確認できます。「武器を作る」を押しましょう。", side: "bottom",
+    } },
+    { id: "craft", path: "/progress/weapons", action: "craft-open", element: '[data-tutorial="create-weapon"]', popover: {
+      title: "素材が揃いました", description: "必要な素材がすべて揃いました。「武器を作成する」を押して、武器の作成画面を開きましょう。", side: "top",
     } },
     { id: "exchange", path: "/exchange/weapon", action: "exchange-open", element: '[data-tutorial="exchange-open"]', popover: {
-      title: "交換内容を確認", description: "必要な素材を確認して「特典と交換する」を押してください。確認ダイアログが開きます。", side: "top",
+      title: "作成内容を確認", description: "必要な素材を確認して「武器を作成する」を押してください。確認ダイアログが開きます。", side: "top",
     } },
     { id: "confirm", path: "/exchange/weapon", action: "exchange-confirmed", element: '[data-tutorial="exchange-confirm"]', waitForElement: 2000, popover: {
-      title: "スライドして交換", description: "つまみを右端までスライドして離しましょう。キーボードではスライダーを選び、右矢印を10回押して確定できます。本番の交換は1回限りです。", side: "top",
+      title: "スライドして作成", description: "つまみを右端までスライドして離しましょう。キーボードではスライダーを選び、右矢印を10回押して確定できます。本番の作成は1回限りです。", side: "top",
     } },
     { id: "exchange-back", path: "/exchange/weapon", action: "exchange-back", element: '[data-tutorial="exchange-back"]', waitForElement: 2000, popover: {
-      title: "受け取り画面を提示", description: "本番では、この交換済み画面を運営スタッフに見せて特典を受け取ります。確認できたら「武器詳細へ戻る」を押しましょう。", side: "top",
+      title: "武器を作成しました", description: "武器を作成すると攻撃力が上がり、モンスターに与えるダメージが増えます。確認できたら「武器詳細へ戻る」を押しましょう。", side: "top",
     } },
-    { id: "finish-home", path: "/progress", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
-      title: "ホームへ戻ろう", description: "「ホーム」を押して、練習を終えましょう。ここまでが狩猟から特典交換までの流れです。", side: "top",
+    { id: "finish-home", path: "/progress/weapons", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
+      title: "ホームへ戻ろう", description: "「ホーム」を押して、練習を終えましょう。ここまでが狩猟から武器の作成までの流れです。", side: "top",
     } },
     { id: "complete", path: "/", popover: {
       title: "いざ、本番の狩猟へ", description: "操作の練習は完了です！ 会場のQRコードを探して、クエストに挑戦しましょう。<br><br>メニューの「遊び方ガイド」からいつでも練習し直せます。",

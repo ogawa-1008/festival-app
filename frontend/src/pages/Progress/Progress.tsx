@@ -1,195 +1,110 @@
-import { useGame } from "../../context/GameContext";
-import { progressData } from "../../data/progress";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
+import PageTitle from "../../components/PageTitle/PageTitle";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { FieldCollectionSummary } from "../../components/FieldCollection/FieldCollection";
+import { useGame } from "../../context/GameContext";
+import { mapAreas } from "../../data/maps";
+import { progressData } from "../../data/progress";
+import { getFieldProgress } from "../../utils/fieldProgress";
+import { getWallpaperProgress } from "../../utils/hunterRankReward";
+import { countEnoughWeaponMaterials, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
 
 import "./Progress.css";
 
+// 進捗のトップ：武器・ステッカー・スマホ壁紙・スタンプの入口を並べる
 function Progress() {
-  const { materials, weaponClaimed } = useGame();
-  const navigate = useNavigate();
+  const { materials, weaponClaimed, requiresUpdate, quests, obtainedFieldNoveltyIds, rankExp } = useGame();
   const { active, advance } = useGameTutorial();
 
-  const handleCreateWeapon = () => {
-    const hasEnoughMaterials = progressData.materials.every((material) => {
-      const owned = materials[material.id] ?? material.owned;
+  const enoughMaterials = countEnoughWeaponMaterials(materials);
+  const canCraft = !weaponClaimed && !requiresUpdate && hasEnoughWeaponMaterials(materials);
 
-      return owned >= material.required;
-    });
+  const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds));
+  // 練習中はステッカーをもらえないので、もらえる枚数に数えない
+  const redeemableStickers = active
+    ? 0
+    : fields.filter((field) => field.redeemable && !field.noveltyObtained).length;
+  const obtainedStickers = fields.filter((field) => field.noveltyObtained).length;
+  const availableFields = fields.filter((field) => field.available).length;
+  const stampsEarned = fields.reduce((sum, field) => sum + field.earned, 0);
+  const stampsTotal = fields.reduce((sum, field) => sum + field.total, 0);
 
-    if (!hasEnoughMaterials) {
-      return;
-    }
+  const wallpaper = getWallpaperProgress(rankExp);
 
-    if (active) advance("craft-open");
-    navigate("/exchange/weapon", { replace: active });
-  };
+  const allMaterials = progressData.materials.length;
+
+  const cards = [
+    {
+      to: "/progress/weapons",
+      icon: "⚔",
+      title: "武器を作る",
+      status: weaponClaimed
+        ? "作成済み"
+        : requiresUpdate
+          ? "アプリの更新が必要です"
+          : canCraft
+          ? "素材がそろいました。作れます"
+          : `そろった素材 ${enoughMaterials} / ${allMaterials} 種類`,
+      highlight: canCraft,
+      tutorial: "progress-weapons",
+    },
+    {
+      to: "/progress/stickers",
+      icon: "◆",
+      title: "ステッカーをもらう",
+      status: redeemableStickers > 0
+        ? `もらえるステッカーが ${redeemableStickers} 枚あります`
+        : `もらったステッカー ${obtainedStickers} / ${availableFields} 枚`,
+      highlight: redeemableStickers > 0,
+    },
+    {
+      to: "/progress/wallpaper",
+      icon: "★",
+      title: "スマホ壁紙をもらう",
+      status: wallpaper.reached
+        ? `ハンターランク ${wallpaper.requiredRank} に到達しました`
+        : `今のハンターランク ${wallpaper.rank} / ${wallpaper.requiredRank}`,
+      highlight: false,
+    },
+    {
+      to: "/progress/fields",
+      icon: "◎",
+      title: "スタンプを集める",
+      status: `集めたスタンプ ${stampsEarned} / ${stampsTotal} 個`,
+      highlight: false,
+    },
+  ];
 
   return (
     <main className="progress-page">
       <div className="progress-content">
+        <PageTitle eyebrow="HUNTER PROGRESS" title="進捗" />
 
-        {/* =========================
-            武器
-        ========================= */}
-        <section className="weapon-area">
-
-          <div className="weapon-title-frame">
-            <h1>{progressData.weaponName}</h1>
-          </div>
-
-          <div className="weapon-image-area">
-            <img
-              src={progressData.weaponImage}
-              alt={progressData.weaponName}
-              className="weapon-image"
-            />
-          </div>
-        </section>
-
-
-        {/* =========================
-            必要素材
-        ========================= */}
-        <section className="materials-area">
-
-          <div className="decorative-title" data-tutorial="required-materials">
-            <span className="decorative-line left" />
-
-            <h2>必要素材</h2>
-
-            <span className="decorative-line right" />
-          </div>
-
-
-          <div className="materials-list">
-
-            {progressData.materials.map((material) => {
-              const owned =
-                materials[material.id] ?? material.owned;
-
-              const isEnough =
-                owned >= material.required;
-
-              return (
-                <div
-                  key={material.id}
-                  className={`material-row ${isEnough
-                    ? "material-enough"
-                    : "material-not-enough"
-                    }`}
-                >
-
-                  {/* 素材画像 */}
-                  <div className="material-image-frame">
-                    <img
-                      src={material.image}
-                      alt={material.name}
-                      className="material-image"
-                    />
-                  </div>
-
-
-                  {/* 素材名・必要数 */}
-                  <div className="material-main">
-
-                    <h3>
-                      {material.name}
-                    </h3>
-
-                    <div className="material-required">
-                      <span className="material-x">
-                        ×
-                      </span>
-
-                      <span>
-                        {material.required}
-                      </span>
-                    </div>
-
-                  </div>
-
-
-                  {/* 所持数 */}
-                  <div className="material-owned">
-
-                    <span className="owned-icon">
-                      ▤
-                    </span>
-
-                    <span className="owned-number">
-                      {owned}
-                    </span>
-
-                  </div>
-
-                </div>
-              );
-            })}
-
-          </div>
-
-        </section>
-
-
-        {/* =========================
-            必要費用
-        ========================= */}
-        <section className="money-area">
-
-          <div className="decorative-title">
-            <span className="decorative-line left" />
-
-            <h2>必要費用</h2>
-
-            <span className="decorative-line right" />
-          </div>
-
-
-          <div className="money-content">
-
-            <div className="money-icon">
-              Z
-            </div>
-
-            <div className="money-number">
-              {progressData.requiredMoney.toLocaleString()}
-            </div>
-
-            <div className="money-unit">
-              z
-            </div>
-
-          </div>
-
-        </section>
-
-        <section className="create-weapon-area">
-
-          <button
-            type="button"
-            className="create-weapon-button"
-            data-tutorial="create-weapon"
-            onClick={handleCreateWeapon}
-          >
-            {weaponClaimed ? "交換済み" : "武器を作成する"}
-          </button>
-          
-        </section>
-
-        <FieldCollectionSummary />
-
+        <nav className="progress-hub" aria-label="進捗の項目">
+          {cards.map((card) => (
+            <Link
+              key={card.to}
+              to={card.to}
+              replace={active}
+              className={`progress-hub-card${card.highlight ? " progress-hub-card--highlight" : ""}`}
+              data-tutorial={card.tutorial}
+              onClick={() => {
+                if (active && card.tutorial) advance("weapons-open");
+              }}
+            >
+              <span className="progress-hub-icon" aria-hidden="true">{card.icon}</span>
+              <span className="progress-hub-text">
+                <strong>{card.title}</strong>
+                <small>{card.status}</small>
+              </span>
+              <span className="progress-hub-arrow" aria-hidden="true">›</span>
+            </Link>
+          ))}
+        </nav>
       </div>
 
-
-      {/* =========================
-          下部ナビ
-      ========================= */}
       <BottomNavigation active="progress" />
-
     </main>
   );
 }

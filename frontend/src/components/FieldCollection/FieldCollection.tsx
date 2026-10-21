@@ -1,14 +1,15 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext";
+import { useGameTutorial } from "../Tutorial/useGameTutorial";
 import { mapAreas } from "../../data/maps";
 import type { MapArea } from "../../types/maps";
-import { getFieldProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
 import "./FieldCollection.css";
 
 type FieldProgress = ReturnType<typeof getFieldProgress>;
 
-function StickerIcon() {
+export function StickerIcon() {
   return (
     <svg
       viewBox="0 0 48 48"
@@ -24,8 +25,11 @@ function StickerIcon() {
 
 export function FieldCollectionSummary({
   showLink = true,
+  heading = "フィールドの収集状況",
 }: {
   showLink?: boolean;
+  // ページ側に同じ見出しがあるときは別の見出しにして二重に出さない
+  heading?: string;
 }) {
   const { quests, obtainedFieldNoveltyIds } = useGame();
   const fields = mapAreas.map((area) => ({
@@ -36,11 +40,11 @@ export function FieldCollectionSummary({
   const earned = fields.reduce((sum, field) => sum + field.earned, 0);
 
   return (
-    <section className="field-summary" aria-label="フィールドの収集状況">
+    <section className="field-summary" aria-label={heading}>
       <div className="field-summary-heading">
         <div>
           <span className="field-eyebrow">FIELD COLLECTION</span>
-          <h2>フィールドの収集状況</h2>
+          <h2>{heading}</h2>
         </div>
         <strong>
           {earned}
@@ -73,8 +77,8 @@ export function FieldCollectionSummary({
         ))}
       </div>
       {showLink && (
-        <Link className="field-collection-link" to="/stamps">
-          スタンプ・ステッカーを見る <span aria-hidden="true">›</span>
+        <Link className="field-collection-link" to="/progress/fields">
+          スタンプを見る <span aria-hidden="true">›</span>
         </Link>
       )}
     </section>
@@ -103,6 +107,12 @@ export function FieldRewards({
   area: MapArea;
   progress: FieldProgress;
 }) {
+  // 練習中は交換できないので、交換ボタンを出さない
+  const { active: practice } = useGameTutorial();
+  // 交換画面の「戻る」で、開いた画面（マップ・スタンプ）のそのフィールドへ戻れるようにする
+  const { pathname, search } = useLocation();
+  const returnTo = `${pathname}${search}#field-${area.id}`;
+
   return (
     <div className="field-rewards">
       <section
@@ -187,6 +197,19 @@ export function FieldRewards({
         <p className="field-novelty-note">
           交換場所：{area.novelty.redemptionLocation}
         </p>
+        {!progress.noveltyObtained && !practice && (
+          progress.redeemable ? (
+            <Link className="field-novelty-redeem" to={`/novelty/${area.id}`} state={{ returnTo }}>
+              ステッカーを交換する <span aria-hidden="true">›</span>
+            </Link>
+          ) : (
+            progress.available && (
+              <p className="field-novelty-condition">
+                {getRedeemConditionText(progress)}
+              </p>
+            )
+          )
+        )}
       </section>
     </div>
   );
@@ -204,7 +227,7 @@ export default function FieldCollection() {
 
   return (
     <>
-      <FieldCollectionSummary showLink={false} />
+      <FieldCollectionSummary showLink={false} heading="スタンプの獲得状況" />
       <div className="field-collection-list">
         {mapAreas.map((area) => (
           <article
