@@ -18,6 +18,7 @@ import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
 import {
   CAMPUS_STORAGE_KEY,
+  clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
   getCampusGameKey,
   getCampusLoadKey,
@@ -54,7 +55,8 @@ type GameState = {
 };
 
 type GameContextType = GameState & {
-  selectCampus: (campusId: CampusId) => void;
+  // 切り替えられなかったら false（保存できていない進み具合がある場合など）
+  selectCampus: (campusId: CampusId) => boolean;
   requiresUpdate: boolean;
   canUpdateGame: () => boolean;
   resolveBattle: (
@@ -151,25 +153,31 @@ function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | nu
     }
   }
 
+  let campusId: CampusId | null = null;
   try {
     const storage = window.localStorage;
-    const campusId = campusOverride !== undefined
+    campusId = campusOverride !== undefined
       ? campusOverride
       : findCampus(readSelectedCampus(storage))?.id ?? null;
 
     if (!campusId) return initialGameState;
 
     const defaults = createCampusState(campusId, false);
-    const saved = loadSavedGame(storage, defaults, getCampusLoadKey(storage, campusId));
+    const loadKey = getCampusLoadKey(storage, campusId);
+    const saved = loadSavedGame(storage, defaults, loadKey);
 
     return {
       ...saved,
       campusId,
       quests: mergeQuestProgress(defaults.quests, saved.quests, saved.activities),
-      obtainedFieldNoveltyIds: restoreFieldNoveltyIds(saved.obtainedFieldNoveltyIds, getMapAreas(campusId)),
+      // 分ける前のデータのフィールド番号（1〜4）は今の号館の番号と意味が違い、ステッカーも別のものなので引き継がない
+      obtainedFieldNoveltyIds: loadKey === GAME_STORAGE_KEY
+        ? []
+        : restoreFieldNoveltyIds(saved.obtainedFieldNoveltyIds, getMapAreas(campusId)),
     };
   } catch {
-    return campusOverride ? createCampusState(campusOverride, false) : initialGameState;
+    // 読めなくても、選んでいる校舎は保つ（校舎選びの画面に戻さない）
+    return campusId ? createCampusState(campusId, false) : initialGameState;
   }
 }
 function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean {
@@ -187,12 +195,16 @@ function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean
       gameState.rankProgressVersion > RANK_PROGRESS_VERSION
       || loadSavedGame(storage, initialGameState, key).rankProgressVersion > RANK_PROGRESS_VERSION
     ) return false;
-    if (storage.getItem(CAMPUS_STORAGE_KEY) !== gameState.campusId) {
+    // 選んでいる校舎は、校舎を選んだときだけ書く（別タブで選んだ校舎を上書きしない）。
+    // 分ける前のデータから引き継いだときは、まだ記録がないのでここで書く
+    if (storage.getItem(CAMPUS_STORAGE_KEY) === null) {
       storage.setItem(CAMPUS_STORAGE_KEY, gameState.campusId);
     }
     // 同じ内容を別タブへ書き戻し続けないようにする。
-    return storage.getItem(key) === JSON.stringify(gameState)
+    const saved = storage.getItem(key) === JSON.stringify(gameState)
       || saveGame(storage, gameState, key);
+    if (saved) clearMigratedLegacyGame(storage, gameState.campusId);
+    return saved;
   } catch {
     // ブラウザによっては localStorage 自体へのアクセスが拒否される。
     return false;
@@ -239,7 +251,7 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
   // 別タブで保存された進行度を反映し、古い状態で上書きしないようにする
   // 別タブで校舎を変えた場合も、表示に戻ったときに選んでいる校舎の進み具合を読み直す
-  useStorageSync(gameState.campusId ? getCampusGameKey(gameState.campusId) : GAME_STORAGE_KEY, () => {
+  useStorageSync([gameState.campusId ? getCampusGameKey(gameState.campusId) : GAME_STORAGE_KEY, CAMPUS_STORAGE_KEY], () => {
     // 将来版を検出したら、未保存の旧形式データも書き戻さない。
     if (!canUpdateGame()) return;
     // 未保存の進行は保持し、同期で読み直す前に保存を再試行する。
@@ -392,13 +404,19 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
     };
     // 校舎を変えると、その校舎の進み具合に切り替える（進み具合は校舎ごとに別）
     const selectCampus = (campusId: CampusId) => {
-      if (!canUpdateGame()) return;
+      if (!canUpdateGame()) return false;
+      // 保存できていない進み具合があれば、切り替える前に保存する（保存できなければ切り替えない）
+      if (pendingSave.current) {
+        if (!saveGameState(pendingSave.current)) return false;
+        pendingSave.current = null;
+      }
       try {
         window.localStorage.setItem(CAMPUS_STORAGE_KEY, campusId);
       } catch {
         // 保存できなくても、この画面では選んだ校舎で続ける
       }
       setGameState(loadGameState(undefined, campusId));
+      return true;
     };
     return { ...gameState, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon, claimFieldNovelty };
   }, [gameState, requiresUpdate, canUpdateGame]);

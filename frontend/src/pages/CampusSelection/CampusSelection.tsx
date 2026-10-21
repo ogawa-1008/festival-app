@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
+import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { campuses } from "../../data/campuses";
 import "./CampusSelection.css";
@@ -9,10 +10,14 @@ type Campus = (typeof campuses)[number];
 const asset = "/images/campus/";
 
 function CampusSelection() {
-  const { selectCampus } = useGame();
+  const { campusId, selectCampus } = useGame();
+  const { session } = useBattleSession();
   const navigate = useNavigate();
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
+  const isBattleUnfinished = session !== null && !session.claimed;
+  const blocked = isBattleUnfinished && pendingCampus !== null && pendingCampus.id !== campusId;
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -75,7 +80,9 @@ function CampusSelection() {
           <p className="campus-english">{pendingCampus?.englishName}</p>
         </div>
         <p id="campus-confirm-description" className="campus-confirm-description">
-          選択した校舎のクエストと<br />マップを表示します。
+          {blocked
+            ? <>バトル中、または報酬を受け取る前は<br />校舎を変えられません。</>
+            : <>選択した校舎のクエストと<br />マップを表示します。</>}
         </p>
         <div className="campus-dialog-actions">
           <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
@@ -84,10 +91,10 @@ function CampusSelection() {
           <button
             type="button"
             className="festival-button"
+            disabled={blocked}
             onClick={() => {
-              if (!pendingCampus) return;
-              selectCampus(pendingCampus.id);
-              navigate("/", { replace: true });
+              if (!pendingCampus || blocked) return;
+              if (selectCampus(pendingCampus.id)) navigate("/", { replace: true });
             }}
           >
             この校舎に決定

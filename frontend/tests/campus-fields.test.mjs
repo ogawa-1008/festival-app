@@ -5,6 +5,7 @@ import { allCampusQuests, getCampusQuests, getMapAreas } from "../src/data/maps.
 import { quests } from "../src/data/quests.ts";
 import {
   CAMPUS_STORAGE_KEY,
+  clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
   getCampusGameKey,
   getCampusLoadKey,
@@ -53,7 +54,11 @@ test("quest IDs and QR codes never collide across campuses", () => {
 
 const memoryStorage = (entries = {}) => {
   const data = new Map(Object.entries(entries));
-  return { getItem: (key) => (data.has(key) ? data.get(key) : null), setItem: (key, value) => data.set(key, value) };
+  return {
+    getItem: (key) => (data.has(key) ? data.get(key) : null),
+    setItem: (key, value) => data.set(key, value),
+    removeItem: (key) => data.delete(key),
+  };
 };
 
 test("progress is saved per campus and older saves move to the campus they were made in", () => {
@@ -68,4 +73,17 @@ test("progress is saved per campus and older saves move to the campus they were 
   legacy.setItem(CAMPUS_STORAGE_KEY, "nagoya");
   assert.equal(readSelectedCampus(legacy), "nagoya");
   assert.equal(readSelectedCampus(memoryStorage()), null);
+});
+
+test("the old save is removed only after its campus has been saved separately", () => {
+  const storage = memoryStorage({ [GAME_STORAGE_KEY]: JSON.stringify({ campusId: "osaka" }) });
+  clearMigratedLegacyGame(storage, "osaka");
+  assert.notEqual(storage.getItem(GAME_STORAGE_KEY), null, "not migrated yet");
+  clearMigratedLegacyGame(storage, "tokyo");
+  storage.setItem(getCampusGameKey("tokyo"), "{}");
+  clearMigratedLegacyGame(storage, "tokyo");
+  assert.notEqual(storage.getItem(GAME_STORAGE_KEY), null, "another campus never removes it");
+  storage.setItem(getCampusGameKey("osaka"), "{}");
+  clearMigratedLegacyGame(storage, "osaka");
+  assert.equal(storage.getItem(GAME_STORAGE_KEY), null);
 });

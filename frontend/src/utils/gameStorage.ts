@@ -63,6 +63,17 @@ export function readSelectedCampus(storage: StorageReader): string | null {
   }
 }
 
+// 校舎ごとの保存ができたら、その校舎の分だった分ける前のデータを消す（毎回読み直さないため）
+export function clearMigratedLegacyGame(storage: StorageReader & Pick<Storage, "removeItem">, campusId: string) {
+  try {
+    if (readLegacyCampusId(storage) === campusId && storage.getItem(getCampusGameKey(campusId)) !== null) {
+      storage.removeItem(GAME_STORAGE_KEY);
+    }
+  } catch {
+    // 消せなくても、校舎ごとの保存を優先して読むので問題ない
+  }
+}
+
 // 校舎の進み具合を読む場所。まだ校舎ごとの保存がなく、分ける前のデータがその校舎のものなら、そちらを引き継ぐ
 export function getCampusLoadKey(storage: StorageReader, campusId: string) {
   const key = getCampusGameKey(campusId);
