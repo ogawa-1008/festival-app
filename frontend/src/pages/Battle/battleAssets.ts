@@ -44,6 +44,10 @@ function decodeImage(src: string, signal: AbortSignal) {
   });
 }
 
-export async function prepareBattle(signal: AbortSignal) {
-  await Promise.all(Object.values(battleAssets).map((src) => decodeImage(src, signal)));
+export function getBattleMonsterImage(questImage: string) {
+  return questImage === "/images/quests/image.png" ? battleAssets.monster : questImage;
+}
+
+export async function prepareBattle(signal: AbortSignal, monsterImage: string = battleAssets.monster) {
+  await Promise.all(Object.values({ ...battleAssets, monster: monsterImage }).map((src) => decodeImage(src, signal)));
 }

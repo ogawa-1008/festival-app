@@ -38,7 +38,7 @@ function NoveltyRedeem() {
 
   const mapAreas = useMapAreas();
   const area = mapAreas.find((item) => String(item.id) === fieldIdParam);
-  const progress = area ? getFieldProgress(area, quests, obtainedFieldNoveltyIds) : null;
+  const progress = area ? getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas) : null;
 
   const [remaining, setRemaining] = useState<Remaining>(undefined);
   const [error, setError] = useState<NoveltyApiError | null>(null);
@@ -131,13 +131,13 @@ function NoveltyRedeem() {
         <p className="novelty-description">{area.novelty.description}</p>
         <p className="novelty-location">交換場所：{area.novelty.redemptionLocation}</p>
 
-        {progress.noveltyObtained || unrecorded ? (
+        {progress.rally.redeemed || unrecorded ? (
           <div className="novelty-done" role="status">
             <h2>交換済みです</h2>
             <p>
               {unrecorded
                 ? "交換は完了しました。スタッフにこの画面を見せて、ステッカーを受け取ってください。（この端末には記録できなかったため、あとで開き直すと未交換と表示されます。もう一度交換しないでください）"
-                : "このフィールドのステッカーは受け取り済みです。"}
+                : "ステッカーは1枚受け取り済みです。ほかの校舎でも追加の交換はできません。"}
             </p>
           </div>
         ) : practice ? (

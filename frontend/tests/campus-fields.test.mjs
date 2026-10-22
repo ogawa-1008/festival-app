@@ -47,7 +47,11 @@ test("quest IDs and QR codes never collide across campuses", () => {
       campusQuestIds,
     );
     for (const area of getMapAreas(campus.id)) {
-      for (const questId of area.questIds) assert.ok(campusQuestIds.includes(questId));
+      assert.equal(area.questIds.length, 1, "each building has exactly one monster");
+      const quest = getCampusQuests(campus.id).find((quest) => quest.id === area.questIds[0]);
+      assert.ok(quest, "the monster is playable");
+      assert.equal(quest.title, `${area.photoSpotMonster}を討伐せよ！`);
+      assert.match(quest.description, new RegExp(area.buildingName));
     }
   }
 });

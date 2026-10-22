@@ -28,7 +28,7 @@ import {
 } from "../utils/gameStorage";
 import { getCampusQuests, getMapAreas } from "../data/maps";
 import type { Quest } from "../types/quest";
-import { restoreFieldNoveltyIds } from "../utils/fieldProgress";
+import { getFieldProgress, restoreFieldNoveltyIds } from "../utils/fieldProgress";
 import { getWeaponAttackBonus } from "../utils/playerStats";
 import { hasEnoughWeaponMaterials } from "../utils/weaponMaterials";
 
@@ -376,9 +376,11 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       const areas = getMapAreas(gameState.campusId);
       const area = areas.find((item) => item.id === fieldId);
 
-      if (!area || !canUpdateGame()) return false;
+      if (!area || !canUpdateGame() || !getFieldProgress(
+        area, gameState.quests, gameState.obtainedFieldNoveltyIds, areas,
+      ).redeemable) return false;
       setGameState((current) => {
-        if (current.obtainedFieldNoveltyIds.includes(fieldId)) return current;
+        if (!getFieldProgress(area, current.quests, current.obtainedFieldNoveltyIds, areas).redeemable) return current;
 
         return {
           ...current,

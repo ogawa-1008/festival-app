@@ -3,7 +3,7 @@ import { StickerIcon } from "../../components/FieldCollection/FieldCollection";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
-import { getFieldProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
 
@@ -29,20 +29,23 @@ function ProgressStickers() {
 
           <ul className="progress-reward-list">
             {mapAreas.map((area) => {
-              const progress = getFieldProgress(area, quests, obtainedFieldNoveltyIds);
+              const progress = getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas);
 
               const canRedeem = progress.redeemable && !practice;
-              const remaining = progress.total - progress.attempted;
               // 押せないときは、理由や次にすることをボタンの文字で伝える
               const label = progress.noveltyObtained
                 ? "✓ もらいました"
-                : !progress.available
-                  ? "このフィールドは準備中です"
-                  : progress.redeemable && practice
-                    ? "練習中はもらえません"
-                    : progress.redeemable
-                      ? "ステッカーをもらう"
-                      : `あと ${remaining} 体でもらえます`;
+                : progress.rally.redeemed
+                  ? "別の校舎で1枚交換済みです"
+                  : !progress.available
+                    ? "このフィールドは準備中です"
+                    : progress.redeemable && practice
+                      ? "練習中はもらえません"
+                      : progress.redeemable
+                        ? "ステッカーをもらう"
+                        : progress.rally.remaining > 0
+                          ? `あと ${progress.rally.remaining} 校舎のスタンプで交換できます`
+                          : "この校舎の討伐・調査を終えると交換できます";
 
               return (
                 <li key={area.id} className="progress-reward-item">
@@ -56,14 +59,15 @@ function ProgressStickers() {
                     <div className="material-main">
                       <h3>{area.novelty.name}</h3>
                       <p className="progress-reward-sub">交換場所：{area.novelty.redemptionLocation}</p>
+                      <p className="progress-reward-sub">{getRedeemConditionText(progress)}</p>
                     </div>
 
-                    {/* 討伐・調査したモンスターの数 */}
+                    {/* 会場全体で集めた校舎のスタンプ数 */}
                     <div className="progress-reward-state">
                       {progress.noveltyObtained ? null : progress.available ? (
                         <span className="progress-reward-pending">
-                          <span className="progress-reward-pending-label">討伐・調査</span>
-                          {progress.attempted} / {progress.total} 体
+                          <span className="progress-reward-pending-label">スタンプ</span>
+                          {progress.rally.earned} / {progress.rally.required} 個
                         </span>
                       ) : null}
                     </div>

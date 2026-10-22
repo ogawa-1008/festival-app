@@ -15,7 +15,7 @@ export function useMapAreas() {
     if (!practice) return areas;
 
     return areas.map((area, index) =>
-      index === 0 ? { ...area, questIds: [PRACTICE_QUEST_ID, ...area.questIds] } : area,
+      index === 0 ? { ...area, questIds: [PRACTICE_QUEST_ID] } : area,
     );
   }, [campusId, practice]);
 }

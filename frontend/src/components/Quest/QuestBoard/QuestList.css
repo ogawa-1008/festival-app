@@ -182,3 +182,7 @@
 
   box-sizing: border-box;
 }
+
+.home .quest-board + .quest-board {
+  margin-top: var(--space-6);
+}

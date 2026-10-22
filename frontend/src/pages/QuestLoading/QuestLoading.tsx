@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
 import { useGame } from "../../context/GameContext";
-import { battleAssets, prepareBattle } from "../Battle/battleAssets";
+import { getBattleMonsterImage, prepareBattle } from "../Battle/battleAssets";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import "./QuestLoading.css";
 
@@ -15,6 +15,7 @@ export default function QuestLoading() {
   const navigate = useNavigate();
   const { active: practice, advance } = useGameTutorial();
   const quest = quests.find((item) => item.id === questId);
+  const monsterImage = quest ? getBattleMonsterImage(quest.image) : undefined;
   const [preparation, setPreparation] = useState<{ questId: string | undefined; phase: Phase }>({ questId, phase: "preparing" });
   const phase = preparation.questId === questId ? preparation.phase : "preparing";
   const [attempt, setAttempt] = useState(0);
@@ -32,7 +33,7 @@ export default function QuestLoading() {
     const timeout = setTimeout(() => controller.abort(new Error("Preparation timed out")), 15000);
     const startedAt = performance.now();
 
-    void prepareBattle(controller.signal).then(() => {
+    void prepareBattle(controller.signal, monsterImage).then(() => {
       clearTimeout(timeout);
       if (disposed) return;
       setPreparation({ questId, phase: "ready" });
@@ -54,7 +55,7 @@ export default function QuestLoading() {
       clearTimeout(departure);
       controller.abort();
     };
-  }, [questId, quest, attempt, navigate, practice, advance]);
+  }, [questId, quest, monsterImage, attempt, navigate, practice, advance]);
 
   const ready = phase === "ready";
   const error = !quest || phase === "error";
@@ -90,7 +91,7 @@ export default function QuestLoading() {
             <img src={`${artwork}compass.svg`} alt="" />
             <img className="departure-compass-ticks" src={`${artwork}compass-ticks.svg`} alt="" />
           </div>
-          <img className="departure-monster" src={battleAssets.monster} alt="" />
+          <img className="departure-monster" src={monsterImage} alt="" />
         </div>
 
         <section className="departure-quest" aria-label="読み取ったクエスト">

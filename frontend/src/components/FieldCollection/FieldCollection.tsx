@@ -25,7 +25,7 @@ export function StickerIcon() {
 
 export function FieldCollectionSummary({
   showLink = true,
-  heading = "フィールドの収集状況",
+  heading = "校舎を回ってスタンプを集めよう",
 }: {
   showLink?: boolean;
   // ページ側に同じ見出しがあるときは別の見出しにして二重に出さない
@@ -35,7 +35,7 @@ export function FieldCollectionSummary({
   const mapAreas = useMapAreas();
   const fields = mapAreas.map((area) => ({
     area,
-    ...getFieldProgress(area, quests, obtainedFieldNoveltyIds),
+    ...getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas),
   }));
   const total = fields.reduce((sum, field) => sum + field.total, 0);
   const earned = fields.reduce((sum, field) => sum + field.earned, 0);
@@ -77,6 +77,7 @@ export function FieldCollectionSummary({
           </div>
         ))}
       </div>
+      <p className="field-novelty-note">1校舎につきスタンプ1つ。異なる3校舎で討伐・調査を終えると、ステッカー1枚と交換できます。</p>
       {showLink && (
         <Link className="field-collection-link" to="/progress/fields">
           スタンプを見る <span aria-hidden="true">›</span>
@@ -95,7 +96,7 @@ export function FieldStatus({ progress }: { progress: FieldProgress }) {
       </span>
       <span className={progress.noveltyObtained ? "field-status-earned" : ""}>
         <span aria-hidden="true">{progress.noveltyObtained ? "✓" : "◇"}</span>{" "}
-        ステッカー {progress.noveltyObtained ? "獲得済み" : "未獲得"}
+        ステッカー {progress.noveltyObtained ? "獲得済み" : progress.rally.redeemed ? "交換終了" : "未獲得"}
       </span>
     </span>
   );
@@ -133,11 +134,11 @@ export function FieldRewards({
             {progress.quests.map((quest) => (
               <div
                 key={quest.id}
-                className={`field-stamp ${quest.completed ? "field-stamp--earned" : ""}`}
+                className={`field-stamp ${quest.completed || quest.investigated ? "field-stamp--earned" : ""}`}
               >
                 <div className="field-stamp-seal" aria-hidden="true">
                   <img src={quest.image} alt="" />
-                  {quest.completed && (
+                  {(quest.completed || quest.investigated) && (
                     <img
                       className="field-stamp-clear"
                       src="/images/quests/stamp-image.png"
@@ -148,16 +149,16 @@ export function FieldRewards({
                 <div className="field-stamp-copy">
                   <strong>{quest.title}</strong>
                   <span className="field-state-label">
-                    {quest.completed
+                    {quest.completed || quest.investigated
                       ? quest.goldCrown
                         ? "♛ 金冠スタンプ獲得"
-                        : "✓ スタンプ獲得済み"
+                        : quest.completed ? "✓ 討伐スタンプ獲得済み" : "✓ 調査スタンプ獲得済み"
                       : "未獲得"}
                   </span>
                   <p>
-                    {quest.completed
-                      ? "このフィールドの討伐を記録しました。"
-                      : "モンスターを討伐して報酬を受け取ると獲得できます。"}
+                    {quest.completed || quest.investigated
+                      ? "この校舎のスタンプを獲得しました。再戦してもスタンプは増えません。"
+                      : "この校舎のモンスターを討伐または調査し、報酬を受け取ると獲得できます。"}
                   </p>
                 </div>
               </div>
@@ -176,7 +177,7 @@ export function FieldRewards({
         <div className="field-section-heading">
           <h3>フィールド報酬・ステッカー</h3>
           <span className="field-state-label">
-            {progress.noveltyObtained ? "✓ 獲得済み" : "未獲得"}
+            {progress.noveltyObtained ? "✓ 獲得済み" : progress.rally.redeemed ? "別の校舎で交換済み" : "未獲得"}
           </span>
         </div>
         <div className="field-novelty-content">
@@ -254,7 +255,7 @@ export default function FieldCollection() {
             </header>
             <FieldRewards
               area={area}
-              progress={getFieldProgress(area, quests, obtainedFieldNoveltyIds)}
+              progress={getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas)}
             />
           </article>
         ))}

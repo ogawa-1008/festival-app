@@ -18,11 +18,11 @@ export type MapArea = {
   };
 };
 
-// 校舎のデータに書くフィールドの定義。出るモンスター（クエスト）はここに並べる
+// 1つの建物にフォトスポット1つ、対戦クエスト1つ。
 export type FieldDefinition = {
   building: number;
   areaName: string;
   photoSpotMonster: string;
   image?: string;
-  quests: Quest[];
+  quest: Quest;
 };

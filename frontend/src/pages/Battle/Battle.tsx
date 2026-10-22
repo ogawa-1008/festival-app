@@ -4,7 +4,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { battleAssets } from "./battleAssets";
+import { battleAssets, getBattleMonsterImage } from "./battleAssets";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     type BattleSession,
@@ -270,7 +270,7 @@ function Battle() {
 
                     <div className="monster-image-frame">
                         <img
-                            src={battleAssets.monster}
+                            src={getBattleMonsterImage(quest.image)}
                             alt="モンスター"
                             className="monster-image"
                         />

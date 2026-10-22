@@ -18,11 +18,11 @@ function toMapArea(field: FieldDefinition): MapArea {
     areaName: field.areaName,
     image: field.image,
     photoSpotMonster: field.photoSpotMonster,
-    questIds: field.quests.map((quest) => quest.id),
+    questIds: [field.quest.id],
     novelty: {
       // ステッカーの絵柄はフォトスポットのモンスターと同じ
       name: `${field.photoSpotMonster} オリジナルステッカー`,
-      description: "フィールド報酬のステッカーです。",
+      description: "異なる3校舎のスタンプを集めて、お好きなステッカー1枚と交換できます。",
       redemptionLocation: `${field.building}号館のフォトスポット`,
     },
   };
@@ -39,12 +39,12 @@ export function getMapAreas(campusId: CampusId | null): MapArea[] {
 
 // 校舎に出るモンスター（クエスト）の一覧
 export function getCampusQuests(campusId: CampusId | null): Quest[] {
-  return campusId ? campusFields[campusId].flatMap((field) => field.quests) : [];
+  return campusId ? campusFields[campusId].map((field) => field.quest) : [];
 }
 
 // すべての校舎のクエスト（QRコードがどの校舎のものかを調べるのに使う）
 export const allCampusQuests: { campusId: CampusId; quest: Quest }[] = (
   Object.entries(campusFields) as [CampusId, FieldDefinition[]][]
 ).flatMap(([campusId, fields]) =>
-  fields.flatMap((field) => field.quests.map((quest) => ({ campusId, quest }))),
+  fields.map((field) => ({ campusId, quest: field.quest })),
 );

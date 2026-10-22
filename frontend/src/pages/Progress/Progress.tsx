@@ -21,13 +21,10 @@ function Progress() {
   const canCraft = !weaponClaimed && !requiresUpdate && hasEnoughWeaponMaterials(materials);
 
   const mapAreas = useMapAreas();
-  const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds));
+  const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas));
   // 練習中はステッカーをもらえないので、もらえる枚数に数えない
-  const redeemableStickers = active
-    ? 0
-    : fields.filter((field) => field.redeemable && !field.noveltyObtained).length;
-  const obtainedStickers = fields.filter((field) => field.noveltyObtained).length;
-  const availableFields = fields.filter((field) => field.available).length;
+  const redeemableStickers = !active && fields.some((field) => field.redeemable) ? 1 : 0;
+  const obtainedStickers = fields.some((field) => field.noveltyObtained) ? 1 : 0;
   const stampsEarned = fields.reduce((sum, field) => sum + field.earned, 0);
   const stampsTotal = fields.reduce((sum, field) => sum + field.total, 0);
 
@@ -56,7 +53,7 @@ function Progress() {
       title: "ステッカーをもらう",
       status: redeemableStickers > 0
         ? `もらえるステッカーが ${redeemableStickers} 枚あります`
-        : `もらったステッカー ${obtainedStickers} / ${availableFields} 枚`,
+        : `もらったステッカー ${obtainedStickers} / 1 枚（スタンプ3つで交換）`,
       highlight: redeemableStickers > 0,
     },
     {

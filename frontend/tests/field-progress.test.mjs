@@ -8,7 +8,7 @@ import {
 import { loadSavedGame, saveGame } from "../src/utils/gameStorage.ts";
 import { RANK_PROGRESS_VERSION } from "../src/utils/hunterRank.ts";
 
-// 実際の校舎のデータ（モンスターが未定）に左右されないよう、テスト用のフィールドとクエストを使う
+// IDによる進捗の対応と保存データの復元を確認する。
 const quests = ["a", "b", "c"].map((id) => ({ ...practiceQuest, id: `quest-${id}`, qrCode: id }));
 const area = (id, questIds) => ({
   id,
@@ -28,7 +28,7 @@ test("field stamps follow quest IDs after reordering, while novelty receipts rem
       goldCrown: index === 0,
     }))
     .reverse();
-  const first = getFieldProgress(mapAreas[0], progress, []);
+  const first = getFieldProgress(mapAreas[0], progress, [], mapAreas);
   assert.equal(first.earned, 1);
   assert.equal(first.complete, true);
   assert.equal(first.quests[0].goldCrown, true);
@@ -37,15 +37,15 @@ test("field stamps follow quest IDs after reordering, while novelty receipts rem
     false,
     "a stamp must not automatically record a physical reward receipt",
   );
-  const second = getFieldProgress(mapAreas[1], progress, [2]);
+  const second = getFieldProgress(mapAreas[1], progress, [2], mapAreas);
   assert.equal(second.earned, 0);
   assert.equal(second.noveltyObtained, true);
   assert.equal(
-    getFieldProgress(mapAreas[3], progress, []).complete,
+    getFieldProgress(mapAreas[3], progress, [], mapAreas).complete,
     false,
     "an unconfigured field is never shown as completed",
   );
-  assert.equal(getFieldProgress(mapAreas[0], [], []).available, false);
+  assert.equal(getFieldProgress(mapAreas[0], [], [], mapAreas).available, false);
 });
 
 test("novelty receipts survive saving; older saves default to unclaimed and invalid field IDs are ignored", () => {

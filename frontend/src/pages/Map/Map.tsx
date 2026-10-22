@@ -43,7 +43,7 @@ function Map() {
           {mapAreas.map((area, index) => {
             const isSelected =
               selectedAreaId === area.id;
-            const fieldProgress = getFieldProgress(area, quests, obtainedFieldNoveltyIds);
+            const fieldProgress = getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas);
 
             return (
               <div

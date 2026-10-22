@@ -33,13 +33,12 @@ test('hands apply damage to the correct side, clamp lethal hits, and stop after 
   }
 });
 
-test('festival hunts remain short and progressively harder under uniform random play', () => {
+test('configured festival hunts remain short and winnable under uniform random play', () => {
   let seed=20261020;
   const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
-  let previousWinRate=1;
-  let previousTurns=0;
-  const limits={ 'quest-001':[.85,.97], 'quest-002':[.72,.85], 'quest-003':[.60,.75] };
-  for(const quest of quests){
+  // 同じ強さの校舎はまとめて検証し、各モンスターで同じシミュレーションを繰り返さない。
+  const configurations = new Map(quests.map((quest) => [JSON.stringify(getBattleStats(quest, { weaponClaimed: false })), quest]));
+  for(const quest of configurations.values()){
     const id=quest.id;
     const stats=getBattleStats(quest,{weaponClaimed:false});
     let wins=0;
@@ -58,10 +57,8 @@ test('festival hunts remain short and progressively harder under uniform random 
     turns.sort((a,b)=>a-b);
     const winRate=wins/turns.length;
     const meanTurns=turns.reduce((a,b)=>a+b)/turns.length;
-    assert.ok(winRate>=limits[id][0] && winRate<=limits[id][1],`${id}: win rate ${winRate}`);
-    assert.ok(winRate<previousWinRate && meanTurns>previousTurns,'difficulty should increase in quest order');
+    assert.ok(winRate>=.60 && winRate<=.97,`${id}: win rate ${winRate}`);
     assert.ok(meanTurns<=18 && turns[Math.floor(turns.length*.95)]<=26,`${id}: hunts are taking too long`);
-    previousWinRate=winRate; previousTurns=meanTurns;
     console.log(`${id}: win ${(winRate*100).toFixed(1)}%, mean ${meanTurns.toFixed(1)} hands, p95 ${turns[Math.floor(turns.length*.95)]} hands`);
   }
 });

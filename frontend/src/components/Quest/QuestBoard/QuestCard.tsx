@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
+import { useMapAreas } from "../../../context/useMapAreas";
 
 import "./QuestCard.css";
 
@@ -16,6 +17,7 @@ function QuestCard({
 }: QuestCardProps) {
   const navigate = useNavigate();
   const { active, advance } = useGameTutorial();
+  const area = useMapAreas().find((item) => item.questIds.includes(quest.id));
 
   const handleQuestClick = () => {
     if (quest.completed) {
@@ -94,7 +96,7 @@ function QuestCard({
               </span>
 
               <strong>
-                文化祭フィールド
+                {area?.buildingName ?? "練習フィールド"}
               </strong>
             </div>
 
