@@ -15,7 +15,7 @@ function CampusSelection() {
   const navigate = useNavigate();
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
+  // バトル中・報酬を受け取る前は、別の校舎（エリア）に変えると報酬を受け取れなくなるので変えさせない
   const isBattleUnfinished = session !== null && !session.claimed;
   const blocked = isBattleUnfinished && pendingCampus !== null && pendingCampus.id !== campusId;
 
@@ -37,10 +37,10 @@ function CampusSelection() {
       <div className="campus-content">
         <header className="campus-heading">
           <p className="campus-eyebrow">― 文化祭 × モンハンコラボ ―</p>
-          <h1>校舎を選択</h1>
+          <h1>エリアを選択</h1>
         </header>
 
-        <div className="campus-list" aria-label="参加する校舎">
+        <div className="campus-list" aria-label="参加するエリア">
           {campuses.map((campus) => (
             <button
               key={campus.id}
@@ -57,7 +57,7 @@ function CampusSelection() {
               <span className="campus-card-labels">
                 <span className="campus-english">{campus.englishName}</span>
                 <span className="campus-name">{campus.name}</span>
-                <span className="campus-card-hint">この校舎でクエストに参加</span>
+                <span className="campus-card-hint">このエリア でクエストに参加</span>
               </span>
               <img className="campus-chevron" src={`${asset}chevron.svg`} alt="" />
             </button>
@@ -74,15 +74,15 @@ function CampusSelection() {
       >
         <span className="campus-dialog-ornament" aria-hidden="true" />
         <p className="campus-eyebrow">― 出発前の確認 ―</p>
-        <h2 id="campus-confirm-title">この校舎で始めますか？</h2>
+        <h2 id="campus-confirm-title">このエリアで始めますか？</h2>
         <div className="campus-chosen">
           <p id="campus-confirm-name">{pendingCampus?.name}</p>
           <p className="campus-english">{pendingCampus?.englishName}</p>
         </div>
         <p id="campus-confirm-description" className="campus-confirm-description">
           {blocked
-            ? <>バトル中、または報酬を受け取る前は<br />校舎を変えられません。</>
-            : <>選択した校舎のクエストと<br />マップを表示します。</>}
+            ? <>バトル中、または報酬を受け取る前は<br />エリアを変えられません。</>
+            : <>選択したエリアのクエストと<br />マップを表示します。</>}
         </p>
         <div className="campus-dialog-actions">
           <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
@@ -97,7 +97,7 @@ function CampusSelection() {
               if (selectCampus(pendingCampus.id)) navigate("/", { replace: true });
             }}
           >
-            この校舎に決定
+            このエリアに決定
           </button>
         </div>
       </dialog>

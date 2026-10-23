@@ -131,17 +131,25 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
   const steps = useMemo(() => createTutorialSteps(questId), [questId]);
   const [seen, setSeen] = useState(hasSeenTutorial);
   const [requestedStep, setRequestedStep] = useState<string | null>(() => readActiveTutorialStep(pathname, steps));
+  const [keepPracticeSession, setKeepPracticeSession] = useState(false);
   const step = requestedStep ?? (!seen && campusId && pathname === "/" ? "welcome" : null);
   const active = step !== null && campusId !== null;
+  const isSessionRoute = /^\/(?:quest-loading|battle|result)\/[^/]+\/?$/.test(pathname);
+  const practiceActive = active || (keepPracticeSession && isSessionRoute);
   const restoreFocus = useRef(false);
 
   const finish = useCallback((completed = false) => {
+    // Battle/result guards still need the isolated session after the guide closes.
+    setKeepPracticeSession(isSessionRoute);
     saveTutorialStatus(completed);
     setSeen(true);
     setRequestedStep(null);
     restoreFocus.current = true;
-    navigate("/", { replace: true });
-  }, [navigate]);
+  }, [isSessionRoute]);
+
+  useEffect(() => {
+    if (!isSessionRoute) setKeepPracticeSession(false);
+  }, [isSessionRoute]);
 
   const startTutorial = useCallback(() => {
     clearPractice();
@@ -182,13 +190,13 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("popstate", onBack);
   }, [active, finish]);
 
-  const value = useMemo(() => ({ startTutorial, active, step, questId, advance }), [startTutorial, active, step, questId, advance]);
+  const value = useMemo(() => ({ startTutorial, active: practiceActive, step, questId, advance }), [startTutorial, practiceActive, step, questId, advance]);
   return (
     <GameTutorialContext.Provider value={value}>
-      {active ? <GameProvider practiceCampus={campusId}>
+      {practiceActive && campusId !== null ? <GameProvider practiceCampus={campusId}>
         <BattleSessionProvider practice>
         <div className="tutorial-scene" key={pathname}>{children}</div>
-        <TutorialOverlay stepId={step!} steps={steps} advance={advance} finish={finish} />
+        {active && <TutorialOverlay stepId={step!} steps={steps} advance={advance} finish={finish} />}
         </BattleSessionProvider>
       </GameProvider> : children}
     </GameTutorialContext.Provider>
