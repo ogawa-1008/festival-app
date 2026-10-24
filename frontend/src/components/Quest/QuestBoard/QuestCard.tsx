@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
+import { getMaterial } from "../../../data/materials";
 
 import "./QuestCard.css";
 
@@ -50,10 +51,6 @@ function QuestCard({
           <span className="quest-type">
             討伐クエスト
           </span>
-
-          <span className="quest-symbol">
-            ◆
-          </span>
         </div>
 
 
@@ -91,74 +88,31 @@ function QuestCard({
             クエスト情報
         ========================== */}
 
-        <div className="quest-info">
+        <dl className="quest-info">
 
-          <div className="quest-info-row">
-
-            <div>
-              <span className="quest-info-label">
-                AREA
-              </span>
-
-              <strong>
-                {buildingName ?? "練習フィールド"}
-              </strong>
-            </div>
-
-            <div>
-              <span className="quest-info-label">
-                TYPE
-              </span>
-
-              <strong>
-                討伐
-              </strong>
-            </div>
-
+          <div className="quest-info-item">
+            <dt className="quest-info-label">AREA</dt>
+            <dd>{buildingName ?? "練習フィールド"}</dd>
           </div>
 
-          <div className="quest-info-row">
-
-            <div>
-              <span className="quest-info-label">
-                QUEST
-              </span>
-
-              <strong>
-                QR SCAN
-              </strong>
-            </div>
-
-            <div>
-              <span className="quest-info-label">
-                REWARD
-              </span>
-
-              <strong>
-                MATERIAL
-              </strong>
-            </div>
-
+          {/* 報酬の素材は、アイコンと数で並べる（名前は読み上げ用） */}
+          <div className="quest-info-item">
+            <dt className="quest-info-label">REWARD</dt>
+            <dd className="quest-rewards">
+              {quest.rewardMaterials.map((reward, index) => {
+                const material = getMaterial(reward.id);
+                if (!material) return null;
+                return (
+                  <span key={`${reward.id}-${index}`} className="quest-reward" title={material.name}>
+                    <img src={material.image} alt={material.name} />
+                    <span>×{reward.amount}</span>
+                  </span>
+                );
+              })}
+            </dd>
           </div>
 
-        </div>
-
-
-        {/* ==========================
-            フッター
-        ========================== */}
-
-        <div className="quest-footer">
-
-          <span>
-            VANTAN × MONSTER HUNTER
-          </span>
-
-          <span>
-            QRコードを読み取って挑戦
-          </span>
-
-        </div>
+        </dl>
 
 
         {/* ==========================

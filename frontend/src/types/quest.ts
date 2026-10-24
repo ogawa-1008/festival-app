@@ -1,3 +1,5 @@
+import type { MaterialAmount } from "../data/materials.ts";
+
 // クエストの定義で未設定の項目に使う既定値
 export const DEFAULT_MAX_TURNS = 30;
 export const DEFAULT_MONSTER_HP = 120;
@@ -13,11 +15,8 @@ export type Quest = {
 
   qrCode: string;
 
-  // 討伐時にドロップする素材（調査＝失敗時は半分・切り上げ）
-  rewardMaterials: {
-    id: number;
-    amount: number;
-  }[];
+  // 討伐時にドロップする素材（調査＝失敗時は半分・切り上げ）。素材は data/materials.ts で定義する
+  rewardMaterials: MaterialAmount[];
 
   // 討伐時にもらえるHR EXP（調査＝失敗時は3割・切り上げ）
   rewardExp?: number;

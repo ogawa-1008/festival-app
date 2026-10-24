@@ -5,7 +5,7 @@ import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useSessionScreen } from "../../context/useSessionScreen";
-import { progressData } from "../../data/progress";
+import { getMaterial } from "../../data/materials";
 import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
 import { getRewardExp } from "../../utils/questReward";
 
@@ -232,20 +232,18 @@ function Result() {
 
                     <div className="result-reward-list">
 
-                        {quest.rewardMaterials.map((reward) => {
+                        {quest.rewardMaterials.map((reward, index) => {
 
-                            const material =
-                                progressData.materials.find(
-                                    (item) => item.id === reward.id
-                                );
+                            const material = getMaterial(reward.id);
 
+                            // 一覧にない素材は表示しない
                             if (!material) {
                                 return null;
                             }
 
                             return (
                                 <div
-                                    key={reward.id}
+                                    key={`${reward.id}-${index}`}
                                     className="result-reward-item"
                                 >
 

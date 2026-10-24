@@ -23,11 +23,14 @@
 
   /*
    * カードの並べ方の値（QuestCard.css の位置もこの値を使う）。
-   * 間隔はカードの高さ315px＋すき間10px
+   * 1枚目は見出し（QUEST BOARD）の下に余白を取って置き、間隔はカードの高さ315px＋すき間25px。
+   * 最後のカードの下にも、内側の枠にかからない余白を取る
    */
-  --quest-card-first-top: 45px;
-  --quest-card-pitch: 325px;
-  --quest-board-bottom-space: 15px;
+  --quest-card-scale: 1;
+  --quest-card-first-top: 62px;
+  /* 間隔は、縮めたあとのカードの高さ＋すき間25px */
+  --quest-card-pitch: calc(315px * var(--quest-card-scale) + 25px);
+  --quest-board-bottom-space: 12px;
 
   /* 高さはクエストの枚数（QuestList が渡す --quest-count）に合わせて伸ばす */
   height: calc(var(--quest-card-first-top) + var(--quest-count, 1) * var(--quest-card-pitch) + var(--quest-board-bottom-space));
@@ -188,3 +191,38 @@
   box-sizing: border-box;
 }
 
+
+/*
+ * 幅の狭い画面では、カードを縮めて掲示板の内側の枠（左右とも約19px）から10px以上離す。
+ * 掲示板の幅は画面の幅 - 12px なので、カードの幅（315px × 倍率）が「画面の幅 - 70px」以下になるよう、
+ * 各範囲の一番狭い幅に合わせて倍率を決める（CSS では長さ同士の割り算ができないため段階で決める）
+ */
+@media (max-width: 385px) {
+  .quest-board {
+    --quest-card-scale: 0.97;
+  }
+}
+
+@media (max-width: 375px) {
+  .quest-board {
+    --quest-card-scale: 0.89;
+  }
+}
+
+@media (max-width: 350px) {
+  .quest-board {
+    --quest-card-scale: 0.82;
+  }
+}
+
+@media (max-width: 330px) {
+  .quest-board {
+    --quest-card-scale: 0.76;
+  }
+}
+
+@media (max-width: 310px) {
+  .quest-board {
+    --quest-card-scale: 0.7;
+  }
+}

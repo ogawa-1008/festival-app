@@ -1,6 +1,8 @@
 import { defineFields } from "./defineFields.ts";
 
 // 東京校：号館ごとのフィールド。フォトスポットのモンスター1体と対戦する
+// 号館ごとの報酬を変えるときは、その号館に rewardMaterials を書く
+// （例：rewardMaterials: [{ id: 3, amount: 1 }]。素材の id は data/materials.ts）。書かなければ共通の報酬
 export const tokyoFields = defineFields("tokyo", [
   {
     building: 1,
