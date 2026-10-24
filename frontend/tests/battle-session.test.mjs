@@ -65,3 +65,17 @@ test('the final permitted hand prioritizes victory and defeat over timeout, and 
   assert.equal(state.endReason,'victory');
   assert.equal(state.goldCrown,false);
 });
+
+test('pressing 狩猟を始める restarts the clock only for a battle with no hand played yet', async () => {
+  const { restartSessionClock, isUntouchedSession } = await import('../src/utils/battleSession.ts');
+  const created = createSession(quests[0].id, getBattleStats(quests[0], { weaponClaimed: false }), 'owner');
+  const now = created.startedAt + 5000;
+  const restarted = restartSessionClock(created, now);
+  assert.equal(isUntouchedSession(created), true);
+  assert.equal(restarted.startedAt, now);
+  assert.equal(restarted.nextTurnAt - now, created.nextTurnAt - created.startedAt, 'the full start wait is given again');
+
+  const played = { ...created, turnsLeft: created.maxTurns - 1, lastRound: { playerHand: 'rock', enemyHand: 'paper', result: 'enemy', damage: 10 } };
+  assert.equal(isUntouchedSession(played), false);
+  assert.equal(restartSessionClock(played, now), played, 'a battle in progress keeps its timing');
+});

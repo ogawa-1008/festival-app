@@ -95,6 +95,20 @@ export function createSession(
   };
 }
 
+// まだ1手も出していない（確認画面から「狩猟を始める」を押す前の）セッションか
+export function isUntouchedSession(session: BattleSession) {
+  return session.endReason === null && session.lastRound === null && session.turnsLeft === session.maxTurns;
+}
+
+// 確認画面で「狩猟を始める」を押したときに、開始の時刻を押した時刻に合わせ直す
+// （QRを読んでから確認画面にいた時間で、「討伐開始」の帯や最初の待ち時間が削られないように）
+// 1手でも出したセッションはそのまま返す（読み直しで待ち時間を延ばしたり縮めたりできないように）
+export function restartSessionClock(session: BattleSession, now = Date.now()): BattleSession {
+  if (!isUntouchedSession(session)) return session;
+
+  return { ...session, startedAt: now, nextTurnAt: now + START_WAIT_MS };
+}
+
 export { judgeWinner };
 
 export function playRound(

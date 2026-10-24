@@ -9,6 +9,7 @@ import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     type Hand,
     HUNT_BANNER_MS,
+    isUntouchedSession,
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
@@ -48,7 +49,7 @@ function Battle() {
     const { questId } = useParams();
 
     const { quests } = useGame();
-    const { session, playHand } = useBattleSession();
+    const { session, playHand, beginBattle } = useBattleSession();
     const { active: practice, minimized: guideMinimized, advance } = useGameTutorial();
     const screenStatus = useSessionScreen(questId);
 
@@ -79,6 +80,15 @@ function Battle() {
             : 0,
         ROUND_RESULT_HOLD_MS
     );
+
+    // 確認画面を通らずにバトル画面を開いた場合（ブラウザの戻る・進むなど）も、
+    // まだ1手も出していなければ、開いた時刻に開始時刻を合わせ直す（「討伐開始」の帯を削らないように）
+    const clockChecked = useRef(false);
+    useEffect(() => {
+        if (clockChecked.current || screenStatus !== "ready" || !questId || !session || session.questId !== questId) return;
+        clockChecked.current = true;
+        if (isUntouchedSession(session) && Date.now() > session.startedAt + 1000) beginBattle(questId);
+    }, [screenStatus, questId, session, beginBattle]);
 
     // 押した手のボタンは待ち時間の間は押せなくなり、フォーカスが外れる。
     // キーボードや読み上げで操作している人が続けて選べるよう、押せるようになったら押したボタンに戻す

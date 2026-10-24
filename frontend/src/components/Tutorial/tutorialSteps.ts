@@ -57,8 +57,8 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
     { id: "scan", path: "/qr-scanner", action: "qr-scanned", element: '[data-tutorial="practice-scan"]', popover: {
       title: "QRを読み取る", description: "練習用QRを押して、読み取りを体験しましょう。本番では会場のQRを枠に合わせると自動で読み取ります。", side: "top",
     } },
-    { id: "loading", path: `/quest-loading/${questId}`, action: "battle-ready", element: ".departure-heading", popover: {
-      title: "狩猟フィールドへ", description: "QRを読み取れました。準備が整うとバトルが始まります。少しお待ちください。", side: "bottom",
+    { id: "loading", path: `/quest-loading/${questId}`, action: "battle-ready", element: '[data-tutorial="quest-confirm"]', popover: {
+      title: "クエストを確認", description: "QRを読み取れました。挑戦するクエストを確認して、「狩猟を始める」を押しましょう。準備が整うと押せるようになります。", side: "top",
     } },
     { id: "battle", path: `/battle/${questId}`, action: "battle-finished", element: '[data-tutorial="battle-hands"]', popover: {
       title: "手を選んで狩猟しよう", description: `${JANKEN_RULE_TEXT}手を押して、相手のHPを0にしよう。`, side: "top",
