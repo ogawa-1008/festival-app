@@ -22,10 +22,10 @@
   max-width: 430px;
 
   /*
-   * 3枚のクエストを
-   * 重ならないように縦配置
+   * 高さはクエストの枚数に合わせて QuestList が決める（getQuestBoardHeight）。
+   * ここは読み込み前などの既定値（カード1枚分）
    */
-  height: 1040px;
+  height: 385px;
 
   box-sizing: border-box;
 

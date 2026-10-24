@@ -1,7 +1,8 @@
 import { useGame } from "../../../context/GameContext";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
 import { PRACTICE_QUEST_ID } from "../../../data/quests";
-import QuestCard, { QUEST_CARD_PITCH } from "./QuestCard";
+import { useMapAreas } from "../../../context/useMapAreas";
+import QuestCard, { getQuestBoardHeight } from "./QuestCard";
 import "./QuestList.css";
 
 function QuestList() {
@@ -11,8 +12,11 @@ function QuestList() {
   const visibleQuests = practice
     ? quests.filter((quest) => quest.id === PRACTICE_QUEST_ID)
     : quests;
-  // 掲示板は1枚にし、カードの数に合わせて縦に伸ばす（上部の見出しの分＋カードの枚数分）
-  const height = 60 + Math.max(1, visibleQuests.length) * QUEST_CARD_PITCH;
+  // クエストの建物名は、カードごとに探さず一度だけ表にする
+  const mapAreas = useMapAreas();
+  const buildingNames = new Map(mapAreas.flatMap((area) => area.questIds.map((id) => [id, area.buildingName] as const)));
+  // 掲示板は1枚にし、カードの数に合わせて縦に伸ばす
+  const height = getQuestBoardHeight(visibleQuests.length);
 
   return (
     <div className="quest-board" style={{ height }}>
@@ -21,7 +25,7 @@ function QuestList() {
         {visibleQuests.length === 0 ? (
           <p className="quest-board-empty">このエリアのモンスターは準備中です。</p>
         ) : visibleQuests.map((quest, index) => (
-          <QuestCard key={quest.id} quest={quest} index={index} />
+          <QuestCard key={quest.id} quest={quest} index={index} buildingName={buildingNames.get(quest.id)} />
         ))}
       </div>
     </div>

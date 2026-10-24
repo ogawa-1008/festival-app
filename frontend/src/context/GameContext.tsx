@@ -11,13 +11,14 @@ import {
 
 import { practiceQuest } from "../data/quests";
 import { progressData } from "../data/progress";
-import { findCampus, type CampusId } from "../data/campuses";
+import { campuses, findCampus, type CampusId } from "../data/campuses";
 import { practiceStorageKey } from "../components/Tutorial/tutorialSteps";
 import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
 import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
 import {
   CAMPUS_STORAGE_KEY,
+  clearLegacyBuildingSelection,
   clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
   getCampusGameKey,
@@ -216,6 +217,16 @@ function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean
 const GameContext = createContext<GameContextType | null>(null);
 export function GameProvider({ children, practiceCampus }: { children: ReactNode; practiceCampus?: CampusId }) {
   const [gameState, setGameState] = useState<GameState>(() => loadGameState(practiceCampus));
+
+  // 以前あった建物選択の保存が残っていれば消す（本番の画面で1回だけ）
+  useEffect(() => {
+    if (practiceCampus || typeof window === "undefined") return;
+    try {
+      clearLegacyBuildingSelection(window.localStorage, campuses.map((campus) => campus.id));
+    } catch {
+      // localStorage が使えない環境では何もしない
+    }
+  }, [practiceCampus]);
 
   const [saveFailed, setSaveFailed] = useState(false);
   const pendingSave = useRef<GameState | null>(null);

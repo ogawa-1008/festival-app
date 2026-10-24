@@ -5,6 +5,19 @@ export const GAME_STORAGE_KEY = "monster-hunter-festival-game";
 // 選んでいる校舎
 export const CAMPUS_STORAGE_KEY = "monster-hunter-festival-campus";
 
+// 以前あった建物（号館）選択の保存先。今は使わないので、残っていれば消す
+const LEGACY_BUILDING_STORAGE_KEY = "monster-hunter-festival-building";
+
+export function clearLegacyBuildingSelection(storage: Pick<Storage, "removeItem">, campusIds: readonly string[]) {
+  for (const campusId of campusIds) {
+    try {
+      storage.removeItem(`${LEGACY_BUILDING_STORAGE_KEY}:${campusId}`);
+    } catch {
+      // 消せなくても、使わないので問題ない
+    }
+  }
+}
+
 // 進み具合は校舎ごとに分けて保存する
 export function getCampusGameKey(campusId: string) {
   return `${GAME_STORAGE_KEY}:${campusId}`;

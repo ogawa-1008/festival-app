@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
@@ -13,6 +13,8 @@ function CampusSelection() {
   const { campusId, selectCampus } = useGame();
   const { session } = useBattleSession();
   const navigate = useNavigate();
+  // ホームのメニューから開いたか（そのときは決めたら1つ前のホームへ戻る）
+  const fromHome = (useLocation().state as { fromHome?: boolean } | null)?.fromHome === true;
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
@@ -94,7 +96,11 @@ function CampusSelection() {
             disabled={blocked}
             onClick={() => {
               if (!pendingCampus || blocked) return;
-              if (selectCampus(pendingCampus.id)) navigate("/", { replace: true });
+              if (selectCampus(pendingCampus.id)) {
+                // ホームから開いたときは戻る（履歴にホームが2つ並ばないように）。最初の選択ならホームへ進む
+                if (fromHome) navigate(-1);
+                else navigate("/", { replace: true });
+              }
             }}
           >
             このエリアに決定

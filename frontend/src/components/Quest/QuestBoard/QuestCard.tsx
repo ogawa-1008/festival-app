@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
-import { useMapAreas } from "../../../context/useMapAreas";
 
 import "./QuestCard.css";
 
@@ -11,19 +10,28 @@ type QuestCardProps = {
   quest: Quest;
   // 掲示板の上から何枚目か（0から）。位置と重なり順をこの番号から決める
   index: number;
+  // クエストの建物名（練習用のクエストはなし）
+  buildingName?: string;
 };
 
 // カード1枚分の縦の間隔（カードの高さ315px＋すき間10px）と、1枚目の位置
-export const QUEST_CARD_PITCH = 325;
+const QUEST_CARD_PITCH = 325;
 const QUEST_CARD_FIRST_TOP = 45;
+// 最後のカードの下に空ける余白（掲示板の枠の分）
+const QUEST_BOARD_BOTTOM_SPACE = 15;
+
+// カードの枚数に合わせた掲示板の高さ（カードがないときも1枚分の高さを取る）
+export function getQuestBoardHeight(count: number) {
+  return QUEST_CARD_FIRST_TOP + Math.max(1, count) * QUEST_CARD_PITCH + QUEST_BOARD_BOTTOM_SPACE;
+}
 
 function QuestCard({
   quest,
   index,
+  buildingName,
 }: QuestCardProps) {
   const navigate = useNavigate();
   const { active, advance } = useGameTutorial();
-  const area = useMapAreas().find((item) => item.questIds.includes(quest.id));
 
   const handleQuestClick = () => {
     if (quest.completed) {
@@ -104,7 +112,7 @@ function QuestCard({
               </span>
 
               <strong>
-                {area?.buildingName ?? "練習フィールド"}
+                {buildingName ?? "練習フィールド"}
               </strong>
             </div>
 

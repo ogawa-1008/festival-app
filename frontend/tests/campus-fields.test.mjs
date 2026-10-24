@@ -5,6 +5,7 @@ import { allCampusQuests, getCampusQuests, getMapAreas } from "../src/data/maps.
 import { quests } from "../src/data/quests.ts";
 import {
   CAMPUS_STORAGE_KEY,
+  clearLegacyBuildingSelection,
   clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
   getCampusGameKey,
@@ -95,4 +96,16 @@ test("the old save is removed only after its campus has been saved separately", 
   storage.setItem(getCampusGameKey("osaka"), "{}");
   clearMigratedLegacyGame(storage, "osaka");
   assert.equal(storage.getItem(GAME_STORAGE_KEY), null);
+});
+
+test("old building selections saved before the building screen was removed are cleared", () => {
+  const storage = memoryStorage({
+    "monster-hunter-festival-building:osaka": "2",
+    "monster-hunter-festival-building:tokyo": "1",
+    [CAMPUS_STORAGE_KEY]: "osaka",
+  });
+  clearLegacyBuildingSelection(storage, campuses.map((campus) => campus.id));
+  assert.equal(storage.getItem("monster-hunter-festival-building:osaka"), null);
+  assert.equal(storage.getItem("monster-hunter-festival-building:tokyo"), null);
+  assert.equal(storage.getItem(CAMPUS_STORAGE_KEY), "osaka", "the selected area is kept");
 });

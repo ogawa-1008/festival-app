@@ -102,7 +102,7 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => navigate("/start")}
+                  onClick={() => navigate("/start", { state: { fromHome: true } })}
                 >
                   <span className="side-menu-item-icon">⌂</span>
                   <span className="side-menu-item-text">
