@@ -11,7 +11,7 @@ import {
 
 import { practiceQuest } from "../data/quests";
 import { progressData } from "../data/progress";
-import { campuses, findCampus, type CampusId } from "../data/campuses";
+import { findCampus, type CampusId } from "../data/campuses";
 import { practiceStorageKey } from "../components/Tutorial/tutorialSteps";
 import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
 import { getRewardExp } from "../utils/questReward";
@@ -132,6 +132,8 @@ function createCampusState(campusId: CampusId, practice: boolean): GameState {
 }
 
 // 進み具合は校舎ごとに保存する。campusId を省くと、選んでいる校舎（localStorage）を読む
+let legacyBuildingCleared = false;
+
 function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | null): GameState {
   if (typeof window === "undefined") {
     return initialGameState;
@@ -159,6 +161,11 @@ function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | nu
   let campusId: CampusId | null = null;
   try {
     const storage = window.localStorage;
+    // 以前あった建物選択の保存が残っていれば消す（読み込みのたびではなく、ページを開いて最初の1回だけ）
+    if (!legacyBuildingCleared) {
+      legacyBuildingCleared = true;
+      clearLegacyBuildingSelection(storage);
+    }
     campusId = campusOverride !== undefined
       ? campusOverride
       : findCampus(readSelectedCampus(storage))?.id ?? null;
@@ -217,16 +224,6 @@ function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean
 const GameContext = createContext<GameContextType | null>(null);
 export function GameProvider({ children, practiceCampus }: { children: ReactNode; practiceCampus?: CampusId }) {
   const [gameState, setGameState] = useState<GameState>(() => loadGameState(practiceCampus));
-
-  // 以前あった建物選択の保存が残っていれば消す（本番の画面で1回だけ）
-  useEffect(() => {
-    if (practiceCampus || typeof window === "undefined") return;
-    try {
-      clearLegacyBuildingSelection(window.localStorage, campuses.map((campus) => campus.id));
-    } catch {
-      // localStorage が使えない環境では何もしない
-    }
-  }, [practiceCampus]);
 
   const [saveFailed, setSaveFailed] = useState(false);
   const pendingSave = useRef<GameState | null>(null);

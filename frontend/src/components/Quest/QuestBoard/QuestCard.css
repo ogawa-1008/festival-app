@@ -357,12 +357,14 @@
 
 /*
  * どのカードも同じサイズ。縦の位置（top）と重なり順（z-index）は、
- * 上から何枚目かに合わせて QuestCard の style で決める
+ * 上から何枚目か（QuestCard が渡す --quest-index）で決める。
+ * 間隔・位置の値は QuestList.css の .quest-board に置き、掲示板の高さと同じ値を使う
  */
 
 .quest-card.quest-slot {
   position: absolute;
 
+  top: calc(var(--quest-card-first-top) + var(--quest-index, 0) * var(--quest-card-pitch));
   left: 50%;
 
   width: 315px !important;
@@ -379,7 +381,8 @@
 
   transform: translateX(-50%);
 
-  z-index: var(--quest-card-z, 10);
+  /* 上のカードほど手前に重ねる（押したときに少し浮く動きで隠れないように） */
+  z-index: calc(30 - var(--quest-index, 0));
 }
 
 

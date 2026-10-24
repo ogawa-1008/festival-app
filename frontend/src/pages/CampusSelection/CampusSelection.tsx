@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { campuses } from "../../data/campuses";
 import "./CampusSelection.css";
 
@@ -13,13 +14,18 @@ function CampusSelection() {
   const { campusId, selectCampus } = useGame();
   const { session } = useBattleSession();
   const navigate = useNavigate();
-  // ホームのメニューから開いたか（そのときは決めたら1つ前のホームへ戻る）
-  const fromHome = (useLocation().state as { fromHome?: boolean } | null)?.fromHome === true;
+  const { active: practice } = useGameTutorial();
+  // ホームのメニューから開いたときは、ホームの履歴の位置（returnIdx）が渡される。
+  // 決めたときに、今の画面がそのすぐ次なら1つ戻る（履歴にホームが2つ並ばないように）
+  const returnIdx = (useLocation().state as { returnIdx?: number } | null)?.returnIdx;
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
   const isBattleUnfinished = session !== null && !session.claimed;
-  const blocked = isBattleUnfinished && pendingCampus !== null && pendingCampus.id !== campusId;
+  // 練習中にエリアを変えると、練習用のクエストが消えて先に進めなくなるので変えさせない
+  const blockedByPractice = practice && pendingCampus !== null && pendingCampus.id !== campusId;
+  const blocked = blockedByPractice
+    || (isBattleUnfinished && pendingCampus !== null && pendingCampus.id !== campusId);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -82,7 +88,9 @@ function CampusSelection() {
           <p className="campus-english">{pendingCampus?.englishName}</p>
         </div>
         <p id="campus-confirm-description" className="campus-confirm-description">
-          {blocked
+          {blockedByPractice
+            ? <>操作の練習中は<br />エリアを変えられません。</>
+            : blocked
             ? <>バトル中、または報酬を受け取る前は<br />エリアを変えられません。</>
             : <>選択したエリアのクエストと<br />マップを表示します。</>}
         </p>
@@ -97,8 +105,9 @@ function CampusSelection() {
             onClick={() => {
               if (!pendingCampus || blocked) return;
               if (selectCampus(pendingCampus.id)) {
-                // ホームから開いたときは戻る（履歴にホームが2つ並ばないように）。最初の選択ならホームへ進む
-                if (fromHome) navigate(-1);
+                // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
+                const currentIdx = (window.history.state as { idx?: number } | null)?.idx;
+                if (returnIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
                 else navigate("/", { replace: true });
               }
             }}

@@ -8,13 +8,16 @@ export const CAMPUS_STORAGE_KEY = "monster-hunter-festival-campus";
 // 以前あった建物（号館）選択の保存先。今は使わないので、残っていれば消す
 const LEGACY_BUILDING_STORAGE_KEY = "monster-hunter-festival-building";
 
-export function clearLegacyBuildingSelection(storage: Pick<Storage, "removeItem">, campusIds: readonly string[]) {
-  for (const campusId of campusIds) {
-    try {
-      storage.removeItem(`${LEGACY_BUILDING_STORAGE_KEY}:${campusId}`);
-    } catch {
-      // 消せなくても、使わないので問題ない
+export function clearLegacyBuildingSelection(storage: Pick<Storage, "length" | "key" | "removeItem">) {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < storage.length; i += 1) {
+      const key = storage.key(i);
+      if (key?.startsWith(`${LEGACY_BUILDING_STORAGE_KEY}:`)) keys.push(key);
     }
+    keys.forEach((key) => storage.removeItem(key));
+  } catch {
+    // 消せなくても、使わないので問題ない
   }
 }
 

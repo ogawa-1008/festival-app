@@ -102,7 +102,8 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => navigate("/start", { state: { fromHome: true } })}
+                  // 戻り先としてホームの履歴の位置を渡す（エリアを決めたら1つ戻る）
+                  onClick={() => navigate("/start", { state: { returnIdx: (window.history.state as { idx?: number } | null)?.idx } })}
                 >
                   <span className="side-menu-item-icon">⌂</span>
                   <span className="side-menu-item-text">

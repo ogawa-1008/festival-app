@@ -1,8 +1,9 @@
+import { useMemo, type CSSProperties } from "react";
 import { useGame } from "../../../context/GameContext";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
 import { PRACTICE_QUEST_ID } from "../../../data/quests";
 import { useMapAreas } from "../../../context/useMapAreas";
-import QuestCard, { getQuestBoardHeight } from "./QuestCard";
+import QuestCard from "./QuestCard";
 import "./QuestList.css";
 
 function QuestList() {
@@ -14,12 +15,14 @@ function QuestList() {
     : quests;
   // クエストの建物名は、カードごとに探さず一度だけ表にする
   const mapAreas = useMapAreas();
-  const buildingNames = new Map(mapAreas.flatMap((area) => area.questIds.map((id) => [id, area.buildingName] as const)));
-  // 掲示板は1枚にし、カードの数に合わせて縦に伸ばす
-  const height = getQuestBoardHeight(visibleQuests.length);
+  const buildingNames = useMemo(
+    () => new Map(mapAreas.flatMap((area) => area.questIds.map((id) => [id, area.buildingName] as const))),
+    [mapAreas],
+  );
 
   return (
-    <div className="quest-board" style={{ height }}>
+    // 掲示板は1枚にし、カードの数に合わせて縦に伸ばす（高さは QuestList.css で計算する）
+    <div className="quest-board" style={{ "--quest-count": Math.max(1, visibleQuests.length) } as CSSProperties}>
       <div className="quest-board-header"><span>QUEST BOARD</span></div>
       <div className="quest-board-list">
         {visibleQuests.length === 0 ? (

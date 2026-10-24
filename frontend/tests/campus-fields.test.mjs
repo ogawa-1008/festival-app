@@ -63,6 +63,10 @@ const memoryStorage = (entries = {}) => {
     getItem: (key) => (data.has(key) ? data.get(key) : null),
     setItem: (key, value) => data.set(key, value),
     removeItem: (key) => data.delete(key),
+    get length() {
+      return data.size;
+    },
+    key: (index) => [...data.keys()][index] ?? null,
   };
 };
 
@@ -102,9 +106,11 @@ test("old building selections saved before the building screen was removed are c
   const storage = memoryStorage({
     "monster-hunter-festival-building:osaka": "2",
     "monster-hunter-festival-building:tokyo": "1",
+    "monster-hunter-festival-building:old-area": "3",
     [CAMPUS_STORAGE_KEY]: "osaka",
   });
-  clearLegacyBuildingSelection(storage, campuses.map((campus) => campus.id));
+  clearLegacyBuildingSelection(storage);
+  assert.equal(storage.getItem("monster-hunter-festival-building:old-area"), null, "areas no longer in the list are cleared too");
   assert.equal(storage.getItem("monster-hunter-festival-building:osaka"), null);
   assert.equal(storage.getItem("monster-hunter-festival-building:tokyo"), null);
   assert.equal(storage.getItem(CAMPUS_STORAGE_KEY), "osaka", "the selected area is kept");

@@ -10,20 +10,9 @@ type QuestCardProps = {
   quest: Quest;
   // 掲示板の上から何枚目か（0から）。位置と重なり順をこの番号から決める
   index: number;
-  // クエストの建物名（練習用のクエストはなし）
+  // クエストの建物名（見つからないときは「練習フィールド」と出す）
   buildingName?: string;
 };
-
-// カード1枚分の縦の間隔（カードの高さ315px＋すき間10px）と、1枚目の位置
-const QUEST_CARD_PITCH = 325;
-const QUEST_CARD_FIRST_TOP = 45;
-// 最後のカードの下に空ける余白（掲示板の枠の分）
-const QUEST_BOARD_BOTTOM_SPACE = 15;
-
-// カードの枚数に合わせた掲示板の高さ（カードがないときも1枚分の高さを取る）
-export function getQuestBoardHeight(count: number) {
-  return QUEST_CARD_FIRST_TOP + Math.max(1, count) * QUEST_CARD_PITCH + QUEST_BOARD_BOTTOM_SPACE;
-}
 
 function QuestCard({
   quest,
@@ -45,8 +34,8 @@ function QuestCard({
   return (
     <button
       className="quest-card quest-slot"
-      // 上のカードほど手前に重ねる（押したときに少し浮く動きで隠れないように）
-      style={{ top: QUEST_CARD_FIRST_TOP + index * QUEST_CARD_PITCH, "--quest-card-z": 30 - index } as CSSProperties}
+      // 何枚目かを CSS に渡し、位置と重なり順（上のカードほど手前）を QuestCard.css で決める
+      style={{ "--quest-index": index } as CSSProperties}
       type="button"
       data-tutorial-quest={quest.id}
       onClick={handleQuestClick}

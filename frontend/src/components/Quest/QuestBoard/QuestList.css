@@ -22,10 +22,15 @@
   max-width: 430px;
 
   /*
-   * 高さはクエストの枚数に合わせて QuestList が決める（getQuestBoardHeight）。
-   * ここは読み込み前などの既定値（カード1枚分）
+   * カードの並べ方の値（QuestCard.css の位置もこの値を使う）。
+   * 間隔はカードの高さ315px＋すき間10px
    */
-  height: 385px;
+  --quest-card-first-top: 45px;
+  --quest-card-pitch: 325px;
+  --quest-board-bottom-space: 15px;
+
+  /* 高さはクエストの枚数（QuestList が渡す --quest-count）に合わせて伸ばす */
+  height: calc(var(--quest-card-first-top) + var(--quest-count, 1) * var(--quest-card-pitch) + var(--quest-board-bottom-space));
 
   box-sizing: border-box;
 
