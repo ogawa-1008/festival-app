@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -15,12 +15,15 @@ import {
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
+import { HAND_LABELS } from "../../data/jankenRule";
 import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
 
 import "./Battle.css";
 
 const START_MESSAGE = "じゃんけんでモンスターを倒せ！";
+// 直前の手の記録がない以前の形式のセッションを、途中から再開したとき
+const RESUME_MESSAGE = "続きからモンスターに挑もう！";
 // 勝敗を先に読めるようにしてから、残りの待機時間で次のターンの帯を出す。
 const ROUND_RESULT_HOLD_MS = 600;
 
@@ -43,11 +46,16 @@ const ROUND_LABELS: Record<RoundResult, string> = {
     draw: "あいこ！",
 };
 
-const HAND_LABELS: Record<Hand, string> = {
-    rock: "グー",
-    scissors: "チョキ",
-    paper: "パー",
-};
+type LastRound = NonNullable<BattleSession["lastRound"]>;
+
+// 直前の手の結果（ダメージ）の文
+function getRoundText(lastRound: LastRound) {
+    if (lastRound.result === "draw" || lastRound.damage === undefined) return ROUND_MESSAGES[lastRound.result];
+
+    return lastRound.result === "player"
+        ? `モンスターに${lastRound.damage}ダメージ！`
+        : `${lastRound.damage}ダメージを受けた！`;
+}
 
 // メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
 function getBattleMessage(session: BattleSession) {
@@ -55,12 +63,28 @@ function getBattleMessage(session: BattleSession) {
 
     // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
     if (endReason) return END_MESSAGES[endReason];
-    if (!lastRound) return START_MESSAGE;
-    if (lastRound.result === "draw" || lastRound.damage === undefined) return ROUND_MESSAGES[lastRound.result];
+    if (!lastRound) return session.turnsLeft === session.maxTurns ? START_MESSAGE : RESUME_MESSAGE;
 
-    return lastRound.result === "player"
-        ? `モンスターに${lastRound.damage}ダメージ！`
-        : `${lastRound.damage}ダメージを受けた！`;
+    return getRoundText(lastRound);
+}
+
+// 「Nターン目」の帯。表示を始めた時刻から、帯の動きのどこから再生するかを決める
+// （再読み込みやタイマーの遅れで途中から出す場合も、残り時間と動きがずれないように）
+function TurnBanner({ turnNumber, startAt, duration }: { turnNumber: number; startAt: number; duration: number }) {
+    const [elapsed] = useState(() => Math.max(0, Date.now() - startAt));
+
+    return (
+        <div
+            className="battle-banner battle-turn-banner"
+            aria-hidden="true"
+            style={{
+                animationDuration: `${duration}ms`,
+                animationDelay: `-${elapsed}ms`,
+            }}
+        >
+            <span>{turnNumber}ターン目</span>
+        </div>
+    );
 }
 
 function Battle() {
@@ -169,14 +193,16 @@ function Battle() {
     const turnBannerDuration = session.lastRound
         ? TURN_COOLDOWN_MS - ROUND_RESULT_HOLD_MS
         : TURN_COOLDOWN_MS;
-    // 再読み込みやタイマーの遅れで途中から表示する場合も、帯の動きを実際の時刻に合わせる
-    // （cooldown の時刻は手を出した時点のままのことがあるので、新しいほうの時刻を使う）
-    const bannerNow = Math.max(cooldown.now, startPhase.now, resultPhase.now);
-    const bannerElapsed = Math.max(0, bannerNow - (nextTurnAt - turnBannerDuration));
     const message = getBattleMessage(session);
-    // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さない（「勝ち！」と「討伐失敗」が並ばないように）
-    const roundResult = endReason === "timeout" ? undefined : session.lastRound?.result;
+    const lastResult = session.lastRound?.result;
+    // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さず（「勝ち！」と「討伐失敗」が並ばないように）、
+    // 小さく「最後の手」として伝える
+    const isTimeout = endReason === "timeout";
+    const roundResult = isTimeout ? undefined : lastResult;
     const roundLabel = roundResult ? ROUND_LABELS[roundResult] : null;
+    const lastRoundSummary = isTimeout && session.lastRound
+        ? `最後の手：${ROUND_LABELS[session.lastRound.result]} ${getRoundText(session.lastRound)}`
+        : null;
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
     const huntBanner =
@@ -283,17 +309,12 @@ function Battle() {
                         />
                         {/* 待機中のターン帯はモンスター画像内に表示し、勝敗に重ねない。 */}
                         {showTurnBanner && (
-                            <div
+                            <TurnBanner
                                 key={turnNumber}
-                                className="battle-banner battle-turn-banner"
-                                aria-hidden="true"
-                                style={{
-                                    animationDuration: `${turnBannerDuration}ms`,
-                                    animationDelay: `-${bannerElapsed}ms`,
-                                }}
-                            >
-                                <span>{turnNumber}ターン目</span>
-                            </div>
+                                turnNumber={turnNumber}
+                                startAt={nextTurnAt - turnBannerDuration}
+                                duration={turnBannerDuration}
+                            />
                         )}
                     </div>
 
@@ -321,29 +342,35 @@ function Battle() {
             MESSAGE
         ========================= */}
 
-                <section className="battle-message" key={session.maxTurns - turnsLeft} role="status" aria-live="polite">
+                <section className="battle-message" role="status" aria-live="polite">
+                    {/* 読み上げの領域は残したまま、中身だけ毎ターン作り直す（同じ結果が続いても読み上げられるように） */}
+                    <Fragment key={session.maxTurns - turnsLeft}>
                     {roundResult && (
                         <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
                     )}
                     <span className="battle-message-text">{message}</span>
+                    {lastRoundSummary && (
+                        <span className="battle-message-sub">{lastRoundSummary}</span>
+                    )}
                     {/* 直前の手がなく、手のボタンを押せるときだけ、手の選び方を案内する */}
                     {!session.lastRound && !isBattleOver && !isWaiting && (
                         <span>下のボタンからグー・チョキ・パーを選ぼう！</span>
                     )}
                     {session.lastRound && (
                         <div className="battle-hands">
-                            <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
+                            <figure className={`battle-hand${lastResult === "player" ? " is-winner" : ""}`}>
                                 {/* 出した手も、手を選ぶボタンと同じ画像で表示する */}
                                 <img src={battleAssets[session.lastRound.playerHand]} alt="" />
                                 <figcaption><small>あなた</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.playerHand]}</figcaption>
                             </figure>
                             <span className="battle-hands-vs" aria-hidden="true">VS</span>
-                            <figure className={`battle-hand${roundResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
+                            <figure className={`battle-hand${lastResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
                                 <img src={battleAssets[session.lastRound.enemyHand]} alt="" />
                                 <figcaption><small>モンスター</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
                             </figure>
                         </div>
                     )}
+                    </Fragment>
                 </section>
 
                 {/* =========================

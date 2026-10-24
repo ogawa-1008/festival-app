@@ -533,6 +533,13 @@
   line-height: 1.5;
 }
 
+/* 手を使い切ったときの「最後の手」の一言 */
+.battle-message-sub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
 .battle-round-result {
   font-size: clamp(var(--font-size-2xl), 8vw, var(--font-size-3xl));
   line-height: 1.2;

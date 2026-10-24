@@ -51,11 +51,6 @@
   transform: scale(0.94);
 }
 
-.janken-rule-button[aria-expanded="true"] {
-  border-color: var(--color-gold);
-}
-
-
 /* =========================
    ポップ（ブラウザ標準のモーダル。短い画面では中をスクロールする）
 ========================= */
@@ -108,6 +103,11 @@
   font-size: var(--font-size-2xs);
 
   letter-spacing: 3px;
+}
+
+/* 開いたときに見出しへフォーカスを移すが、押せる部品ではないので枠は出さない */
+.janken-rule-title h2:focus {
+  outline: none;
 }
 
 .janken-rule-title h2 {

@@ -1,16 +1,16 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 import type { Hand } from "../../utils/battleSession";
 import { battleAssets } from "./battleAssets";
-import { JANKEN_RULE_TEXT } from "../../data/jankenRule";
+import { HAND_LABELS, JANKEN_RULE_TEXT } from "../../data/jankenRule";
 
 import "./JankenRule.css";
 
 // 図の並び（上：グー、左下：チョキ、右下：パー）。矢印は「勝つ相手」を指す
-const RULE_HANDS: { hand: Hand; label: string; english: string }[] = [
-    { hand: "rock", label: "グー", english: "ROCK" },
-    { hand: "scissors", label: "チョキ", english: "SCISSORS" },
-    { hand: "paper", label: "パー", english: "PAPER" },
+const RULE_HANDS: { hand: Hand; english: string }[] = [
+    { hand: "rock", english: "ROCK" },
+    { hand: "scissors", english: "SCISSORS" },
+    { hand: "paper", english: "PAPER" },
 ];
 
 type JankenRuleProps = {
@@ -21,7 +21,15 @@ type JankenRuleProps = {
 // 狩猟画面の右上に固定した「？」から開く、じゃんけんのルール
 function JankenRule({ maxTurns }: JankenRuleProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
-    const [isOpen, setIsOpen] = useState(false);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    // 背景を押して閉じる処理用：押し始めた場所が背景だったか
+    const pressedBackdrop = useRef(false);
+
+    // 枠の外（背景）の座標か
+    const isOutside = (dialog: HTMLDialogElement, x: number, y: number) => {
+        const rect = dialog.getBoundingClientRect();
+        return x < rect.left || x > rect.right || y < rect.top || y > rect.bottom;
+    };
 
     return (
         <>
@@ -30,11 +38,13 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                 className="janken-rule-button"
                 aria-label="じゃんけんのルールを見る"
                 aria-haspopup="dialog"
-                aria-expanded={isOpen}
-                aria-controls="janken-rule-dialog"
                 onClick={() => {
-                    dialogRef.current?.showModal();
-                    setIsOpen(true);
+                    const dialog = dialogRef.current;
+                    if (!dialog) return;
+                    dialog.showModal();
+                    // 一番下の「閉じる」ではなく見出しに移り、上から読めるようにする
+                    titleRef.current?.focus();
+                    dialog.scrollTop = 0;
                 }}
             >
                 ?
@@ -46,13 +56,18 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                 className="janken-rule-dialog"
                 aria-labelledby="janken-rule-title"
                 closedby="any"
-                onClose={() => setIsOpen(false)}
+                // 背景を押して閉じる仕組みに未対応のブラウザ向け。押し始めも離したところも背景のときだけ閉じる
+                // （ポップの中から外へ指を動かして離したときは閉じない）
+                onPointerDown={(event) => {
+                    pressedBackdrop.current = event.target === event.currentTarget
+                        && isOutside(event.currentTarget, event.clientX, event.clientY);
+                }}
                 onClick={(event) => {
-                    // 背景クリックによる終了に未対応のブラウザでも、枠の外なら閉じる。
-                    if ("closedBy" in HTMLDialogElement.prototype || event.target !== event.currentTarget) return;
-                    const rect = event.currentTarget.getBoundingClientRect();
-                    if (event.clientX < rect.left || event.clientX > rect.right
-                        || event.clientY < rect.top || event.clientY > rect.bottom) {
+                    if ("closedBy" in HTMLDialogElement.prototype) return;
+                    const fromBackdrop = pressedBackdrop.current;
+                    pressedBackdrop.current = false;
+                    if (fromBackdrop && event.target === event.currentTarget
+                        && isOutside(event.currentTarget, event.clientX, event.clientY)) {
                         event.currentTarget.close();
                     }
                 }}
@@ -60,15 +75,15 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                 <section className="janken-rule">
                     <header className="janken-rule-title">
                         <span>JANKEN RULE</span>
-                        <h2 id="janken-rule-title">じゃんけんのルール</h2>
+                        <h2 id="janken-rule-title" ref={titleRef} tabIndex={-1}>じゃんけんのルール</h2>
                     </header>
 
                     {/* 手のボタンと同じ画像で、どの手がどの手に勝つかを示す */}
                     <div className="janken-rule-chart" aria-hidden="true">
-                        {RULE_HANDS.map(({ hand, label, english }) => (
+                        {RULE_HANDS.map(({ hand, english }) => (
                             <div key={hand} className={`janken-rule-hand janken-rule-${hand}`}>
                                 <img src={battleAssets[hand]} alt="" />
-                                <strong>{label}</strong>
+                                <strong>{HAND_LABELS[hand]}</strong>
                                 <span>{english}</span>
                             </div>
                         ))}
