@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type MouseEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -7,57 +7,40 @@ import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { battleAssets, getBattleMonsterImage } from "./battleAssets";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
-    type BattleSession,
-    type EndReason,
     type Hand,
-    type RoundResult,
     HUNT_BANNER_MS,
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
+import { HAND_LABELS, HAND_NAMES_TEXT } from "../../data/jankenRule";
+import { HANDS } from "../../game/battle";
+import { getBattleMessage, getShownRoundResult, ROUND_LABELS } from "./battleMessage";
+import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
 
 import "./Battle.css";
 
-const START_MESSAGE = "じゃんけんでモンスターを倒せ！";
+// 勝敗を先に読めるようにしてから、残りの待機時間で次のターンの帯を出す
+// （待ち時間より長くならないよう、待ち時間の半分を上限にする）
+const ROUND_RESULT_HOLD_MS = Math.min(600, TURN_COOLDOWN_MS / 2);
 
-const END_MESSAGES: Record<EndReason, string> = {
-    victory: "モンスターを討伐した！",
-    defeated: "力尽きてしまった……",
-    timeout: "モンスターは逃げてしまった……",
-};
+// 画面に出す帯。表示を始めた時刻から、帯の動きのどこから再生するかを決める
+// （再読み込みやタイマーの遅れで途中から出す場合も、残り時間と動きがずれないように）
+function TimedBanner({ className, startAt, duration, text }: { className: string; startAt: number; duration: number; text: string }) {
+    const [elapsed] = useState(() => Math.max(0, Date.now() - startAt));
 
-const ROUND_MESSAGES: Record<RoundResult, string> = {
-    draw: "あいこ！ もう一度！",
-    player: "勝利！ モンスターにダメージ！",
-    enemy: "敗北…… ダメージを受けた！",
-};
-
-const HAND_LABELS: Record<Hand, string> = {
-    rock: "グー",
-    scissors: "チョキ",
-    paper: "パー",
-};
-
-// メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
-function getBattleMessage(session: BattleSession) {
-    const { lastRound, endReason } = session;
-
-    const hands = lastRound
-        ? `あなた: ${HAND_LABELS[lastRound.playerHand]} / モンスター: ${HAND_LABELS[lastRound.enemyHand]}`
-        : null;
-
-    // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
-    if (endReason) {
-        return { hands, text: END_MESSAGES[endReason] };
-    }
-
-    return {
-        hands,
-        text: !lastRound ? START_MESSAGE : lastRound.result === "draw" ? "あいこ！ HPは変わりません" : lastRound.damage !== undefined
-            ? lastRound.result === "player" ? `勝利！ モンスターに${lastRound.damage}ダメージ！` : `敗北…… ${lastRound.damage}ダメージを受けた！`
-            : ROUND_MESSAGES[lastRound.result],
-    };
+    return (
+        <div
+            className={`battle-banner ${className}`}
+            aria-hidden="true"
+            style={{
+                animationDuration: `${duration}ms`,
+                animationDelay: `-${elapsed}ms`,
+            }}
+        >
+            <span>{text}</span>
+        </div>
+    );
 }
 
 function Battle() {
@@ -66,7 +49,7 @@ function Battle() {
 
     const { quests } = useGame();
     const { session, playHand } = useBattleSession();
-    const { active: practice, advance } = useGameTutorial();
+    const { active: practice, minimized: guideMinimized, advance } = useGameTutorial();
     const screenStatus = useSessionScreen(questId);
 
     const quest = quests.find(
@@ -89,6 +72,27 @@ function Battle() {
         isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0,
         HUNT_BANNER_MS
     );
+    // 決着後（nextTurnAt が 0）は次のターンがないので待たない
+    const resultPhase = useCooldown(
+        isOwnSession && session.lastRound !== null && nextTurnAt > 0
+            ? nextTurnAt - TURN_COOLDOWN_MS + ROUND_RESULT_HOLD_MS
+            : 0,
+        ROUND_RESULT_HOLD_MS
+    );
+
+    // 押した手のボタンは待ち時間の間は押せなくなり、フォーカスが外れる。
+    // キーボードや読み上げで操作している人が続けて選べるよう、押せるようになったら押したボタンに戻す
+    // （押したときにそのボタンにフォーカスがあった場合だけ。タップ操作の人には戻さない）
+    // 決着した場合は、あとで出る「調査結果を見る」ボタンへ移す（下の ref を参照）
+    const lastPressedHand = useRef<HTMLButtonElement | null>(null);
+    useEffect(() => {
+        const button = lastPressedHand.current;
+        if (cooldown.isWaiting || endReason !== null || !button) return;
+        lastPressedHand.current = null;
+        if (document.activeElement === null || document.activeElement === document.body) {
+            button.focus({ preventScroll: true });
+        }
+    }, [cooldown.isWaiting, endReason]);
 
     // 「討伐成功」「討伐失敗」の帯は決着した瞬間だけ出す（再読み込みでは出さない）
     const [endBannerUntil, setEndBannerUntil] = useState(0);
@@ -154,11 +158,15 @@ function Battle() {
     const isWaiting = !isBattleOver && cooldown.isWaiting;
     // 次に迎えるターン（あいこも1ターンとして数える）
     const turnNumber = session.maxTurns - turnsLeft + 1;
-    // 「討伐開始」の帯が終わってから「1ターン目」の帯を出す
-    const showTurnBanner = isWaiting && !startPhase.isWaiting;
-    // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
-    const bannerElapsed = Math.max(0, TURN_COOLDOWN_MS - cooldown.remaining);
+    // 初手は討伐開始の後、それ以降は勝敗を見せてから次のターンの帯を出す。
+    const showTurnBanner = isWaiting && !startPhase.isWaiting && !resultPhase.isWaiting;
+    const turnBannerDuration = session.lastRound
+        ? TURN_COOLDOWN_MS - ROUND_RESULT_HOLD_MS
+        : TURN_COOLDOWN_MS;
     const message = getBattleMessage(session);
+    // 手を使い切ったときは勝敗を大きく出さない（最後の手の結果は message.sub で小さく伝える）
+    const roundResult = getShownRoundResult(session);
+    const roundLabel = roundResult ? ROUND_LABELS[roundResult] : null;
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
     const huntBanner =
@@ -166,19 +174,22 @@ function Battle() {
             ? {
                 kind: "start",
                 text: "討伐開始",
-                elapsed: Math.max(0, HUNT_BANNER_MS - startPhase.remaining),
+                // 開始の帯は、狩猟を始めた時刻から HUNT_BANNER_MS の間（その後に1ターン目の待ち時間が続く）
+                startAt: session.startedAt,
             }
             : isBattleOver && endPhase.isWaiting
                 ? {
                     kind: endReason === "victory" ? "success" : "failure",
                     text: endReason === "victory" ? "討伐成功" : "討伐失敗",
-                    elapsed: Math.max(0, HUNT_BANNER_MS - endPhase.remaining),
+                    startAt: endBannerUntil - HUNT_BANNER_MS,
                 }
                 : null;
 
-    const handleHandSelect = (playerHand: Hand) => {
+    // どの手のボタンかは data-hand から読む（ボタンごとに関数を作らない）
+    const handleHandClick = (event: MouseEvent<HTMLButtonElement>) => {
+        lastPressedHand.current = document.activeElement === event.currentTarget ? event.currentTarget : null;
         // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
-        const round = playHand(playerHand);
+        const round = playHand(event.currentTarget.dataset.hand as Hand);
 
         if (round?.session.endReason) {
             setEndBannerUntil(Date.now() + HUNT_BANNER_MS);
@@ -198,39 +209,28 @@ function Battle() {
 
             {/* 討伐の開始・成功・失敗は画面中央に下から帯を出す */}
             {huntBanner && (
-                <div
+                <TimedBanner
                     key={huntBanner.kind}
-                    className={`battle-banner battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
-                    aria-hidden="true"
-                    style={{
-                        animationDuration: `${HUNT_BANNER_MS}ms`,
-                        animationDelay: `-${huntBanner.elapsed}ms`,
-                    }}
-                >
-                    <span>{huntBanner.text}</span>
-                </div>
+                    className={`battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
+                    text={huntBanner.text}
+                    startAt={huntBanner.startAt}
+                    duration={HUNT_BANNER_MS}
+                />
             )}
 
-            {/* 待ち時間中は画面中央に「Nターン目」の帯を出す */}
-            {showTurnBanner && (
-                <div
-                    key={turnNumber}
-                    className="battle-banner battle-turn-banner"
-                    aria-hidden="true"
-                    style={{
-                        animationDuration: `${TURN_COOLDOWN_MS}ms`,
-                        animationDelay: `-${bannerElapsed}ms`,
-                    }}
-                >
-                    <span>{turnNumber}ターン目</span>
-                </div>
-            )}
-
-            {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
+            {/* 画面には出さない読み上げ用の領域。手を選べるようになったことだけを伝える。
+               討伐の帯（開始・成功・失敗）と「Nターン目」は、同じときに更新されるメッセージ欄の読み上げを
+               途切れさせるため読まない（開始・決着の内容はメッセージ欄の文で伝わる）。
+               最初の1手は、メッセージ欄の「下のボタンから…選ぼう！」が読み上げられる */}
             <div className="battle-sr-only" aria-live="polite">
-                {huntBanner?.text
-                    ?? (showTurnBanner ? `${turnNumber}ターン目` : "")}
+                {session.lastRound && !isBattleOver && !isWaiting ? "手を選べます" : ""}
             </div>
+
+            {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
+            {/* 討伐成功のあとは自動でリザルトへ移るので出さない（負け・手切れの再挑戦の前には見られるように残す） */}
+            {/* 練習中でガイドを開いている間は、手のボタン以外を押せないので出さない（ルールはガイドの説明に書いてある）。
+               ガイドを最小化したら、ルールを見られるように出す */}
+            {endReason !== "victory" && (!practice || guideMinimized) && <JankenRule maxTurns={session.maxTurns} />}
 
             <div className="battle-content">
 
@@ -274,6 +274,16 @@ function Battle() {
                             alt="モンスター"
                             className="monster-image"
                         />
+                        {/* 待機中のターン帯はモンスター画像内に表示し、勝敗に重ねない。 */}
+                        {showTurnBanner && (
+                            <TimedBanner
+                                key={turnNumber}
+                                className="battle-turn-banner"
+                                text={`${turnNumber}ターン目`}
+                                startAt={nextTurnAt - turnBannerDuration}
+                                duration={turnBannerDuration}
+                            />
+                        )}
                     </div>
 
                     <div className="monster-hp" data-tutorial="monster-hp">
@@ -300,14 +310,35 @@ function Battle() {
             MESSAGE
         ========================= */}
 
-                <section className="battle-message" key={session.maxTurns - turnsLeft} role="status" aria-live="polite">
-                    {message.hands && (
-                        <span className="battle-message-hands">
-                            {message.hands}
-                        </span>
+                <section className="battle-message" role="status" aria-live="polite">
+                    {/* 読み上げの領域は残したまま、中身だけ毎ターン作り直す（同じ結果が続いても読み上げられるように） */}
+                    <Fragment key={session.maxTurns - turnsLeft}>
+                    {roundResult && (
+                        <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
                     )}
-
-                    <span>{message.text}</span>
+                    <span className="battle-message-text">{message.text}</span>
+                    {message.sub && (
+                        <span className="battle-message-sub">{message.sub}</span>
+                    )}
+                    {/* 直前の手がなく、手のボタンを押せるときだけ、手の選び方を案内する */}
+                    {!session.lastRound && !isBattleOver && !isWaiting && (
+                        <span>下のボタンから{HAND_NAMES_TEXT}を選ぼう！</span>
+                    )}
+                    {session.lastRound && (
+                        <div className="battle-hands">
+                            <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
+                                {/* 出した手も、手を選ぶボタンと同じ画像で表示する */}
+                                <img src={battleAssets[session.lastRound.playerHand]} alt="" />
+                                <figcaption><small>あなた</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.playerHand]}</figcaption>
+                            </figure>
+                            <span className="battle-hands-vs" aria-hidden="true">VS</span>
+                            <figure className={`battle-hand${roundResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
+                                <img src={battleAssets[session.lastRound.enemyHand]} alt="" />
+                                <figcaption><small>モンスター</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
+                            </figure>
+                        </div>
+                    )}
+                    </Fragment>
                 </section>
 
                 {/* =========================
@@ -354,145 +385,42 @@ function Battle() {
 
                 <section className="janken-area">
 
+                    {/* 待ち時間の間は、手のボタンが押せない理由をボタンのそばに出す
+                       （背の低い画面でスクロールしていると、モンスター画像の中の「Nターン目」が見えないため）。
+                       読み上げは、押せるようになった時点の「手を選べます」で伝える */}
                     <div className="janken-title">
-                        <span>CHOOSE YOUR HAND</span>
+                        {isWaiting ? (
+                            <span className="janken-title-wait" aria-hidden="true">
+                                {isStarting ? "まもなく狩猟開始" : "次の手まで少し待ってね"}
+                            </span>
+                        ) : (
+                            <span>CHOOSE YOUR HAND</span>
+                        )}
                     </div>
 
                     <div className="janken-buttons" data-tutorial="battle-hands">
 
-                        {/* グー */}
+                        {HANDS.map((hand) => (
+                            <button
+                                key={hand}
+                                type="button"
+                                className={`janken-button janken-${hand}`}
+                                data-hand={hand}
+                                onClick={handleHandClick}
+                                disabled={isBattleOver || isWaiting}
+                            >
+                                <div className="janken-image-frame">
+                                    {/* 名前は下の文字で読み上げるので、画像は飾りとして扱う */}
+                                    <img
+                                        src={battleAssets[hand]}
+                                        alt=""
+                                        className="janken-image"
+                                    />
+                                </div>
 
-                        <button
-                            type="button"
-                            className="janken-button janken-rock"
-                            onClick={() =>
-                                handleHandSelect("rock")
-                            }
-                            disabled={isBattleOver || isWaiting}
-                        >
-                            <div className="janken-image-frame">
-                                <img
-                                    src={battleAssets.rock}
-                                    alt="グー"
-                                    className="janken-image"
-                                />
-                            </div>
-
-                            <span>グー</span>
-                        </button>
-
-
-                        {/* チョキ */}
-
-                        <button
-                            type="button"
-                            className="janken-button janken-scissors"
-                            onClick={() =>
-                                handleHandSelect("scissors")
-                            }
-                            disabled={isBattleOver || isWaiting}
-                        >
-                            <div className="janken-image-frame">
-                                <img
-                                    src={battleAssets.scissors}
-                                    alt="チョキ"
-                                    className="janken-image"
-                                />
-                            </div>
-
-                            <span>チョキ</span>
-                        </button>
-
-
-                        {/* パー */}
-
-                        <button
-                            type="button"
-                            className="janken-button janken-paper"
-                            onClick={() =>
-                                handleHandSelect("paper")
-                            }
-                            disabled={isBattleOver || isWaiting}
-                        >
-                            <div className="janken-image-frame">
-                                <img
-                                    src={battleAssets.paper}
-                                    alt="パー"
-                                    className="janken-image"
-                                />
-                            </div>
-
-                            <span>パー</span>
-                        </button>
-
-                    </div>
-                </section>
-
-
-                {/* =========================
-            三すくみ
-        ========================= */}
-
-                <section className="triangle-section">
-
-                    <div className="triangle-title">
-                        <span>JANKEN RULE</span>
-                    </div>
-
-                    <div className="triangle-chart">
-
-                        {/* 赤：グー */}
-
-                        <div className="triangle-item triangle-rock">
-                            <div className="triangle-circle">
-                                <span>グー</span>
-                            </div>
-
-                            <span className="triangle-label">
-                                ROCK
-                            </span>
-                        </div>
-
-
-                        {/* 青：チョキ */}
-
-                        <div className="triangle-item triangle-scissors">
-                            <div className="triangle-circle">
-                                <span>チョキ</span>
-                            </div>
-
-                            <span className="triangle-label">
-                                SCISSORS
-                            </span>
-                        </div>
-
-
-                        {/* 黄色：パー */}
-
-                        <div className="triangle-item triangle-paper">
-                            <div className="triangle-circle">
-                                <span>パー</span>
-                            </div>
-
-                            <span className="triangle-label">
-                                PAPER
-                            </span>
-                        </div>
-
-
-                        {/* 矢印 */}
-
-                        <div className="triangle-arrow arrow-one">
-                            →
-                        </div>
-
-                        <div className="triangle-arrow arrow-two">
-                            →
-                        </div>
-
-                        <div className="triangle-arrow arrow-three">
-                            →
-                        </div>
+                                <span>{HAND_LABELS[hand]}</span>
+                            </button>
+                        ))}
 
                     </div>
                 </section>
@@ -508,6 +436,14 @@ function Battle() {
                     <button
                         type="button"
                         className="battle-retry-button"
+                        // 決着の手をキーボードで押していたら、次に押すこのボタンにフォーカスを移す
+                        ref={(button) => {
+                            if (!button || !lastPressedHand.current) return;
+                            lastPressedHand.current = null;
+                            if (document.activeElement === null || document.activeElement === document.body) {
+                                button.focus({ preventScroll: true });
+                            }
+                        }}
                         onClick={() =>
                             navigate(`/result/${quest.id}`)
                         }

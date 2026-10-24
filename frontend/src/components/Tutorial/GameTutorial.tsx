@@ -227,7 +227,7 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("popstate", onBack);
   }, [active, minimized, finish]);
 
-  const value = useMemo(() => ({ startTutorial, active, step, questId, advance }), [startTutorial, active, step, questId, advance]);
+  const value = useMemo(() => ({ startTutorial, active, minimized, step, questId, advance }), [startTutorial, active, minimized, step, questId, advance]);
   return (
     <GameTutorialContext.Provider value={value}>
       {active ? <GameProvider practiceCampus={campusId}>

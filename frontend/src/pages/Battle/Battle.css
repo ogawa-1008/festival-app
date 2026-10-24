@@ -233,9 +233,11 @@
 */
 
 .monster-image-frame {
+  position: relative;
   width: 100%;
 
-  height: 190px;
+  /* 手のボタンが最初の画面に収まるよう、低めにする */
+  height: 160px;
 
   display: flex;
 
@@ -369,13 +371,14 @@
   margin:
     14px 0;
 
-  min-height: 42px;
+  /* 1手目の前後で高さが変わらないよう、勝敗・ダメージ・出した手が入る高さを確保する */
+  min-height: 160px;
 
   display: flex;
 
   flex-direction: column;
 
-  gap: 3px;
+  gap: var(--space-1);
 
   align-items: center;
   justify-content: center;
@@ -497,9 +500,27 @@
 }
 
 .janken-title {
+  /* 待ち時間の表示に切り替わっても高さが変わらないようにする */
+  min-height: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   text-align: center;
 
   margin-bottom: 10px;
+}
+
+/* 待ち時間の間に出す一言（手のボタンが押せない理由） */
+.janken-title .janken-title-wait {
+  color: var(--color-gold);
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+
+  letter-spacing: 1px;
 }
 
 .janken-title span {
@@ -525,16 +546,100 @@
 }
 
 
-/* 直前の手（あなた / モンスター） */
-
-.battle-message-hands {
-  color: var(--color-text-muted);
-
-  font-size: 11px;
-
-  font-weight: normal;
+/* 行の高さを決めておき、フォントが変わってもメッセージ欄の高さがずれないようにする */
+.battle-message-text {
+  line-height: 1.5;
 }
 
+/* 決着したときに添える最後の手の結果（ダメージの文。手切れは「最後の手：〜」の形） */
+.battle-message-sub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.battle-round-result {
+  font-size: clamp(var(--font-size-2xl), 8vw, var(--font-size-3xl));
+  line-height: 1.2;
+  color: var(--color-text);
+}
+.battle-round-result--player {
+  color: var(--color-accent);
+}
+
+.battle-round-result--enemy {
+  color: var(--color-danger-text);
+}
+
+.battle-round-result--draw {
+  color: var(--color-gold);
+}
+
+/* 出した手の画像と名前を並べ、勝った側を枠で示す。 */
+/* 左右を同じ幅にして、手の名前の長さが違っても「VS」と画像が中央にそろうようにする */
+.battle-hands {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.battle-hand {
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.battle-hand img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border: 2px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-base);
+}
+
+.battle-hand.is-winner img {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
+}
+
+/* モンスターが勝ったときは、「負け…」と同じ赤で光らせる */
+.battle-hand.is-enemy-winner img {
+  border-color: var(--color-danger-text);
+  box-shadow: 0 0 10px var(--color-danger);
+}
+
+/* 「だれが」と「出した手」を2行に分ける（名前の長さで折り返して高さが変わらないように） */
+.battle-hand figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.battle-hand figcaption small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: normal;
+  letter-spacing: 1px;
+}
+
+.battle-hands-vs {
+  color: var(--color-text-subtle);
+  font-family: var(--font-display);
+  font-weight: bold;
+  letter-spacing: 2px;
+}
 
 /* 画面中央の帯（ターン帯・討伐の帯の共通部分）。色は変数で種類ごとに変える */
 
@@ -602,10 +707,14 @@
   }
 }
 
-
 /* ターン帯: 横から流れて消える */
 
+/* モンスター画像の枠の中に出す。
+   画面全体にかかる赤いもや（--z-overlay）より上に重ねる必要があるため、部品の中でも --z-banner を使う
+   （討伐の帯と同時には出ないので、同じ重なり順でもぶつからない） */
 .battle-turn-banner {
+  position: absolute;
+  z-index: var(--z-banner);
   --banner-color: rgba(31, 116, 29, 0.9);
   --banner-line: rgba(214, 240, 196, 0.8);
   --banner-text: #fff;
@@ -626,8 +735,8 @@
     transform: translate(-40%, -50%);
   }
 
-  20%,
-  75% {
+  10%,
+  85% {
     opacity: 1;
     transform: translate(0, -50%);
   }
@@ -793,341 +902,6 @@
 
 
 /* =========================
-
-   TRIANGLE
-
-========================= */
-
-.triangle-section {
-
-  margin-top: 24px;
-
-  padding:
-
-    16px 10px 18px;
-
-  box-sizing: border-box;
-
-  background:
-
-    linear-gradient(
-
-      180deg,
-
-      rgba(35, 29, 22, 0.96),
-
-      rgba(15, 13, 10, 0.96)
-
-    );
-
-  border:
-
-    2px solid var(--color-border-subtle);
-
-  box-shadow:
-
-    inset 0 0 15px
-
-    rgba(0, 0, 0, 0.65);
-
-}
-
-.triangle-title {
-
-  text-align: center;
-
-  margin-bottom: 15px;
-
-}
-
-.triangle-title span {
-
-  color: var(--color-text-subtle);
-
-  font-family: var(--font-display);
-
-  font-size: var(--font-size-2xs);
-
-  letter-spacing: 3px;
-
-}
-
-.triangle-title h2 {
-
-  margin: 3px 0 0;
-
-  color: var(--color-text);
-
-  font-family: var(--font-mincho);
-
-  font-size: 19px;
-
-  font-weight: 900;
-
-}
-
-/* =========================
-
-   TRIANGLE CHART
-
-========================= */
-
-.triangle-chart {
-
-  position: relative;
-
-  width: 280px;
-
-  height: 220px;
-
-  margin: 0 auto;
-
-}
-
-/* =========================
-
-   TRIANGLE ITEMS
-
-========================= */
-
-.triangle-item {
-
-  position: absolute;
-
-  width: 76px;
-
-  height: 90px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
-  box-sizing: border-box;
-
-  z-index: 5;
-
-}
-
-/* =========================
-
-   TOP : ROCK
-
-========================= */
-
-.triangle-rock {
-
-  top: 0;
-
-  left: 50%;
-
-  transform: translateX(-50%);
-
-}
-
-/* =========================
-
-   LEFT : SCISSORS
-
-========================= */
-
-.triangle-scissors {
-
-  left: 0;
-
-  bottom: 0;
-
-}
-
-/* =========================
-
-   RIGHT : PAPER
-
-========================= */
-
-.triangle-paper {
-
-  right: 0;
-
-  bottom: 0;
-
-}
-
-/* =========================
-
-   CIRCLE
-
-========================= */
-
-.triangle-circle {
-
-  width: 68px;
-
-  height: 68px;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  box-sizing: border-box;
-
-  border-radius: var(--radius-circle);
-
-  color: #fff;
-
-  font-size: var(--font-size-base);
-
-  font-weight: 900;
-
-  text-shadow:
-
-    0 2px 3px
-
-    rgba(0, 0, 0, 0.8);
-
-  box-shadow:
-
-    0 4px 8px
-
-    rgba(0, 0, 0, 0.55);
-
-}
-
-/* =========================
-
-   RED : ROCK
-
-========================= */
-
-.triangle-rock .triangle-circle {
-  background:
-    linear-gradient(
-      145deg,
-      #3d9cff,
-      #004caa
-    );
-
-  border:
-    3px solid #72bdff;
-}
-
-/* =========================
-
-   BLUE : SCISSORS
-
-========================= */
-
-.triangle-scissors .triangle-circle {
-  background:
-    linear-gradient(
-      145deg,
-      #ff4141,
-      #a80000
-    );
-
-  border:
-    3px solid #ff7777;
-}
-
-/* =========================
-
-   YELLOW : PAPER
-
-========================= */
-
-.triangle-paper .triangle-circle {
-  background:
-    linear-gradient(
-      145deg,
-      #ffe94d,
-      #c99700
-    );
-
-  border:
-    3px solid #fff28a;
-
-  color: #ffffff;
-
-  text-shadow:
-    0 2px 3px
-    rgba(0, 0, 0, 0.8);
-}
-
-/* =========================
-
-   LABEL
-
-========================= */
-
-.triangle-label {
-
-  margin-top: 4px;
-
-  color: var(--color-text-muted);
-
-  font-family: var(--font-display);
-
-  font-size: 7px;
-
-  letter-spacing: 1px;
-
-  white-space: nowrap;
-
-}
-
-/* =========================
-   ARROWS
-========================= */
-
-.triangle-arrow {
-  position: absolute;
-  width: 62px;
-  height: 3px;
-  background: #d8c8a8;
-  border-radius: 3px;
-  z-index: 3;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-/* 矢印の先端 */
-.triangle-arrow::after {
-  content: "";
-  position: absolute;
-  right: -2px;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  border-top: 3px solid #d8c8a8;
-  border-right: 3px solid #d8c8a8;
-  transform: translateY(-50%) rotate(45deg);
-}
-
-/* グー → チョキ */
-.arrow-one {
-  left: 55px;
-  top: 91px;
-  transform: rotate(125deg);
-}
-
-/* チョキ → パー */
-.arrow-two {
-  left: 109px;
-  bottom: 48px;
-  transform: rotate(0deg);
-}
-
-/* パー → グー */
-.arrow-three {
-  right: 55px;
-  top: 91px;
-  transform: rotate(-125deg);
-}
-
-
-/* =========================
    RETRY
 ========================= */
 
@@ -1223,18 +997,11 @@
   }
 
   .monster-image-frame {
-    height: 170px;
+    height: 150px;
   }
 
   .janken-image-frame {
     height: 70px;
-  }
-
-  .triangle-chart {
-    transform: scale(0.92);
-    transform-origin: top center;
-
-    margin-bottom: -15px;
   }
 }
 

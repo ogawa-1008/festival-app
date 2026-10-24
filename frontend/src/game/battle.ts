@@ -31,17 +31,18 @@ export function getBattleBalance(questId: string) {
 export function createBattle(balance: BattleBalance): BattleState {
   return { playerHp: hunterMaxHp, monsterHp: balance.monsterMaxHp, round: 0, outcome: null, damage: 0, status: "playing" };
 }
-const hands: Hand[] = ["rock", "scissors", "paper"];
+// 手の並び（狩猟画面のボタン・ルールの図・セッションの検証で共通）
+export const HANDS: readonly Hand[] = ["rock", "scissors", "paper"];
 export function chooseEnemyHand(random = Math.random): Hand {
-  return hands[Math.floor(random() * hands.length)];
+  return HANDS[Math.floor(random() * HANDS.length)];
 }
 export function practiceEnemyHand(player: Hand, round: number): Hand {
   // Experience a draw, a loss, then wins until the same real HP rules conclude.
-  return hands[(hands.indexOf(player) + (round === 0 ? 0 : round === 1 ? 2 : 1)) % 3];
+  return HANDS[(HANDS.indexOf(player) + (round === 0 ? 0 : round === 1 ? 2 : 1)) % 3];
 }
 export function judgeWinner(player: Hand, enemy: Hand): "player" | "enemy" | "draw" {
   if (player === enemy) return "draw";
-  return hands[(hands.indexOf(player) + 1) % 3] === enemy ? "player" : "enemy";
+  return HANDS[(HANDS.indexOf(player) + 1) % 3] === enemy ? "player" : "enemy";
 }
 export function resolveTurn(state: BattleState, balance: BattleBalance, player: Hand, enemy: Hand, random = Math.random): BattleState {
   if (state.status !== "playing") return state;
