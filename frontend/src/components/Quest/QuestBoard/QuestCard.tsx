@@ -99,10 +99,11 @@ function QuestCard({
           <div className="quest-info-item">
             <dt className="quest-info-label">REWARD</dt>
             <dd className="quest-rewards">
-              {quest.rewardMaterials.map((reward) => {
+              {quest.rewardMaterials.map((reward, index) => {
                 const material = getMaterial(reward.id);
+                if (!material) return null;
                 return (
-                  <span key={reward.id} className="quest-reward" title={material.name}>
+                  <span key={`${reward.id}-${index}`} className="quest-reward" title={material.name}>
                     <img src={material.image} alt={material.name} />
                     <span>×{reward.amount}</span>
                   </span>

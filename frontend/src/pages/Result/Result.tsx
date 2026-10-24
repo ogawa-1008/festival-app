@@ -232,13 +232,18 @@ function Result() {
 
                     <div className="result-reward-list">
 
-                        {quest.rewardMaterials.map((reward) => {
+                        {quest.rewardMaterials.map((reward, index) => {
 
                             const material = getMaterial(reward.id);
 
+                            // 一覧にない素材は表示しない
+                            if (!material) {
+                                return null;
+                            }
+
                             return (
                                 <div
-                                    key={reward.id}
+                                    key={`${reward.id}-${index}`}
                                     className="result-reward-item"
                                 >
 

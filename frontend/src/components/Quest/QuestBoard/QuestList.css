@@ -192,15 +192,37 @@
 }
 
 
-/* 幅の狭い画面では、カードを縮めて掲示板の内側の枠（左右とも約20px）にかからないようにする */
-@media (max-width: 375px) {
+/*
+ * 幅の狭い画面では、カードを縮めて掲示板の内側の枠（左右とも約19px）から10px以上離す。
+ * 掲示板の幅は画面の幅 - 12px なので、カードの幅（315px × 倍率）が「画面の幅 - 70px」以下になるよう、
+ * 各範囲の一番狭い幅に合わせて倍率を決める（CSS では長さ同士の割り算ができないため段階で決める）
+ */
+@media (max-width: 385px) {
   .quest-board {
-    --quest-card-scale: 0.92;
+    --quest-card-scale: 0.97;
   }
 }
 
-@media (max-width: 340px) {
+@media (max-width: 375px) {
+  .quest-board {
+    --quest-card-scale: 0.89;
+  }
+}
+
+@media (max-width: 350px) {
   .quest-board {
     --quest-card-scale: 0.82;
+  }
+}
+
+@media (max-width: 330px) {
+  .quest-board {
+    --quest-card-scale: 0.76;
+  }
+}
+
+@media (max-width: 310px) {
+  .quest-board {
+    --quest-card-scale: 0.7;
   }
 }

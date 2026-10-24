@@ -344,13 +344,19 @@
 }
 
 
-/* 報酬の素材（アイコン ×数） */
-.quest-rewards {
+/* 報酬の素材（アイコン ×数）。数が多いときは隠さずに折り返す */
+.quest-info-item dd.quest-rewards {
   display: flex;
+
+  flex-wrap: wrap;
 
   align-items: center;
 
-  gap: 8px;
+  gap: 4px 8px;
+
+  overflow: visible;
+
+  white-space: normal;
 }
 
 

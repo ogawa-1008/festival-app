@@ -13,7 +13,7 @@ export type QuestDefinition = {
   monsterHp: number;
   // 負けたときにプレイヤーが受けるダメージの幅
   monsterDamage: { min: number; max: number };
-  // 討伐でもらえる素材（素材の id は data/progress.ts）
+  // 討伐でもらえる素材（素材の id は data/materials.ts）
   rewardMaterials: Quest["rewardMaterials"];
   // 討伐でもらえる経験値（調査は3割）
   rewardExp: number;

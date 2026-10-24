@@ -20,8 +20,14 @@ export type MaterialAmount = {
   amount: number;
 };
 
-export function getMaterial(id: MaterialId) {
-  return { id, ...MATERIALS[id] };
+export function isMaterialId(id: number): id is MaterialId {
+  return Object.hasOwn(MATERIALS, id);
 }
 
-export const MATERIAL_IDS = Object.keys(MATERIALS).map(Number) as MaterialId[];
+// 素材の名前・アイコン。一覧にない id（型を通らない呼び出しや古いデータ）なら null を返し、呼ぶ側で飛ばす
+export function getMaterial(id: number) {
+  return isMaterialId(id) ? { id, ...MATERIALS[id] } : null;
+}
+
+// 一覧にあるすべての素材の id（番号順）
+export const MATERIAL_IDS = Object.keys(MATERIALS).map(Number).filter(isMaterialId);

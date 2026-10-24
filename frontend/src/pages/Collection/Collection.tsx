@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
-import { progressData } from "../../data/progress";
 import { getOwnedMaterial } from "../../utils/weaponMaterials";
+import { getMaterial, MATERIAL_IDS } from "../../data/materials";
 
 import "./Collection.css";
 
@@ -52,7 +52,8 @@ function Collection({ view }: CollectionProps) {
 
         {view === "materials" && (
           <section className="collection-list" aria-label="素材一覧">
-            {progressData.materials.map((material) => (
+            {/* 武器に使う素材だけでなく、素材の一覧にあるものをすべて並べる */}
+            {MATERIAL_IDS.map((id) => getMaterial(id)!).map((material) => (
               <article key={material.id} className="collection-row">
                 <img src={material.image} alt={material.name} />
                 <div>
