@@ -233,7 +233,7 @@ function Battle() {
             <div className="battle-content">
 
                 {/* =========================
-            ヘッダー
+            HEADER
         ========================= */}
 
                 <header className="battle-header">
@@ -246,7 +246,7 @@ function Battle() {
 
 
                 {/* =========================
-            クエスト名
+            QUEST NAME
         ========================= */}
 
                 <section className="battle-quest">
@@ -257,7 +257,7 @@ function Battle() {
 
 
                 {/* =========================
-            モンスター
+            MONSTER
         ========================= */}
 
                 <section className="monster-area">
@@ -309,7 +309,7 @@ function Battle() {
 
 
                 {/* =========================
-            勝敗メッセージ
+            MESSAGE
         ========================= */}
 
                 <section className="battle-message" key={session.maxTurns - turnsLeft} role="status" aria-live="polite">
@@ -325,7 +325,7 @@ function Battle() {
                 </section>
 
                 {/* =========================
-            ハンターの体力
+            PLAYER HP
         ========================= */}
 
                 <section className="player-status">
@@ -363,7 +363,7 @@ function Battle() {
 
 
                 {/* =========================
-            じゃんけん
+            JANKEN
         ========================= */}
 
                 <section className="janken-area">
@@ -513,7 +513,7 @@ function Battle() {
 
 
                 {/* =========================
-            再挑戦
+            RETRY
         ========================= */}
 
                 {/* 「討伐失敗」の帯が消えてから出す */}
