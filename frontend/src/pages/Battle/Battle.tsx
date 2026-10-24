@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, type MouseEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type MouseEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -7,92 +7,38 @@ import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { battleAssets, getBattleMonsterImage } from "./battleAssets";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
-    type BattleSession,
-    type EndReason,
     type Hand,
-    type LastRound,
-    type RoundResult,
     HUNT_BANNER_MS,
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
-import { HAND_LABELS, HAND_NAMES_TEXT, ROUND_NAMES } from "../../data/jankenRule";
+import { HAND_LABELS, HAND_NAMES_TEXT } from "../../data/jankenRule";
 import { HANDS } from "../../game/battle";
+import { getBattleMessage, getShownRoundResult, ROUND_LABELS } from "./battleMessage";
 import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
 
 import "./Battle.css";
 
-const START_MESSAGE = "じゃんけんでモンスターを倒せ！";
-// 直前の手の記録がない以前の形式のセッションを、途中から再開したとき
-const RESUME_MESSAGE = "続きからモンスターに挑もう！";
-// 勝敗を先に読めるようにしてから、残りの待機時間で次のターンの帯を出す。
-const ROUND_RESULT_HOLD_MS = 600;
+// 勝敗を先に読めるようにしてから、残りの待機時間で次のターンの帯を出す
+// （待ち時間より長くならないよう、待ち時間の半分を上限にする）
+const ROUND_RESULT_HOLD_MS = Math.min(600, TURN_COOLDOWN_MS / 2);
 
-const END_MESSAGES: Record<EndReason, string> = {
-    victory: "モンスターを討伐した！",
-    defeated: "力尽きてしまった……",
-    timeout: "モンスターは逃げてしまった……",
-};
-
-// ダメージの数がないとき（あいこ・以前の形式のセッション）の文
-const ROUND_MESSAGES: Record<RoundResult, string> = {
-    draw: "HPは変わりません",
-    player: "モンスターにダメージ！",
-    enemy: "ダメージを受けた！",
-};
-
-const ROUND_LABELS: Record<RoundResult, string> = {
-    player: `${ROUND_NAMES.player}！`,
-    enemy: `${ROUND_NAMES.enemy}…`,
-    draw: `${ROUND_NAMES.draw}！`,
-};
-
-// 直前の手の結果（ダメージ）の文
-function getRoundText(lastRound: LastRound) {
-    if (lastRound.result === "draw" || lastRound.damage === undefined) return ROUND_MESSAGES[lastRound.result];
-
-    return lastRound.result === "player"
-        ? `モンスターに${lastRound.damage}ダメージ！`
-        : `${lastRound.damage}ダメージを受けた！`;
-}
-
-// メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
-// text：メインの文、sub：決着したときに添える最後の手の結果（手切れは「最後の手：勝ち！」の形）
-function getBattleMessage(session: BattleSession): { text: string; sub: string | null } {
-    const { lastRound, endReason } = session;
-
-    // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
-    if (endReason) {
-        const sub = !lastRound
-            ? null
-            : endReason === "timeout"
-                ? `最後の手：${ROUND_LABELS[lastRound.result]} ${getRoundText(lastRound)}`
-                : getRoundText(lastRound);
-        return { text: END_MESSAGES[endReason], sub };
-    }
-    if (!lastRound) {
-        return { text: session.turnsLeft === session.maxTurns ? START_MESSAGE : RESUME_MESSAGE, sub: null };
-    }
-
-    return { text: getRoundText(lastRound), sub: null };
-}
-
-// 「Nターン目」の帯。表示を始めた時刻から、帯の動きのどこから再生するかを決める
+// 画面に出す帯。表示を始めた時刻から、帯の動きのどこから再生するかを決める
 // （再読み込みやタイマーの遅れで途中から出す場合も、残り時間と動きがずれないように）
-function TurnBanner({ turnNumber, startAt, duration }: { turnNumber: number; startAt: number; duration: number }) {
+function TimedBanner({ className, startAt, duration, text }: { className: string; startAt: number; duration: number; text: string }) {
     const [elapsed] = useState(() => Math.max(0, Date.now() - startAt));
 
     return (
         <div
-            className="battle-banner battle-turn-banner"
+            className={`battle-banner ${className}`}
             aria-hidden="true"
             style={{
                 animationDuration: `${duration}ms`,
                 animationDelay: `-${elapsed}ms`,
             }}
         >
-            <span>{turnNumber}ターン目</span>
+            <span>{text}</span>
         </div>
     );
 }
@@ -133,6 +79,17 @@ function Battle() {
             : 0,
         ROUND_RESULT_HOLD_MS
     );
+
+    // 押した手のボタンは待ち時間の間は押せなくなり、フォーカスが外れる。
+    // キーボードや読み上げで操作している人が続けて選べるよう、押せるようになったら押したボタンに戻す
+    const lastPressedHand = useRef<HTMLButtonElement | null>(null);
+    useEffect(() => {
+        const button = lastPressedHand.current;
+        if (cooldown.isWaiting || endReason !== null || !button) return;
+        if (document.activeElement === null || document.activeElement === document.body) {
+            button.focus({ preventScroll: true });
+        }
+    }, [cooldown.isWaiting, endReason]);
 
     // 「討伐成功」「討伐失敗」の帯は決着した瞬間だけ出す（再読み込みでは出さない）
     const [endBannerUntil, setEndBannerUntil] = useState(0);
@@ -204,9 +161,8 @@ function Battle() {
         ? TURN_COOLDOWN_MS - ROUND_RESULT_HOLD_MS
         : TURN_COOLDOWN_MS;
     const message = getBattleMessage(session);
-    // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さず、手も光らせない（「討伐失敗」と食い違わないように）。
-    // 最後の手の結果は message.sub で小さく伝える
-    const roundResult = endReason === "timeout" ? undefined : session.lastRound?.result;
+    // 手を使い切ったときは勝敗を大きく出さない（最後の手の結果は message.sub で小さく伝える）
+    const roundResult = getShownRoundResult(session);
     const roundLabel = roundResult ? ROUND_LABELS[roundResult] : null;
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
@@ -215,28 +171,25 @@ function Battle() {
             ? {
                 kind: "start",
                 text: "討伐開始",
-                elapsed: Math.max(0, HUNT_BANNER_MS - startPhase.remaining),
+                startAt: nextTurnAt - TURN_COOLDOWN_MS,
             }
             : isBattleOver && endPhase.isWaiting
                 ? {
                     kind: endReason === "victory" ? "success" : "failure",
                     text: endReason === "victory" ? "討伐成功" : "討伐失敗",
-                    elapsed: Math.max(0, HUNT_BANNER_MS - endPhase.remaining),
+                    startAt: endBannerUntil - HUNT_BANNER_MS,
                 }
                 : null;
 
-    const handleHandSelect = (playerHand: Hand) => {
+    // どの手のボタンかは data-hand から読む（ボタンごとに関数を作らない）
+    const handleHandClick = (event: MouseEvent<HTMLButtonElement>) => {
+        lastPressedHand.current = event.currentTarget;
         // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
-        const round = playHand(playerHand);
+        const round = playHand(event.currentTarget.dataset.hand as Hand);
 
         if (round?.session.endReason) {
             setEndBannerUntil(Date.now() + HUNT_BANNER_MS);
         }
-    };
-
-    // どの手のボタンかは data-hand から読む（ボタンごとに関数を作らない）
-    const handleHandClick = (event: MouseEvent<HTMLButtonElement>) => {
-        handleHandSelect(event.currentTarget.dataset.hand as Hand);
     };
 
     return (
@@ -252,17 +205,13 @@ function Battle() {
 
             {/* 討伐の開始・成功・失敗は画面中央に下から帯を出す */}
             {huntBanner && (
-                <div
+                <TimedBanner
                     key={huntBanner.kind}
-                    className={`battle-banner battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
-                    aria-hidden="true"
-                    style={{
-                        animationDuration: `${HUNT_BANNER_MS}ms`,
-                        animationDelay: `-${huntBanner.elapsed}ms`,
-                    }}
-                >
-                    <span>{huntBanner.text}</span>
-                </div>
+                    className={`battle-hunt-banner battle-hunt-banner-${huntBanner.kind}`}
+                    text={huntBanner.text}
+                    startAt={huntBanner.startAt}
+                    duration={HUNT_BANNER_MS}
+                />
             )}
 
             {/* 画面には出さない読み上げ用の領域。討伐の帯と、手を選べるようになったことを伝える。
@@ -324,9 +273,10 @@ function Battle() {
                         />
                         {/* 待機中のターン帯はモンスター画像内に表示し、勝敗に重ねない。 */}
                         {showTurnBanner && (
-                            <TurnBanner
+                            <TimedBanner
                                 key={turnNumber}
-                                turnNumber={turnNumber}
+                                className="battle-turn-banner"
+                                text={`${turnNumber}ターン目`}
                                 startAt={nextTurnAt - turnBannerDuration}
                                 duration={turnBannerDuration}
                             />
@@ -438,7 +388,7 @@ function Battle() {
                     <div className="janken-title">
                         {isWaiting ? (
                             <span className="janken-title-wait" aria-hidden="true">
-                                {session.lastRound ? "次の手まで少し待ってね" : "まもなく狩猟開始"}
+                                {isStarting ? "まもなく狩猟開始" : "次の手まで少し待ってね"}
                             </span>
                         ) : (
                             <span>CHOOSE YOUR HAND</span>
