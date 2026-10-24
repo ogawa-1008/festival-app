@@ -1,6 +1,5 @@
 import { useRef } from "react";
 
-import type { Hand } from "../../utils/battleSession";
 import { battleAssets } from "./battleAssets";
 import { HAND_LABELS, JANKEN_RULE_TEXT } from "../../data/jankenRule";
 import { HANDS } from "../../game/battle";
@@ -8,11 +7,6 @@ import { HANDS } from "../../game/battle";
 import "./JankenRule.css";
 
 // 図の並びは HANDS の順（上：グー、左下：チョキ、右下：パー）。矢印は「勝つ相手」を指す
-const HAND_ENGLISH: Record<Hand, string> = {
-    rock: "ROCK",
-    scissors: "SCISSORS",
-    paper: "PAPER",
-};
 
 // 背景を押して閉じる仕組み（closedby）にブラウザが対応しているか
 const supportsClosedBy = typeof HTMLDialogElement !== "undefined" && "closedBy" in HTMLDialogElement.prototype;
@@ -86,7 +80,7 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                             <div key={hand} className={`janken-rule-hand janken-rule-${hand}`}>
                                 <img src={battleAssets[hand]} alt="" />
                                 <strong>{HAND_LABELS[hand]}</strong>
-                                <span>{HAND_ENGLISH[hand]}</span>
+                                <span>{hand.toUpperCase()}</span>
                             </div>
                         ))}
 

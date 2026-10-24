@@ -32,7 +32,7 @@ export function createBattle(balance: BattleBalance): BattleState {
   return { playerHp: hunterMaxHp, monsterHp: balance.monsterMaxHp, round: 0, outcome: null, damage: 0, status: "playing" };
 }
 // 手の並び（狩猟画面のボタン・ルールの図・セッションの検証で共通）
-export const HANDS: Hand[] = ["rock", "scissors", "paper"];
+export const HANDS: readonly Hand[] = ["rock", "scissors", "paper"];
 export function chooseEnemyHand(random = Math.random): Hand {
   return HANDS[Math.floor(random() * HANDS.length)];
 }

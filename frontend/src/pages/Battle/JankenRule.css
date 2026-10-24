@@ -231,7 +231,7 @@
 
 /* グー → チョキ */
 .janken-rule-arrow-rock {
-  top: 91px;
+  top: 97px;
   left: 55px;
 
   transform: rotate(125deg);
@@ -245,7 +245,7 @@
 
 /* パー → グー */
 .janken-rule-arrow-paper {
-  top: 91px;
+  top: 97px;
   right: 55px;
 
   transform: rotate(-125deg);

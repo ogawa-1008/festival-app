@@ -1,5 +1,6 @@
-import { HANDS, judgeWinner, practiceEnemyHand, resolveTurn, turnFeedbackMs } from "../game/battle.ts";
-export type Hand = "rock" | "scissors" | "paper";
+import { chooseEnemyHand, HANDS, judgeWinner, practiceEnemyHand, resolveTurn, turnFeedbackMs, type Hand } from "../game/battle.ts";
+// 手の型は game/battle.ts の1か所で決める（ここからも使えるように書き出す）
+export type { Hand };
 
 export type RoundResult = "player" | "enemy" | "draw";
 
@@ -106,7 +107,7 @@ export function playRound(
 ): { session: BattleSession; result: RoundResult } {
   if (session.endReason !== null || now < session.nextTurnAt) return { session, result: session.lastRound?.result ?? "draw" };
   const round = session.maxTurns - session.turnsLeft;
-  const enemyHand = practice ? practiceEnemyHand(playerHand, round) : HANDS[Math.floor(random() * HANDS.length)];
+  const enemyHand = practice ? practiceEnemyHand(playerHand, round) : chooseEnemyHand(random);
   const result = judgeWinner(playerHand, enemyHand);
 
   // あいこも含めて1手として数える

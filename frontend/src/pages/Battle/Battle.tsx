@@ -234,8 +234,7 @@ function Battle() {
 
     // どの手のボタンかは data-hand から読む（ボタンごとに関数を作らない）
     const handleHandClick = (event: MouseEvent<HTMLButtonElement>) => {
-        const hand = event.currentTarget.dataset.hand as Hand | undefined;
-        if (hand && HANDS.includes(hand)) handleHandSelect(hand);
+        handleHandSelect(event.currentTarget.dataset.hand as Hand);
     };
 
     return (
