@@ -58,14 +58,24 @@ function getRoundText(lastRound: LastRound) {
 }
 
 // メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
-function getBattleMessage(session: BattleSession) {
+// text：メインの文、sub：決着したときに添える最後の手の結果（手切れは「最後の手：勝ち！」の形）
+function getBattleMessage(session: BattleSession): { text: string; sub: string | null } {
     const { lastRound, endReason } = session;
 
     // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
-    if (endReason) return END_MESSAGES[endReason];
-    if (!lastRound) return session.turnsLeft === session.maxTurns ? START_MESSAGE : RESUME_MESSAGE;
+    if (endReason) {
+        const sub = !lastRound
+            ? null
+            : endReason === "timeout"
+                ? `最後の手：${ROUND_LABELS[lastRound.result]} ${getRoundText(lastRound)}`
+                : getRoundText(lastRound);
+        return { text: END_MESSAGES[endReason], sub };
+    }
+    if (!lastRound) {
+        return { text: session.turnsLeft === session.maxTurns ? START_MESSAGE : RESUME_MESSAGE, sub: null };
+    }
 
-    return getRoundText(lastRound);
+    return { text: getRoundText(lastRound), sub: null };
 }
 
 // 「Nターン目」の帯。表示を始めた時刻から、帯の動きのどこから再生するかを決める
@@ -195,15 +205,9 @@ function Battle() {
         : TURN_COOLDOWN_MS;
     const message = getBattleMessage(session);
     // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さず、手も光らせない（「討伐失敗」と食い違わないように）。
-    // 決着したときは、最後の手の結果（ダメージ）を小さく添える（手切れは「最後の手：勝ち！」の形）
-    const isTimeout = endReason === "timeout";
-    const roundResult = isTimeout ? undefined : session.lastRound?.result;
+    // 最後の手の結果は message.sub で小さく伝える
+    const roundResult = endReason === "timeout" ? undefined : session.lastRound?.result;
     const roundLabel = roundResult ? ROUND_LABELS[roundResult] : null;
-    const lastRoundSummary = isBattleOver && session.lastRound
-        ? isTimeout
-            ? `最後の手：${ROUND_LABELS[session.lastRound.result]} ${getRoundText(session.lastRound)}`
-            : getRoundText(session.lastRound)
-        : null;
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
     const huntBanner =
@@ -358,9 +362,9 @@ function Battle() {
                     {roundResult && (
                         <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
                     )}
-                    <span className="battle-message-text">{message}</span>
-                    {lastRoundSummary && (
-                        <span className="battle-message-sub">{lastRoundSummary}</span>
+                    <span className="battle-message-text">{message.text}</span>
+                    {message.sub && (
+                        <span className="battle-message-sub">{message.sub}</span>
                     )}
                     {/* 直前の手がなく、手のボタンを押せるときだけ、手の選び方を案内する */}
                     {!session.lastRound && !isBattleOver && !isWaiting && (

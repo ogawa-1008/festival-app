@@ -80,14 +80,17 @@
   .tutorial-scene .hp-fill, .tutorial-scene .janken-button { transition: none; }
   .tutorial-scene .janken-button:active { transform: none; }
 }
-/* Leave HP and the battle feedback visible while choosing hands. */
-.festival-tour--battle.driver-popover { top: 16px !important; bottom: auto !important; }
-.festival-tour--battle .driver-popover-title { font-size: 20px; }
-.festival-tour--battle .driver-popover-description { line-height: 1.5; }
+/* 練習のバトル：説明は画面の一番上に小さく出し、モンスター画像（ターン帯）・HP・勝敗の表示にかぶらないようにする
+   （画面の背が低くても下には出さない。下に出すと勝敗の表示や手のボタンを隠すため） */
+.festival-tour--battle.driver-popover { top: 8px !important; bottom: auto !important; padding: 14px 18px 12px; }
+.festival-tour--battle .driver-popover-title { font-size: 18px; }
+.festival-tour--battle .driver-popover-description { margin-top: 6px !important; line-height: 1.5; }
+.festival-tour--battle .driver-popover-footer { margin-top: 8px; }
 .festival-tour--battle .driver-popover-arrow { display: none; }
-@media (max-height: 700px) {
-  .festival-tour--battle.driver-popover { top: auto !important; bottom: 12px !important; }
-}
+/* 練習のバトルでは「次へ」などのボタンを使わないので、進み具合と「終了する」を1行に並べて背を低くする */
+.festival-tour.festival-tour--battle .driver-popover-navigation-btns { display: none !important; }
+.festival-tour.festival-tour--battle .driver-popover-footer { flex-wrap: nowrap; align-items: center; }
+.festival-tour.festival-tour--battle .tutorial-end-button { flex: 0 0 auto; margin: 0 0 0 auto; min-height: 44px; }
 
 /* 次に押すところを光らせて目立たせる（driver.js が対象に付けるクラス） */
 .driver-active .driver-active-element {
