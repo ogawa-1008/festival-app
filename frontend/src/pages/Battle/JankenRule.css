@@ -10,7 +10,8 @@
   top: calc(env(safe-area-inset-top, 0px) + 34px);
   right: max(24px, calc(50% - var(--app-max-width) / 2 + 24px));
 
-  z-index: var(--z-raised);
+  /* ホームのメニューボタンと同じく、ナビと同じ高さに置く（ターン帯 --z-banner より上） */
+  z-index: var(--z-nav);
 
   width: 48px;
   height: 48px;

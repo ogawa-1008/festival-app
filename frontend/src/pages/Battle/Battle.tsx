@@ -30,8 +30,9 @@ const END_MESSAGES: Record<EndReason, string> = {
     timeout: "モンスターは逃げてしまった……",
 };
 
+// ダメージの数がないとき（あいこ・以前の形式のセッション）の文
 const ROUND_MESSAGES: Record<RoundResult, string> = {
-    draw: "もう一度！",
+    draw: "HPは変わりません",
     player: "モンスターにダメージ！",
     enemy: "ダメージを受けた！",
 };
@@ -53,15 +54,13 @@ function getBattleMessage(session: BattleSession) {
     const { lastRound, endReason } = session;
 
     // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
-    if (endReason) {
-        return { text: END_MESSAGES[endReason] };
-    }
+    if (endReason) return END_MESSAGES[endReason];
+    if (!lastRound) return START_MESSAGE;
+    if (lastRound.result === "draw" || lastRound.damage === undefined) return ROUND_MESSAGES[lastRound.result];
 
-    return {
-        text: !lastRound ? START_MESSAGE : lastRound.result === "draw" ? "HPは変わりません" : lastRound.damage !== undefined
-            ? lastRound.result === "player" ? `モンスターに${lastRound.damage}ダメージ！` : `${lastRound.damage}ダメージを受けた！`
-            : ROUND_MESSAGES[lastRound.result],
-    };
+    return lastRound.result === "player"
+        ? `モンスターに${lastRound.damage}ダメージ！`
+        : `${lastRound.damage}ダメージを受けた！`;
 }
 
 function Battle() {
@@ -172,7 +171,7 @@ function Battle() {
         : TURN_COOLDOWN_MS;
     // 再読み込みやタイマーの遅れで途中から表示する場合も、帯の動きを実際の時刻に合わせる
     // （cooldown の時刻は手を出した時点のままのことがあるので、新しいほうの時刻を使う）
-    const bannerNow = Math.max(cooldown.now, resultPhase.now);
+    const bannerNow = Math.max(cooldown.now, startPhase.now, resultPhase.now);
     const bannerElapsed = Math.max(0, bannerNow - (nextTurnAt - turnBannerDuration));
     const message = getBattleMessage(session);
     // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さない（「勝ち！」と「討伐失敗」が並ばないように）
@@ -326,8 +325,9 @@ function Battle() {
                     {roundResult && (
                         <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
                     )}
-                    <span>{message.text}</span>
-                    {!session.lastRound && !isBattleOver && (
+                    <span className="battle-message-text">{message}</span>
+                    {/* 直前の手がなく、手のボタンを押せるときだけ、手の選び方を案内する */}
+                    {!session.lastRound && !isBattleOver && !isWaiting && (
                         <span>下のボタンからグー・チョキ・パーを選ぼう！</span>
                     )}
                     {session.lastRound && (
@@ -335,12 +335,12 @@ function Battle() {
                             <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
                                 {/* 出した手も、手を選ぶボタンと同じ画像で表示する */}
                                 <img src={battleAssets[session.lastRound.playerHand]} alt="" />
-                                <figcaption>あなた：{HAND_LABELS[session.lastRound.playerHand]}</figcaption>
+                                <figcaption><small>あなた</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.playerHand]}</figcaption>
                             </figure>
                             <span className="battle-hands-vs" aria-hidden="true">VS</span>
                             <figure className={`battle-hand${roundResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
                                 <img src={battleAssets[session.lastRound.enemyHand]} alt="" />
-                                <figcaption>モンスター：{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
+                                <figcaption><small>モンスター</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
                             </figure>
                         </div>
                     )}
