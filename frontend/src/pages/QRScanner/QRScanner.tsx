@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { findCampus } from "../../data/campuses";
-import { allCampusQuests, getMapAreas } from "../../data/maps";
+import { allCampusQuests } from "../../data/maps";
 import { quests as allQuests } from "../../data/quests";
 import { useGame } from "../../context/GameContext";
 import { getBattleStats } from "../../utils/battleStats";
@@ -60,7 +60,7 @@ function QRScanner() {
   const { active: practice, step, questId: practiceQuestId, advance } = useGameTutorial();
 
   const { startBattle } = useBattleSession();
-  const { weaponClaimed, quests, campusId, selectBuilding } = useGame();
+  const { weaponClaimed, quests } = useGame();
 
   // カメラ起動後に別タブで武器を交換しても、読み取った時点の値を使えるよう最新値を持つ
   const weaponClaimedRef = useRef(weaponClaimed);
@@ -186,10 +186,6 @@ function QRScanner() {
     if (quest) {
       hasScannedRef.current = true;
       setIsScanning(false);
-
-      // 会場のQRコードは、その校舎にいる証拠。選んでいる校舎を読み取った場所に合わせる
-      const area = getMapAreas(campusId).find((item) => item.questIds.includes(quest.id));
-      if (area) selectBuilding(area.id);
 
       // 交換済みの武器を反映した、このバトルのステータス
       const stats = getBattleStats(quest, {

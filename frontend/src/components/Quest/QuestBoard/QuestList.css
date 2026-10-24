@@ -22,10 +22,15 @@
   max-width: 430px;
 
   /*
-   * 3枚のクエストを
-   * 重ならないように縦配置
+   * カードの並べ方の値（QuestCard.css の位置もこの値を使う）。
+   * 間隔はカードの高さ315px＋すき間10px
    */
-  height: 1040px;
+  --quest-card-first-top: 45px;
+  --quest-card-pitch: 325px;
+  --quest-board-bottom-space: 15px;
+
+  /* 高さはクエストの枚数（QuestList が渡す --quest-count）に合わせて伸ばす */
+  height: calc(var(--quest-card-first-top) + var(--quest-count, 1) * var(--quest-card-pitch) + var(--quest-board-bottom-space));
 
   box-sizing: border-box;
 
@@ -154,7 +159,7 @@
    */
   overflow: visible;
 }
-/* この校舎のクエストがまだないとき */
+/* このエリアのクエストがまだないとき */
 .quest-board-empty {
   position: absolute;
   top: 80px;
@@ -183,6 +188,3 @@
   box-sizing: border-box;
 }
 
-.home .quest-board + .quest-board {
-  margin-top: var(--space-6);
-}

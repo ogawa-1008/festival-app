@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
+import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { campuses } from "../../data/campuses";
+import { getHistoryIndex } from "../../utils/historyIndex";
 import "./CampusSelection.css";
 
 type Campus = (typeof campuses)[number];
@@ -13,11 +15,19 @@ function CampusSelection() {
   const { campusId, selectCampus } = useGame();
   const { session } = useBattleSession();
   const navigate = useNavigate();
+  const { active: practice } = useGameTutorial();
+  // ホームのメニューから開いたときは、ホームの履歴の位置（returnIdx）が渡される。
+  // 決めたときに、今の画面がそのすぐ次なら1つ戻る（履歴にホームが2つ並ばないように）
+  const returnIdx = (useLocation().state as { returnIdx?: number } | null)?.returnIdx;
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
   const isBattleUnfinished = session !== null && !session.claimed;
-  const blocked = isBattleUnfinished && pendingCampus !== null && pendingCampus.id !== campusId;
+  // 別のエリアに変えようとしているか
+  const changingCampus = pendingCampus !== null && pendingCampus.id !== campusId;
+  // 練習中にエリアを変えると、練習用のクエストが消えて先に進めなくなるので変えさせない
+  const blockedByPractice = practice && changingCampus;
+  const blocked = changingCampus && (practice || isBattleUnfinished);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -57,7 +67,7 @@ function CampusSelection() {
               <span className="campus-card-labels">
                 <span className="campus-english">{campus.englishName}</span>
                 <span className="campus-name">{campus.name}</span>
-                <span className="campus-card-hint">このエリアの校舎を選ぶ</span>
+                <span className="campus-card-hint">このエリアでクエストに参加</span>
               </span>
               <img className="campus-chevron" src={`${asset}chevron.svg`} alt="" />
             </button>
@@ -80,9 +90,11 @@ function CampusSelection() {
           <p className="campus-english">{pendingCampus?.englishName}</p>
         </div>
         <p id="campus-confirm-description" className="campus-confirm-description">
-          {blocked
+          {blockedByPractice
+            ? <>操作の練習中は<br />エリアを変えられません。</>
+            : blocked
             ? <>バトル中、または報酬を受け取る前は<br />エリアを変えられません。</>
-            : <>選択したエリアの校舎を<br />選べます。</>}
+            : <>選択したエリアのクエストと<br />マップを表示します。</>}
         </p>
         <div className="campus-dialog-actions">
           <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
@@ -94,7 +106,14 @@ function CampusSelection() {
             disabled={blocked}
             onClick={() => {
               if (!pendingCampus || blocked) return;
-              if (selectCampus(pendingCampus.id)) navigate("/start/buildings");
+              // 同じエリアを選んだときは選び直さない（練習中も、進み具合を読み直さずにそのまま戻る）
+              if (!changingCampus || selectCampus(pendingCampus.id)) {
+                // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
+                // （履歴の位置が読めないときも、ホームへ進むだけで困らない）
+                const currentIdx = getHistoryIndex();
+                if (returnIdx !== undefined && currentIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
+                else navigate("/", { replace: true });
+              }
             }}
           >
             このエリアに決定
