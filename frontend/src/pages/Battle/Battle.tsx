@@ -16,6 +16,7 @@ import {
 } from "../../utils/battleSession";
 
 import { HAND_LABELS } from "../../data/jankenRule";
+import { HANDS } from "../../game/battle";
 import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
 
@@ -48,8 +49,6 @@ const ROUND_LABELS: Record<RoundResult, string> = {
 
 type LastRound = NonNullable<BattleSession["lastRound"]>;
 
-// 手のボタンの並び（左から）
-const HANDS: Hand[] = ["rock", "scissors", "paper"];
 
 // 直前の手の結果（ダメージ）の文
 function getRoundText(lastRound: LastRound) {
@@ -274,7 +273,8 @@ function Battle() {
 
             {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
             {/* 討伐成功のあとは自動でリザルトへ移るので出さない（負け・手切れの再挑戦の前には見られるように残す） */}
-            {endReason !== "victory" && <JankenRule maxTurns={session.maxTurns} />}
+            {/* 練習中はガイドが手のボタン以外を押せなくするので出さない（ルールはガイドの説明に書いてある） */}
+            {endReason !== "victory" && !practice && <JankenRule maxTurns={session.maxTurns} />}
 
             <div className="battle-content">
 

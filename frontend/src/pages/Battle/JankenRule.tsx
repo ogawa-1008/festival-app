@@ -3,15 +3,19 @@ import { useRef } from "react";
 import type { Hand } from "../../utils/battleSession";
 import { battleAssets } from "./battleAssets";
 import { HAND_LABELS, JANKEN_RULE_TEXT } from "../../data/jankenRule";
+import { HANDS } from "../../game/battle";
 
 import "./JankenRule.css";
 
-// 図の並び（上：グー、左下：チョキ、右下：パー）。矢印は「勝つ相手」を指す
-const RULE_HANDS: { hand: Hand; english: string }[] = [
-    { hand: "rock", english: "ROCK" },
-    { hand: "scissors", english: "SCISSORS" },
-    { hand: "paper", english: "PAPER" },
-];
+// 図の並びは HANDS の順（上：グー、左下：チョキ、右下：パー）。矢印は「勝つ相手」を指す
+const HAND_ENGLISH: Record<Hand, string> = {
+    rock: "ROCK",
+    scissors: "SCISSORS",
+    paper: "PAPER",
+};
+
+// 背景を押して閉じる仕組み（closedby）にブラウザが対応しているか
+const supportsClosedBy = typeof HTMLDialogElement !== "undefined" && "closedBy" in HTMLDialogElement.prototype;
 
 type JankenRuleProps = {
     // この狩猟で出せる手の数（説明文に使う）
@@ -59,19 +63,15 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                 closedby="any"
                 // 背景を押して閉じる仕組みに未対応のブラウザ向け。押し始めも離したところも背景のときだけ閉じる
                 // （ポップの中から外へ指を動かして離したときは閉じない）
-                onPointerDown={(event) => {
-                    if ("closedBy" in HTMLDialogElement.prototype) return;
+                onPointerDown={supportsClosedBy ? undefined : (event) => {
                     pressedBackdrop.current = event.target === event.currentTarget
                         && isOutside(event.currentTarget, event.clientX, event.clientY);
                 }}
-                onClick={(event) => {
-                    if ("closedBy" in HTMLDialogElement.prototype) return;
-                    const fromBackdrop = pressedBackdrop.current;
-                    pressedBackdrop.current = false;
-                    if (fromBackdrop && event.target === event.currentTarget
-                        && isOutside(event.currentTarget, event.clientX, event.clientY)) {
+                onClick={supportsClosedBy ? undefined : (event) => {
+                    if (pressedBackdrop.current && event.target === event.currentTarget) {
                         event.currentTarget.close();
                     }
+                    pressedBackdrop.current = false;
                 }}
             >
                 <section className="janken-rule">
@@ -82,11 +82,11 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
 
                     {/* 手のボタンと同じ画像で、どの手がどの手に勝つかを示す */}
                     <div className="janken-rule-chart" aria-hidden="true">
-                        {RULE_HANDS.map(({ hand, english }) => (
+                        {HANDS.map((hand) => (
                             <div key={hand} className={`janken-rule-hand janken-rule-${hand}`}>
                                 <img src={battleAssets[hand]} alt="" />
                                 <strong>{HAND_LABELS[hand]}</strong>
-                                <span>{english}</span>
+                                <span>{HAND_ENGLISH[hand]}</span>
                             </div>
                         ))}
 

@@ -1,4 +1,4 @@
-import { judgeWinner, practiceEnemyHand, resolveTurn, turnFeedbackMs } from "../game/battle.ts";
+import { HANDS, judgeWinner, practiceEnemyHand, resolveTurn, turnFeedbackMs } from "../game/battle.ts";
 export type Hand = "rock" | "scissors" | "paper";
 
 export type RoundResult = "player" | "enemy" | "draw";
@@ -70,7 +70,6 @@ const START_WAIT_MS = HUNT_BANNER_MS + TURN_COOLDOWN_MS;
 
 const GOLD_CROWN_RATE = 0.1;
 
-const HANDS: Hand[] = ["rock", "scissors", "paper"];
 
 const END_REASONS: EndReason[] = ["victory", "defeated", "timeout"];
 
