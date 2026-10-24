@@ -356,13 +356,15 @@
 ======================================== */
 
 /*
- * 3枚すべて完全に同じサイズ
+ * どのカードも同じサイズ。縦の位置（top）と重なり順（z-index）は、
+ * 上から何枚目か（QuestCard が渡す --quest-index）で決める。
+ * 間隔・位置の値は QuestList.css の .quest-board に置き、掲示板の高さと同じ値を使う
  */
 
-.quest-card.quest-top {
+.quest-card.quest-slot {
   position: absolute;
 
-  top: 45px;
+  top: calc(var(--quest-card-first-top) + var(--quest-index, 0) * var(--quest-card-pitch));
   left: 50%;
 
   width: 315px !important;
@@ -379,55 +381,8 @@
 
   transform: translateX(-50%);
 
-  z-index: 30;
-}
-
-
-.quest-card.quest-middle {
-  position: absolute;
-
-  top: 370px;
-  left: 50%;
-
-  width: 315px !important;
-  height: 315px !important;
-
-  min-width: 315px;
-  min-height: 315px;
-
-  max-width: calc(100% - 24px);
-
-  box-sizing: border-box;
-
-  margin: 0;
-
-  transform: translateX(-50%);
-
-  z-index: 20;
-}
-
-
-.quest-card.quest-bottom {
-  position: absolute;
-
-  top: 695px;
-  left: 50%;
-
-  width: 315px !important;
-  height: 315px !important;
-
-  min-width: 315px;
-  min-height: 315px;
-
-  max-width: calc(100% - 24px);
-
-  box-sizing: border-box;
-
-  margin: 0;
-
-  transform: translateX(-50%);
-
-  z-index: 10;
+  /* 上のカードほど手前に重ねる（押したときに少し浮く動きで隠れないように） */
+  z-index: calc(30 - var(--quest-index, 0));
 }
 
 
@@ -435,16 +390,15 @@
    タップ時
 ======================================== */
 
-.quest-card.quest-top:not(:disabled):active,
-.quest-card.quest-middle:not(:disabled):active,
-.quest-card.quest-bottom:not(:disabled):active {
+.quest-card.quest-slot:not(:disabled):active {
   transform:
     translateX(-50%)
     translateY(-12px);
 
   filter: brightness(1.12);
 
-  z-index: 30;
+  /* 押したカードは、ほかのカードより手前に出す */
+  z-index: 40;
 }
 
 
@@ -453,16 +407,14 @@
 ======================================== */
 
 @media (hover: hover) and (pointer: fine) {
-  .quest-card.quest-top:hover,
-  .quest-card.quest-middle:hover,
-  .quest-card.quest-bottom:hover {
+  .quest-card.quest-slot:hover {
     transform:
       translateX(-50%)
       translateY(-5px);
 
     filter: brightness(1.05);
 
-    z-index: 20;
+    z-index: 35;
   }
 }
 

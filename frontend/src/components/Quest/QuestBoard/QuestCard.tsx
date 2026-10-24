@@ -1,23 +1,26 @@
+import type { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
-import { useMapAreas } from "../../../context/useMapAreas";
 
 import "./QuestCard.css";
 
 type QuestCardProps = {
   quest: Quest;
-  position: "top" | "middle" | "bottom";
+  // 掲示板の上から何枚目か（0から）。位置と重なり順をこの番号から決める
+  index: number;
+  // クエストの建物名（見つからないときは「練習フィールド」と出す）
+  buildingName?: string;
 };
 
 function QuestCard({
   quest,
-  position,
+  index,
+  buildingName,
 }: QuestCardProps) {
   const navigate = useNavigate();
   const { active, advance } = useGameTutorial();
-  const area = useMapAreas().find((item) => item.questIds.includes(quest.id));
 
   const handleQuestClick = () => {
     if (quest.completed) {
@@ -30,7 +33,9 @@ function QuestCard({
 
   return (
     <button
-      className={`quest-card quest-${position}`}
+      className="quest-card quest-slot"
+      // 何枚目かを CSS に渡し、位置と重なり順（上のカードほど手前）を QuestCard.css で決める
+      style={{ "--quest-index": index } as CSSProperties}
       type="button"
       data-tutorial-quest={quest.id}
       onClick={handleQuestClick}
@@ -96,7 +101,7 @@ function QuestCard({
               </span>
 
               <strong>
-                {area?.buildingName ?? "練習フィールド"}
+                {buildingName ?? "練習フィールド"}
               </strong>
             </div>
 

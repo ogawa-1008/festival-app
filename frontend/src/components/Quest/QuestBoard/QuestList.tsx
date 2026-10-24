@@ -1,42 +1,38 @@
+import { useMemo, type CSSProperties } from "react";
 import { useGame } from "../../../context/GameContext";
-import { useMapAreas } from "../../../context/useMapAreas";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
 import { PRACTICE_QUEST_ID } from "../../../data/quests";
+import { useMapAreas } from "../../../context/useMapAreas";
 import QuestCard from "./QuestCard";
 import "./QuestList.css";
 
-// 既存の掲示板1枚につき3クエスト。4校舎以上の会場もすべて表示する。
-const positions = ["top", "middle", "bottom"] as const;
-
 function QuestList() {
-  const { quests, buildingId } = useGame();
+  const { quests } = useGame();
   const { active: practice } = useGameTutorial();
-  const mapAreas = useMapAreas();
-  // 選んでいる校舎（号館）のクエストだけを表示する。
-  // 校舎を選ぶ前・保存データが古いときは、今までどおり会場の全クエストを表示する
-  const building = mapAreas.find((area) => area.id === buildingId);
-  const campusQuests = building
-    ? quests.filter((quest) => building.questIds.includes(quest.id))
-    : quests;
+  // 選んでいるエリアの全建物のクエストを表示する（練習中は練習用のクエストだけ）
   const visibleQuests = practice
     ? quests.filter((quest) => quest.id === PRACTICE_QUEST_ID)
-    : campusQuests;
-  const boards = Array.from({ length: Math.max(1, Math.ceil(visibleQuests.length / 3)) }, (_, index) =>
-    visibleQuests.slice(index * 3, index * 3 + 3),
+    : quests;
+  // クエストの建物名は、カードごとに探さず一度だけ表にする
+  const mapAreas = useMapAreas();
+  const buildingNames = useMemo(
+    () => new Map(mapAreas.flatMap((area) => area.questIds.map((id) => [id, area.buildingName] as const))),
+    [mapAreas],
   );
 
-  return boards.map((board, boardIndex) => (
-    <div className="quest-board" key={boardIndex} style={{ height: 60 + Math.max(1, board.length) * 325 }}>
+  return (
+    // 掲示板は1枚にし、カードの数に合わせて縦に伸ばす（高さは QuestList.css で計算する）
+    <div className="quest-board" style={{ "--quest-count": Math.max(1, visibleQuests.length) } as CSSProperties}>
       <div className="quest-board-header"><span>QUEST BOARD</span></div>
       <div className="quest-board-list">
-        {board.length === 0 ? (
-          <p className="quest-board-empty">この校舎のモンスターは準備中です。</p>
-        ) : board.map((quest, index) => (
-          <QuestCard key={quest.id} quest={quest} position={positions[index]} />
+        {visibleQuests.length === 0 ? (
+          <p className="quest-board-empty">このエリアのモンスターは準備中です。</p>
+        ) : visibleQuests.map((quest, index) => (
+          <QuestCard key={quest.id} quest={quest} index={index} buildingName={buildingNames.get(quest.id)} />
         ))}
       </div>
     </div>
-  ));
+  );
 }
 
 export default QuestList;

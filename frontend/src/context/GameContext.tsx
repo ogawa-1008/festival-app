@@ -18,15 +18,14 @@ import { getRewardExp } from "../utils/questReward";
 import { useStorageSync } from "./useStorageSync";
 import {
   CAMPUS_STORAGE_KEY,
+  clearLegacyBuildingSelection,
   clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
   getCampusGameKey,
   getCampusLoadKey,
   loadSavedGame,
-  readSelectedBuilding,
   readSelectedCampus,
   saveGame,
-  saveSelectedBuilding,
 } from "../utils/gameStorage";
 import { getCampusQuests, getMapAreas } from "../data/maps";
 import type { Quest } from "../types/quest";
@@ -57,10 +56,7 @@ type GameState = {
 };
 
 type GameContextType = GameState & {
-  // 選んでいる号館（校舎）。未選択なら null
-  buildingId: number | null;
-  selectBuilding: (buildingId: number) => void;
-  // 保存されているエリア・校舎を読み直す（練習中に選び直したときなど）
+  // 保存されているエリアを読み直す（練習中に選び直したときなど）
   reloadSelection: () => void;
   // 切り替えられなかったら false（保存できていない進み具合がある場合など）
   selectCampus: (campusId: CampusId) => boolean;
@@ -135,6 +131,9 @@ function createCampusState(campusId: CampusId, practice: boolean): GameState {
   };
 }
 
+// 以前あった建物選択の保存を消したか（ページを開いて最初の読み込みで1回だけ消す）
+let legacyBuildingCleared = false;
+
 // 進み具合は校舎ごとに保存する。campusId を省くと、選んでいる校舎（localStorage）を読む
 function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | null): GameState {
   if (typeof window === "undefined") {
@@ -163,6 +162,11 @@ function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | nu
   let campusId: CampusId | null = null;
   try {
     const storage = window.localStorage;
+    // 以前あった建物選択の保存が残っていれば消す（読み込みのたびではなく、ページを開いて最初の1回だけ）
+    if (!legacyBuildingCleared) {
+      legacyBuildingCleared = true;
+      clearLegacyBuildingSelection(storage);
+    }
     campusId = campusOverride !== undefined
       ? campusOverride
       : findCampus(readSelectedCampus(storage))?.id ?? null;
@@ -218,22 +222,9 @@ function saveGameState(gameState: GameState, practiceCampus?: CampusId): boolean
   }
 }
 
-// 選んでいる校舎の号館。保存された番号が今の校舎の号館にない場合は未選択として扱う
-function readBuildingFor(campusId: CampusId | null): number | null {
-  if (!campusId || typeof window === "undefined") return null;
-
-  try {
-    const building = readSelectedBuilding(window.localStorage, campusId);
-    return getMapAreas(campusId).some((area) => area.id === building) ? building : null;
-  } catch {
-    return null;
-  }
-}
-
 const GameContext = createContext<GameContextType | null>(null);
 export function GameProvider({ children, practiceCampus }: { children: ReactNode; practiceCampus?: CampusId }) {
   const [gameState, setGameState] = useState<GameState>(() => loadGameState(practiceCampus));
-  const [buildingId, setBuildingId] = useState<number | null>(() => readBuildingFor(gameState.campusId));
 
   const [saveFailed, setSaveFailed] = useState(false);
   const pendingSave = useRef<GameState | null>(null);
@@ -244,19 +235,10 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
     campusRef.current = gameState.campusId;
   }, [gameState.campusId]);
 
-  // エリアを変えたら、そのエリアで選んでいた号館に切り替える
-  useEffect(() => {
-    // 別タブでエリアが変わったときにも合わせる（この画面の操作では selectCampus が先に更新する）
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setBuildingId(readBuildingFor(gameState.campusId));
-  }, [gameState.campusId]);
-
-  // 保存されているエリア・校舎を読み直す。練習中に選び直したときも、
+  // 保存されているエリアを読み直す。練習中に選び直したときも、
   // 練習を終えた画面が新しい選択を表示できるようにする
   const reloadSelection = useCallback(() => {
-    const next = loadGameState();
-    setGameState(next);
-    setBuildingId(readBuildingFor(next.campusId));
+    setGameState(loadGameState());
   }, []);
 
   // 操作直前にも確認し、storage イベントが届く前の受取・交換を防ぐ。
@@ -439,21 +421,11 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
       return true;
     };
-    // 参加する号館（校舎）を選ぶ。エリアの号館にない番号は選ばない
-    const selectBuilding = (nextBuildingId: number) => {
-      const campusId = gameState.campusId;
-      if (!campusId) return;
-      if (!getMapAreas(campusId).some((area) => area.id === nextBuildingId)) return;
-
-      try {
-        saveSelectedBuilding(window.localStorage, campusId, nextBuildingId);
-      } catch {
-        // 保存できなくても、この画面では選んだ校舎で続ける
-      }
-      setBuildingId(nextBuildingId);
-    };
     // 校舎（エリア）を変えると、その校舎の進み具合に切り替える（進み具合は校舎ごとに別）
     const selectCampus = (campusId: CampusId) => {
+      // 練習中はエリアを変えない（練習用の状態が本番の保存データに入れ替わったり、
+      // 練習の状態が本番の保存先に書き込まれたりしないように）
+      if (practiceCampus) return false;
       if (!canUpdateGame()) return false;
       // 保存できていない進み具合があれば、切り替える前に保存する（保存できなければ切り替えない）
       if (pendingSave.current) {
@@ -468,8 +440,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       setGameState(loadGameState(undefined, campusId));
       return true;
     };
-    return { ...gameState, buildingId, selectBuilding, reloadSelection, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon, claimFieldNovelty };
-  }, [gameState, buildingId, reloadSelection, requiresUpdate, canUpdateGame]);
+    return { ...gameState, reloadSelection, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon, claimFieldNovelty };
+  }, [gameState, reloadSelection, requiresUpdate, canUpdateGame, practiceCampus]);
 
   return (
     <GameContext.Provider value={value}>

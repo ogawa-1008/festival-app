@@ -5,14 +5,12 @@ import { allCampusQuests, getCampusQuests, getMapAreas } from "../src/data/maps.
 import { quests } from "../src/data/quests.ts";
 import {
   CAMPUS_STORAGE_KEY,
+  clearLegacyBuildingSelection,
   clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
-  getCampusBuildingKey,
   getCampusGameKey,
   getCampusLoadKey,
-  readSelectedBuilding,
   readSelectedCampus,
-  saveSelectedBuilding,
 } from "../src/utils/gameStorage.ts";
 
 test("each campus has its own buildings and photo-spot stickers", () => {
@@ -65,22 +63,16 @@ const memoryStorage = (entries = {}) => {
     getItem: (key) => (data.has(key) ? data.get(key) : null),
     setItem: (key, value) => data.set(key, value),
     removeItem: (key) => data.delete(key),
+    get length() {
+      return data.size;
+    },
+    key: (index) => [...data.keys()][index] ?? null,
   };
 };
 
-test("the selected building is saved per area and the name uses the area prefix", () => {
+test("building names use the area prefix", () => {
   assert.equal(getBuildingName("osaka", 2), "心斎橋2号館");
   assert.equal(getBuildingName("tokyo", 1), "1号館");
-
-  const storage = memoryStorage();
-  assert.equal(readSelectedBuilding(storage, "osaka"), null);
-  assert.equal(saveSelectedBuilding(storage, "osaka", 2), true);
-  assert.equal(storage.getItem(getCampusBuildingKey("osaka")), "2");
-  assert.equal(readSelectedBuilding(storage, "osaka"), 2);
-  assert.equal(readSelectedBuilding(storage, "tokyo"), null);
-
-  storage.setItem(getCampusBuildingKey("osaka"), "not-a-number");
-  assert.equal(readSelectedBuilding(storage, "osaka"), null);
 });
 
 test("progress is saved per campus and older saves move to the campus they were made in", () => {
@@ -108,4 +100,18 @@ test("the old save is removed only after its campus has been saved separately", 
   storage.setItem(getCampusGameKey("osaka"), "{}");
   clearMigratedLegacyGame(storage, "osaka");
   assert.equal(storage.getItem(GAME_STORAGE_KEY), null);
+});
+
+test("old building selections saved before the building screen was removed are cleared", () => {
+  const storage = memoryStorage({
+    "monster-hunter-festival-building:osaka": "2",
+    "monster-hunter-festival-building:tokyo": "1",
+    "monster-hunter-festival-building:old-area": "3",
+    [CAMPUS_STORAGE_KEY]: "osaka",
+  });
+  clearLegacyBuildingSelection(storage);
+  assert.equal(storage.getItem("monster-hunter-festival-building:old-area"), null, "areas no longer in the list are cleared too");
+  assert.equal(storage.getItem("monster-hunter-festival-building:osaka"), null);
+  assert.equal(storage.getItem("monster-hunter-festival-building:tokyo"), null);
+  assert.equal(storage.getItem(CAMPUS_STORAGE_KEY), "osaka", "the selected area is kept");
 });

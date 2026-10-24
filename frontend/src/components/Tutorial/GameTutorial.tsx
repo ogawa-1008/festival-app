@@ -172,7 +172,7 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
     setRequestedStep(null);
     setMinimized(false);
     restoreFocus.current = true;
-    // 練習中にエリア・校舎を選び直していたら、その選択を本番の画面にも反映する
+    // 練習中にエリアを選び直していたら、その選択を本番の画面にも反映する
     reloadSelection();
     navigate("/", { replace: true });
   }, [navigate, reloadSelection]);

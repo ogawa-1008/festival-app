@@ -6,7 +6,6 @@ import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { findCampus } from "../../data/campuses";
-import { useMapAreas } from "../../context/useMapAreas";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "../../components/Header/HunterRank.css";
@@ -16,10 +15,8 @@ import "./Home.css";
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { rankExp, campusId, buildingId } = useGame();
+  const { rankExp, campusId } = useGame();
   const campus = findCampus(campusId);
-  const mapAreas = useMapAreas();
-  const building = mapAreas.find((area) => area.id === buildingId) ?? null;
   const { startTutorial } = useGameTutorial();
 
   return (
@@ -105,12 +102,13 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => navigate("/start/buildings")}
+                  // 戻り先としてホームの履歴の位置を渡す（エリアを決めたら1つ戻る）
+                  onClick={() => navigate("/start", { state: { returnIdx: (window.history.state as { idx?: number } | null)?.idx } })}
                 >
                   <span className="side-menu-item-icon">⌂</span>
                   <span className="side-menu-item-text">
-                    <small>{building?.buildingName ?? campus?.name}</small>
-                    <strong>校舎を選び直す</strong>
+                    <small>{campus?.name}</small>
+                    <strong>エリアを選び直す</strong>
                   </span>
                   <span className="side-menu-arrow">›</span>
                 </button>
@@ -210,10 +208,6 @@ function Home() {
         <h2 className="quest-list-title">
           クエスト一覧
         </h2>
-
-        {building && (
-          <p className="quest-list-building">{building.buildingName}</p>
-        )}
 
 
         {/* =================================
