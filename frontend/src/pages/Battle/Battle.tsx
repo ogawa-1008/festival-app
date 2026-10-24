@@ -10,12 +10,13 @@ import {
     type BattleSession,
     type EndReason,
     type Hand,
+    type LastRound,
     type RoundResult,
     HUNT_BANNER_MS,
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
-import { HAND_LABELS } from "../../data/jankenRule";
+import { HAND_LABELS, HAND_NAMES_TEXT } from "../../data/jankenRule";
 import { HANDS } from "../../game/battle";
 import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
@@ -46,9 +47,6 @@ const ROUND_LABELS: Record<RoundResult, string> = {
     enemy: "負け…",
     draw: "あいこ！",
 };
-
-type LastRound = NonNullable<BattleSession["lastRound"]>;
-
 
 // 直前の手の結果（ダメージ）の文
 function getRoundText(lastRound: LastRound) {
@@ -263,7 +261,6 @@ function Battle() {
                 </div>
             )}
 
-            {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
             {/* 画面には出さない読み上げ用の領域。討伐の帯と、手を選べるようになったことを伝える。
                「Nターン目」は手を出した直後に読むと勝敗の読み上げを途切れさせるため読まず、
                待ち時間が終わって手のボタンを押せるようになった時点で「手を選べます」と伝える
@@ -367,7 +364,7 @@ function Battle() {
                     )}
                     {/* 直前の手がなく、手のボタンを押せるときだけ、手の選び方を案内する */}
                     {!session.lastRound && !isBattleOver && !isWaiting && (
-                        <span>下のボタンから{HANDS.map((hand) => HAND_LABELS[hand]).join("・")}を選ぼう！</span>
+                        <span>下のボタンから{HAND_NAMES_TEXT}を選ぼう！</span>
                     )}
                     {session.lastRound && (
                         <div className="battle-hands">
