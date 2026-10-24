@@ -82,10 +82,12 @@ function Battle() {
 
     // 押した手のボタンは待ち時間の間は押せなくなり、フォーカスが外れる。
     // キーボードや読み上げで操作している人が続けて選べるよう、押せるようになったら押したボタンに戻す
+    // （押したときにそのボタンにフォーカスがあった場合だけ。タップ操作の人には戻さない）
     const lastPressedHand = useRef<HTMLButtonElement | null>(null);
     useEffect(() => {
         const button = lastPressedHand.current;
         if (cooldown.isWaiting || endReason !== null || !button) return;
+        lastPressedHand.current = null;
         if (document.activeElement === null || document.activeElement === document.body) {
             button.focus({ preventScroll: true });
         }
@@ -171,7 +173,8 @@ function Battle() {
             ? {
                 kind: "start",
                 text: "討伐開始",
-                startAt: nextTurnAt - TURN_COOLDOWN_MS,
+                // 開始の帯は、狩猟開始から HUNT_BANNER_MS の間（その後に1ターン目の待ち時間が続く）
+                startAt: nextTurnAt - TURN_COOLDOWN_MS - HUNT_BANNER_MS,
             }
             : isBattleOver && endPhase.isWaiting
                 ? {
@@ -183,7 +186,7 @@ function Battle() {
 
     // どの手のボタンかは data-hand から読む（ボタンごとに関数を作らない）
     const handleHandClick = (event: MouseEvent<HTMLButtonElement>) => {
-        lastPressedHand.current = event.currentTarget;
+        lastPressedHand.current = document.activeElement === event.currentTarget ? event.currentTarget : null;
         // 終了済み・待ち時間中なら null が返る（連打を防ぐガード）
         const round = playHand(event.currentTarget.dataset.hand as Hand);
 

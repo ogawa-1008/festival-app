@@ -71,7 +71,6 @@ const START_WAIT_MS = HUNT_BANNER_MS + TURN_COOLDOWN_MS;
 
 const GOLD_CROWN_RATE = 0.1;
 
-
 const END_REASONS: EndReason[] = ["victory", "defeated", "timeout"];
 
 export function createSession(

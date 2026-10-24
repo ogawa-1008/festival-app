@@ -80,8 +80,9 @@
   .tutorial-scene .hp-fill, .tutorial-scene .janken-button { transition: none; }
   .tutorial-scene .janken-button:active { transform: none; }
 }
-/* 練習のバトル：説明は画面の一番上に小さく出し、モンスター画像（ターン帯）・HP・勝敗の表示にかぶらないようにする
-   （画面の背が低くても下には出さない。下に出すと勝敗の表示や手のボタンを隠すため） */
+/* 練習のバトル：説明は画面の一番上に小さく出し、HP・勝敗の表示・手のボタンにかぶらないようにする。
+   背の高い画面ではモンスター画像（ターン帯）にもかぶらない。背の低い画面では手のボタンが見えるようスクロールされるため、
+   モンスター画像は説明の下に隠れることがある（下に出すと勝敗の表示や手のボタンを隠すので、上に出す） */
 .festival-tour--battle.driver-popover { top: calc(env(safe-area-inset-top, 0px) + 8px) !important; bottom: auto !important; padding: 14px 18px 12px; }
 .festival-tour--battle .driver-popover-title { font-size: 18px; }
 .festival-tour--battle .driver-popover-description { margin-top: 6px !important; line-height: 1.5; }
