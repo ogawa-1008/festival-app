@@ -100,6 +100,7 @@
 ========================= */
 
 .battle-header {
+  position: relative;
   width: 100%;
 
   padding:
@@ -542,9 +543,62 @@
   line-height: 1.2;
   color: var(--color-text);
 }
-.battle-round-result--player { color: var(--color-accent); }
-.battle-round-result--enemy { color: var(--color-danger-text); }
-.battle-round-result--draw { color: var(--color-gold); }
+.battle-round-result--player {
+  color: var(--color-accent);
+}
+
+.battle-round-result--enemy {
+  color: var(--color-danger-text);
+}
+
+.battle-round-result--draw {
+  color: var(--color-gold);
+}
+
+/* 出した手の画像と名前を並べ、勝った側を枠で示す。 */
+.battle-hands {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.battle-hand {
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.battle-hand img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border: 2px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-base);
+}
+
+.battle-hand.is-winner img {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
+}
+
+.battle-hand figcaption {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.battle-hands-vs {
+  color: var(--color-text-subtle);
+  font-family: var(--font-display);
+  font-weight: bold;
+  letter-spacing: 2px;
+}
 
 /* 画面中央の帯（ターン帯・討伐の帯の共通部分）。色は変数で種類ごとに変える */
 
@@ -848,10 +902,33 @@
 
   text-align: center;
 
-  margin-bottom: 15px;
+  margin-bottom: 0;
 
 }
 
+.battle-rule-button {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-circle);
+  background: var(--color-bg-raised);
+  color: var(--color-border-strong);
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.battle-rule-button:hover {
+  background: var(--color-bg-panel);
+}
+
+.battle-rule-button[aria-expanded="true"] {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
 .triangle-title span {
 
   color: var(--color-text-subtle);
@@ -862,6 +939,40 @@
 
   letter-spacing: 3px;
 
+}
+
+/* ルールはブラウザ標準のモーダルで表示し、短い画面では内部をスクロールする。 */
+.battle-rule-dialog {
+  width: min(calc(100% - var(--space-4)), 360px);
+  max-height: calc(100dvh - var(--space-6));
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  overflow: auto;
+}
+
+.battle-rule-dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+.battle-rule-dialog .triangle-section {
+  margin-top: 0;
+}
+
+.battle-rule-close {
+  display: block;
+  min-height: 44px;
+  margin: var(--space-4) auto 0;
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-panel);
+  color: var(--color-text);
+  font-family: var(--font-mincho);
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .triangle-title h2 {
@@ -892,7 +1003,7 @@
 
   height: 220px;
 
-  margin: 0 auto;
+  margin: var(--space-4) auto 0;
 
 }
 
@@ -1018,12 +1129,12 @@
   background:
     linear-gradient(
       145deg,
-      #3d9cff,
-      #004caa
+      #ff4141,
+      #a80000
     );
 
   border:
-    3px solid #72bdff;
+    3px solid #ff7777;
 }
 
 /* =========================
@@ -1036,12 +1147,12 @@
   background:
     linear-gradient(
       145deg,
-      #ff4141,
-      #a80000
+      #3d9cff,
+      #004caa
     );
 
   border:
-    3px solid #ff7777;
+    3px solid #72bdff;
 }
 
 /* =========================
