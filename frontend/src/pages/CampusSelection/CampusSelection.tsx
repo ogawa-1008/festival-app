@@ -5,6 +5,7 @@ import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { campuses } from "../../data/campuses";
+import { getHistoryIndex } from "../../utils/historyIndex";
 import "./CampusSelection.css";
 
 type Campus = (typeof campuses)[number];
@@ -108,8 +109,9 @@ function CampusSelection() {
               // 同じエリアを選んだときは選び直さない（練習中も、進み具合を読み直さずにそのまま戻る）
               if (!changingCampus || selectCampus(pendingCampus.id)) {
                 // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
-                const currentIdx = (window.history.state as { idx?: number } | null)?.idx;
-                if (returnIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
+                // （履歴の位置が読めないときも、ホームへ進むだけで困らない）
+                const currentIdx = getHistoryIndex();
+                if (returnIdx !== undefined && currentIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
                 else navigate("/", { replace: true });
               }
             }}

@@ -7,6 +7,7 @@ import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { findCampus } from "../../data/campuses";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { getHistoryIndex } from "../../utils/historyIndex";
 
 import "../../components/Header/HunterRank.css";
 import "../../components/Logo/CollaborationLogo.css";
@@ -103,7 +104,7 @@ function Home() {
                   type="button"
                   className="side-menu-item"
                   // 戻り先としてホームの履歴の位置を渡す（エリアを決めたら1つ戻る）
-                  onClick={() => navigate("/start", { state: { returnIdx: (window.history.state as { idx?: number } | null)?.idx } })}
+                  onClick={() => navigate("/start", { state: { returnIdx: getHistoryIndex() } })}
                 >
                   <span className="side-menu-item-icon">⌂</span>
                   <span className="side-menu-item-text">
