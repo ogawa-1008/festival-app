@@ -528,16 +528,6 @@
 }
 
 
-/* 直前の手（あなた / モンスター） */
-
-.battle-message-hands {
-  color: var(--color-text-muted);
-
-  font-size: var(--font-size-base);
-
-  font-weight: normal;
-}
-
 .battle-round-result {
   font-size: clamp(var(--font-size-2xl), 8vw, var(--font-size-3xl));
   line-height: 1.2;

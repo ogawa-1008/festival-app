@@ -58,17 +58,12 @@ const HAND_IMAGES: Record<Hand, string> = {
 function getBattleMessage(session: BattleSession) {
     const { lastRound, endReason } = session;
 
-    const hands = lastRound
-        ? `あなた: ${HAND_LABELS[lastRound.playerHand]} / モンスター: ${HAND_LABELS[lastRound.enemyHand]}`
-        : null;
-
     // 以前の形式のセッションには直前の手が無いため、決着済みかを先に見る
     if (endReason) {
-        return { hands, text: END_MESSAGES[endReason] };
+        return { text: END_MESSAGES[endReason] };
     }
 
     return {
-        hands,
         text: !lastRound ? START_MESSAGE : lastRound.result === "draw" ? "HPは変わりません" : lastRound.damage !== undefined
             ? lastRound.result === "player" ? `モンスターに${lastRound.damage}ダメージ！` : `${lastRound.damage}ダメージを受けた！`
             : ROUND_MESSAGES[lastRound.result],
@@ -348,7 +343,7 @@ function Battle() {
                         <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
                     )}
                     <span>{message.text}</span>
-                    {session.lastRound ? (
+                    {session.lastRound && (
                         <div className="battle-hands">
                             <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
                                 <img src={HAND_IMAGES[session.lastRound.playerHand]} alt="" />
@@ -360,10 +355,6 @@ function Battle() {
                                 <figcaption>モンスター：{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
                             </figure>
                         </div>
-                    ) : message.hands && (
-                        <span className="battle-message-hands">
-                            {message.hands}
-                        </span>
                     )}
                 </section>
 
