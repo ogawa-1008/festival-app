@@ -60,7 +60,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       title: "狩猟フィールドへ", description: "QRを読み取れました。準備が整うとバトルが始まります。少しお待ちください。", side: "bottom",
     } },
     { id: "battle", path: `/battle/${questId}`, action: "battle-finished", element: '[data-tutorial="battle-hands"]', popover: {
-      title: "手を選んで狩猟しよう", description: "手を押して、あいこ・負け・勝ちを練習。勝つと相手、負けると自分のHPが減ります。相手のHPが0になるまで続けましょう。", side: "top",
+      title: "手を選んで狩猟しよう", description: "手を押して、あいこ・負け・勝ちを練習。グーはチョキに、チョキはパーに、パーはグーに勝ちます。勝つと相手、負けると自分のHPが減ります。相手のHPが0になるまで続けましょう。", side: "top",
       popoverClass: "festival-tour festival-ui festival-tour--battle",
     } },
     { id: "reward", path: `/result/${questId}`, action: "reward-claimed", element: '[data-tutorial="claim-reward"]', popover: {
