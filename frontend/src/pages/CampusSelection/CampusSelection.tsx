@@ -22,10 +22,11 @@ function CampusSelection() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
   const isBattleUnfinished = session !== null && !session.claimed;
+  // 別のエリアに変えようとしているか
+  const changingCampus = pendingCampus !== null && pendingCampus.id !== campusId;
   // 練習中にエリアを変えると、練習用のクエストが消えて先に進めなくなるので変えさせない
-  const blockedByPractice = practice && pendingCampus !== null && pendingCampus.id !== campusId;
-  const blocked = blockedByPractice
-    || (isBattleUnfinished && pendingCampus !== null && pendingCampus.id !== campusId);
+  const blockedByPractice = practice && changingCampus;
+  const blocked = changingCampus && (practice || isBattleUnfinished);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -104,7 +105,8 @@ function CampusSelection() {
             disabled={blocked}
             onClick={() => {
               if (!pendingCampus || blocked) return;
-              if (selectCampus(pendingCampus.id)) {
+              // 同じエリアを選んだときは選び直さない（練習中も、進み具合を読み直さずにそのまま戻る）
+              if (!changingCampus || selectCampus(pendingCampus.id)) {
                 // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
                 const currentIdx = (window.history.state as { idx?: number } | null)?.idx;
                 if (returnIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
