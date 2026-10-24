@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import type { Hand } from "../../utils/battleSession";
 import { battleAssets } from "./battleAssets";
+import { JANKEN_RULE_TEXT } from "../../data/jankenRule";
 
 import "./JankenRule.css";
 
@@ -80,7 +81,7 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                     <p className="janken-rule-lead">
                         矢印の先の手に勝ちます。
                         <br />
-                        グーはチョキに、チョキはパーに、パーはグーに勝ちます。
+                        {JANKEN_RULE_TEXT}
                     </p>
 
                     <dl className="janken-rule-results">

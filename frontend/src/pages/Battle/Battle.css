@@ -373,7 +373,7 @@
     14px 0;
 
   /* 1手目の前後で高さが変わらないよう、勝敗・ダメージ・出した手が入る高さを確保する */
-  min-height: 142px;
+  min-height: 148px;
 
   display: flex;
 
@@ -547,10 +547,11 @@
 }
 
 /* 出した手の画像と名前を並べ、勝った側を枠で示す。 */
+/* 左右を同じ幅にして、手の名前の長さが違っても「VS」と画像が中央にそろうようにする */
 .battle-hands {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
   gap: var(--space-3);
   width: 100%;
 }

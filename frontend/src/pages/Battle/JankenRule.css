@@ -353,6 +353,11 @@
     right: 20px;
   }
 
+  /* 図（280px）が枠からはみ出さないよう、左右の余白を詰める */
+  .janken-rule {
+    padding-inline: var(--space-2);
+  }
+
   .janken-rule-chart {
     transform: scale(0.92);
     transform-origin: top center;

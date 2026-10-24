@@ -93,8 +93,9 @@ function Battle() {
         isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0,
         HUNT_BANNER_MS
     );
+    // 決着後（nextTurnAt が 0）は次のターンがないので待たない
     const resultPhase = useCooldown(
-        isOwnSession && session.lastRound !== null
+        isOwnSession && session.lastRound !== null && nextTurnAt > 0
             ? nextTurnAt - TURN_COOLDOWN_MS + ROUND_RESULT_HOLD_MS
             : 0,
         ROUND_RESULT_HOLD_MS
@@ -169,10 +170,13 @@ function Battle() {
     const turnBannerDuration = session.lastRound
         ? TURN_COOLDOWN_MS - ROUND_RESULT_HOLD_MS
         : TURN_COOLDOWN_MS;
-    // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
-    const bannerElapsed = Math.max(0, turnBannerDuration - cooldown.remaining);
+    // 再読み込みやタイマーの遅れで途中から表示する場合も、帯の動きを実際の時刻に合わせる
+    // （cooldown の時刻は手を出した時点のままのことがあるので、新しいほうの時刻を使う）
+    const bannerNow = Math.max(cooldown.now, resultPhase.now);
+    const bannerElapsed = Math.max(0, bannerNow - (nextTurnAt - turnBannerDuration));
     const message = getBattleMessage(session);
-    const roundResult = session.lastRound?.result;
+    // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さない（「勝ち！」と「討伐失敗」が並ばないように）
+    const roundResult = endReason === "timeout" ? undefined : session.lastRound?.result;
     const roundLabel = roundResult ? ROUND_LABELS[roundResult] : null;
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
@@ -233,7 +237,8 @@ function Battle() {
             </div>
 
             {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
-            <JankenRule maxTurns={session.maxTurns} />
+            {/* 決着後はすぐリザルトや再挑戦に移るので出さない */}
+            {!isBattleOver && <JankenRule maxTurns={session.maxTurns} />}
 
             <div className="battle-content">
 

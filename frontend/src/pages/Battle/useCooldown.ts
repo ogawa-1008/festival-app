@@ -31,5 +31,5 @@ export function useCooldown(until: number, duration: number) {
 
   const remaining = Math.max(0, until - state.now);
 
-  return { isWaiting: remaining > 0, remaining };
+  return { isWaiting: remaining > 0, remaining, now: state.now };
 }
