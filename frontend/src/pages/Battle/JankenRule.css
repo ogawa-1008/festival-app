@@ -1,0 +1,361 @@
+/* =========================
+   ルールを開く「？」ボタン
+   スクロールしても狩猟画面の右上に固定する（ホームのメニューボタンと同じ見た目）
+========================= */
+
+.janken-rule-button {
+  position: fixed;
+  /* 狩猟画面の見出しの右端に合わせる。広い画面ではアプリの幅（430px）の右端に置く */
+  top: calc(env(safe-area-inset-top, 0px) + 34px);
+  right: max(24px, calc((100vw - 430px) / 2 + 24px));
+
+  z-index: var(--z-raised);
+
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 2px solid rgba(130, 130, 130, 0.85);
+  border-radius: var(--radius-circle);
+
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(45, 42, 37, 0.96),
+      rgba(12, 11, 10, 0.98)
+    );
+
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.08),
+    0 3px 8px rgba(0, 0, 0, 0.6);
+
+  color: var(--color-gold);
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-xl);
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.janken-rule-button:active {
+  transform: scale(0.94);
+}
+
+.janken-rule-button[aria-expanded="true"] {
+  border-color: var(--color-gold);
+}
+
+
+/* =========================
+   ポップ（ブラウザ標準のモーダル。短い画面では中をスクロールする）
+========================= */
+
+.janken-rule-dialog {
+  width: min(calc(100% - var(--space-4)), 360px);
+  max-height: calc(100dvh - var(--space-6));
+
+  margin: auto;
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: var(--color-text);
+
+  overflow: auto;
+}
+
+.janken-rule-dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+.janken-rule {
+  padding: var(--space-4) var(--space-3) var(--space-5);
+
+  box-sizing: border-box;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(35, 29, 22, 0.98),
+      rgba(15, 13, 10, 0.98)
+    );
+
+  border: 2px solid var(--color-border-subtle);
+
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.65);
+}
+
+.janken-rule-title {
+  text-align: center;
+}
+
+.janken-rule-title span {
+  color: var(--color-text-subtle);
+
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xs);
+
+  letter-spacing: 3px;
+}
+
+.janken-rule-title h2 {
+  margin: 3px 0 0;
+
+  color: var(--color-text);
+
+  font-family: var(--font-mincho);
+  font-size: 19px;
+  font-weight: 900;
+}
+
+
+/* =========================
+   三すくみの図（上：グー、左下：チョキ、右下：パー）
+========================= */
+
+.janken-rule-chart {
+  position: relative;
+
+  width: 280px;
+  height: 230px;
+
+  margin: var(--space-4) auto 0;
+}
+
+.janken-rule-hand {
+  position: absolute;
+
+  width: 76px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+
+  z-index: 5;
+}
+
+.janken-rule-rock {
+  top: 0;
+  left: 50%;
+
+  transform: translateX(-50%);
+}
+
+.janken-rule-scissors {
+  left: 0;
+  bottom: 0;
+}
+
+.janken-rule-paper {
+  right: 0;
+  bottom: 0;
+}
+
+/* 手のボタンと同じ画像を丸く切り抜く */
+.janken-rule-hand img {
+  width: 68px;
+  height: 68px;
+
+  object-fit: cover;
+
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-circle);
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.55);
+}
+
+.janken-rule-hand strong {
+  margin-top: 2px;
+
+  color: var(--color-text);
+
+  font-size: var(--font-size-sm);
+}
+
+.janken-rule-hand span {
+  color: var(--color-text-muted);
+
+  font-family: var(--font-display);
+  font-size: 7px;
+
+  letter-spacing: 1px;
+
+  white-space: nowrap;
+}
+
+/* 矢印（勝つ相手を指す） */
+.janken-rule-arrow {
+  position: absolute;
+
+  width: 62px;
+  height: 3px;
+
+  border-radius: 3px;
+
+  background: #d8c8a8;
+
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+  z-index: 3;
+}
+
+/* 矢印の先端 */
+.janken-rule-arrow::after {
+  content: "";
+
+  position: absolute;
+  top: 50%;
+  right: -2px;
+
+  width: 9px;
+  height: 9px;
+
+  border-top: 3px solid #d8c8a8;
+  border-right: 3px solid #d8c8a8;
+
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* グー → チョキ */
+.janken-rule-arrow-rock {
+  top: 91px;
+  left: 55px;
+
+  transform: rotate(125deg);
+}
+
+/* チョキ → パー */
+.janken-rule-arrow-scissors {
+  bottom: 58px;
+  left: 109px;
+}
+
+/* パー → グー */
+.janken-rule-arrow-paper {
+  top: 91px;
+  right: 55px;
+
+  transform: rotate(-125deg);
+}
+
+
+/* =========================
+   ルールの説明
+========================= */
+
+.janken-rule-lead {
+  margin: var(--space-4) 0 0;
+
+  color: var(--color-text);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+
+  text-align: center;
+}
+
+.janken-rule-results {
+  display: grid;
+  gap: var(--space-2);
+
+  margin: var(--space-4) 0 0;
+}
+
+.janken-rule-results div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: var(--space-2) var(--space-3);
+
+  border: 1px solid var(--color-border-subtle);
+
+  background: rgba(12, 14, 12, 0.85);
+}
+
+.janken-rule-results dt {
+  flex-shrink: 0;
+
+  min-width: 3.5em;
+
+  font-family: var(--font-mincho);
+  font-weight: 900;
+
+  text-align: center;
+}
+
+/* 狩猟画面の勝敗の色と合わせる */
+.janken-rule-result-win {
+  color: var(--color-accent);
+}
+
+.janken-rule-result-lose {
+  color: var(--color-danger-text);
+}
+
+.janken-rule-result-draw {
+  color: var(--color-gold);
+}
+
+.janken-rule-results dd {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.janken-rule-goal {
+  margin: var(--space-4) 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+}
+
+.janken-rule-close {
+  display: block;
+
+  min-height: 44px;
+
+  margin: var(--space-5) auto 0;
+  padding: 0 var(--space-5);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-bg-panel);
+
+  color: var(--color-text);
+
+  font-family: var(--font-mincho);
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+@media (max-width: 380px) {
+  .janken-rule-button {
+    right: 20px;
+  }
+
+  .janken-rule-chart {
+    transform: scale(0.92);
+    transform-origin: top center;
+
+    margin-bottom: -18px;
+  }
+}

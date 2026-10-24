@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -15,6 +15,7 @@ import {
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
+import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
 
 import "./Battle.css";
@@ -73,8 +74,6 @@ function getBattleMessage(session: BattleSession) {
 function Battle() {
     const navigate = useNavigate();
     const { questId } = useParams();
-    const [isRulesOpen, setIsRulesOpen] = useState(false);
-    const ruleDialogRef = useRef<HTMLDialogElement>(null);
 
     const { quests } = useGame();
     const { session, playHand } = useBattleSession();
@@ -240,6 +239,9 @@ function Battle() {
                     ?? (showTurnBanner ? `${turnNumber}ターン目` : "")}
             </div>
 
+            {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
+            <JankenRule maxTurns={session.maxTurns} />
+
             <div className="battle-content">
 
                 {/* =========================
@@ -252,22 +254,6 @@ function Battle() {
                     </span>
 
                     <h1>狩猟開始</h1>
-
-                    {/* ルールは必要なときだけ開き、バトル画面を縦に長くしない。 */}
-                    <button
-                        type="button"
-                        className="battle-rule-button"
-                        aria-label="じゃんけんのルールを見る"
-                        aria-haspopup="dialog"
-                        aria-expanded={isRulesOpen}
-                        aria-controls="battle-rule-dialog"
-                        onClick={() => {
-                            ruleDialogRef.current?.showModal();
-                            setIsRulesOpen(true);
-                        }}
-                    >
-                        ?
-                    </button>
                 </header>
 
 
@@ -475,101 +461,6 @@ function Battle() {
 
                     </div>
                 </section>
-
-
-                {/* =========================
-            三すくみ
-        ========================= */}
-
-                <dialog
-                    ref={ruleDialogRef}
-                    id="battle-rule-dialog"
-                    className="battle-rule-dialog"
-                    aria-labelledby="battle-rule-title"
-                    closedby="any"
-                    onClose={() => setIsRulesOpen(false)}
-                    onClick={(event) => {
-                        // 背景クリックによる終了に未対応のブラウザでも、枠の外なら閉じる。
-                        if ("closedBy" in HTMLDialogElement.prototype || event.target !== event.currentTarget) return;
-                        const rect = event.currentTarget.getBoundingClientRect();
-                        if (event.clientX < rect.left || event.clientX > rect.right
-                            || event.clientY < rect.top || event.clientY > rect.bottom) {
-                            event.currentTarget.close();
-                        }
-                    }}
-                >
-                    <section className="triangle-section">
-
-                        <div className="triangle-title">
-                            <span>JANKEN RULE</span>
-                            <h2 id="battle-rule-title">じゃんけんのルール</h2>
-                        </div>
-
-                        <div className="triangle-chart">
-
-                            {/* 赤：グー */}
-
-                            <div className="triangle-item triangle-rock">
-                                <div className="triangle-circle">
-                                    <span>グー</span>
-                                </div>
-
-                                <span className="triangle-label">
-                                    ROCK
-                                </span>
-                            </div>
-
-
-                            {/* 青：チョキ */}
-
-                            <div className="triangle-item triangle-scissors">
-                                <div className="triangle-circle">
-                                    <span>チョキ</span>
-                                </div>
-
-                                <span className="triangle-label">
-                                    SCISSORS
-                                </span>
-                            </div>
-
-
-                            {/* 黄色：パー */}
-
-                            <div className="triangle-item triangle-paper">
-                                <div className="triangle-circle">
-                                    <span>パー</span>
-                                </div>
-
-                                <span className="triangle-label">
-                                    PAPER
-                                </span>
-                            </div>
-
-
-                            {/* 矢印 */}
-
-                            <div className="triangle-arrow arrow-one">
-                                →
-                            </div>
-
-                            <div className="triangle-arrow arrow-two">
-                                →
-                            </div>
-
-                            <div className="triangle-arrow arrow-three">
-                                →
-                            </div>
-
-                        </div>
-                        <button
-                            type="button"
-                            className="battle-rule-close"
-                            onClick={() => ruleDialogRef.current?.close()}
-                        >
-                            閉じる
-                        </button>
-                    </section>
-                </dialog>
 
 
                 {/* =========================
