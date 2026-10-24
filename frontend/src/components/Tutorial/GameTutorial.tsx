@@ -10,8 +10,8 @@ import "driver.js/dist/driver.css";
 import "../Festival/FestivalDesign.css";
 import "./GameTutorial.css";
 
-function TutorialOverlay({ stepId, steps, advance, finish }: {
-  stepId: string; steps: TutorialStep[]; advance: (action: string) => void; finish: (completed?: boolean) => void;
+function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
+  stepId: string; steps: TutorialStep[]; advance: (action: string) => void; finish: (completed?: boolean) => void; minimize: () => void;
 }) {
   const { pathname } = useLocation();
   const [tour, setTour] = useState<Driver>();
@@ -28,13 +28,14 @@ function TutorialOverlay({ stepId, steps, advance, finish }: {
         disableActiveInteraction: false, stagePadding: 8, stageRadius: 6,
         popoverClass: "festival-tour festival-ui", popoverOffset: 16,
         showProgress: true, progressText: "操作の練習 {{current}} / {{total}}", showButtons: ["close"],
-        closeBtnLabel: "遊び方ガイドを終了する",
+        closeBtnLabel: "遊び方ガイドを最小化する",
         onNextClick: (_element, _step, { index }) => {
           if (index === 0) advance("begin");
           else if (index === steps.length - 1) finish(true);
         },
         onPrevClick: () => {},
-        onCloseClick: () => finish(),
+        // ×は終了ではなく最小化。あとから続きを再開できるようにする
+        onCloseClick: () => minimize(),
         onDestroyed: (_element, _step, { reason }) => {
           if (!disposed && reason !== "api") finish();
         },
@@ -45,6 +46,14 @@ function TutorialOverlay({ stepId, steps, advance, finish }: {
           popover.wrapper.tabIndex = -1;
           popover.title.setAttribute("role", "heading");
           popover.title.setAttribute("aria-level", "2");
+          popover.closeButton.title = "最小化";
+          // 最小化とは別に、ガイド自体を終了するボタンを用意する
+          const endButton = document.createElement("button");
+          endButton.type = "button";
+          endButton.className = "tutorial-end-button";
+          endButton.textContent = "チュートリアルを終了する";
+          endButton.addEventListener("click", () => finish());
+          popover.footer.appendChild(endButton);
         },
         onHighlighted: (element) => {
           if (element instanceof HTMLElement) {
@@ -76,7 +85,7 @@ function TutorialOverlay({ stepId, steps, advance, finish }: {
       motion.removeEventListener("change", updateMotion);
       instance?.destroy();
     };
-  }, [steps, advance, finish]);
+  }, [steps, advance, finish, minimize]);
 
   useEffect(() => {
     const index = steps.findIndex((step) => step.id === stepId);
@@ -123,14 +132,36 @@ function TutorialOverlay({ stepId, steps, advance, finish }: {
   return null;
 }
 
+// ガイドを閉じたあと、いつでも続きから再開・終了できる帯
+function MinimizedTutorialBar({ onResume, onFinish }: { onResume: () => void; onFinish: () => void }) {
+  return (
+    <div className="tutorial-minimized" role="region" aria-label="遊び方ガイド">
+      <span className="tutorial-minimized-text">
+        <strong>遊び方ガイドを閉じました</strong>
+        <span>続きから練習できます</span>
+      </span>
+      <span className="tutorial-minimized-actions">
+        <button type="button" className="tutorial-minimized-resume" onClick={onResume}>
+          ガイドを再開
+        </button>
+        <button type="button" className="tutorial-minimized-end" onClick={onFinish}>
+          終了する
+        </button>
+      </span>
+    </div>
+  );
+}
+
 export default function GameTutorial({ children }: { children: ReactNode }) {
-  const { campusId } = useGame();
+  const { campusId, reloadSelection } = useGame();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const questId = PRACTICE_QUEST_ID;
   const steps = useMemo(() => createTutorialSteps(questId), [questId]);
   const [seen, setSeen] = useState(hasSeenTutorial);
   const [requestedStep, setRequestedStep] = useState<string | null>(() => readActiveTutorialStep(pathname, steps));
+  // ×で閉じた（最小化した）状態。練習は続いているので、いつでも再開できる
+  const [minimized, setMinimized] = useState(false);
   const step = requestedStep ?? (!seen && campusId && pathname === "/" ? "welcome" : null);
   const active = step !== null && campusId !== null;
   const restoreFocus = useRef(false);
@@ -139,16 +170,29 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
     saveTutorialStatus(completed);
     setSeen(true);
     setRequestedStep(null);
+    setMinimized(false);
     restoreFocus.current = true;
+    // 練習中にエリア・校舎を選び直していたら、その選択を本番の画面にも反映する
+    reloadSelection();
     navigate("/", { replace: true });
-  }, [navigate]);
+  }, [navigate, reloadSelection]);
+
+  const minimize = useCallback(() => setMinimized(true), []);
 
   const startTutorial = useCallback(() => {
     clearPractice();
     saveActiveTutorialStep("welcome");
     setRequestedStep("welcome");
+    setMinimized(false);
     navigate("/", { replace: true });
   }, [navigate]);
+
+  const resumeTutorial = useCallback(() => {
+    setMinimized(false);
+    // 別の画面を見ているときは、ガイドの画面へ戻してから再開する
+    const current = steps.find((item) => item.id === step);
+    if (current && current.path !== pathname) navigate(current.path, { replace: true });
+  }, [steps, step, pathname, navigate]);
 
   const advance = useCallback((action: string) => {
     setRequestedStep((current) => {
@@ -175,12 +219,13 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
 
   // Browser history exits practice; normal step changes come only from the
   // screen's own successful action, never from an explanation's next button.
+  // 最小化中は自由に見て回れるよう、戻る操作ではガイドを終了しない
   useEffect(() => {
-    if (!active) return;
+    if (!active || minimized) return;
     const onBack = () => finish();
     window.addEventListener("popstate", onBack);
     return () => window.removeEventListener("popstate", onBack);
-  }, [active, finish]);
+  }, [active, minimized, finish]);
 
   const value = useMemo(() => ({ startTutorial, active, step, questId, advance }), [startTutorial, active, step, questId, advance]);
   return (
@@ -188,7 +233,9 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
       {active ? <GameProvider practiceCampus={campusId}>
         <BattleSessionProvider practice>
         <div className="tutorial-scene" key={pathname}>{children}</div>
-        <TutorialOverlay stepId={step!} steps={steps} advance={advance} finish={finish} />
+        {minimized
+          ? <MinimizedTutorialBar onResume={resumeTutorial} onFinish={() => finish()} />
+          : <TutorialOverlay stepId={step!} steps={steps} advance={advance} finish={finish} minimize={minimize} />}
         </BattleSessionProvider>
       </GameProvider> : children}
     </GameTutorialContext.Provider>

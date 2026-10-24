@@ -35,7 +35,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
   return [
     { id: "welcome", path: "/", action: "begin", popover: {
       title: "操作を体験しよう",
-      description: "光っているボタンを実際に押して、狩猟から武器の作成まで練習しましょう。<br><br>練習用のQRと素材を使います。実際のカメラ・報酬・交換履歴には影響しません。×でいつでも終了できます。",
+      description: "光っているボタンを実際に押して、狩猟から武器の作成まで練習しましょう。<br><br>練習用のQRと素材を使います。実際のカメラ・報酬・交換履歴には影響しません。×でいつでもいったん閉じられます。終了するときは「チュートリアルを終了する」を押してください。",
       showButtons: ["next", "close"], nextBtnText: "練習を始める",
     } },
     { id: "map", path: "/", action: "nav-map", element: '[data-tutorial="nav-map"]', popover: {

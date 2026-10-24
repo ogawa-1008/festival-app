@@ -9,8 +9,10 @@ import {
 
 import Home from "./pages/Home/Home";
 import CampusSelection from "./pages/CampusSelection/CampusSelection";
+import BuildingSelection from "./pages/BuildingSelection/BuildingSelection";
 import QuestLoading from "./pages/QuestLoading/QuestLoading";
 import GameTutorial from "./components/Tutorial/GameTutorial";
+import { useGameTutorial } from "./components/Tutorial/useGameTutorial";
 import Map from "./pages/Map/Map";
 import Progress from "./pages/Progress/Progress";
 import ProgressWeapons from "./pages/Progress/ProgressWeapons";
@@ -47,8 +49,13 @@ function StampsRedirect() {
   return <Navigate to={`/progress/fields${search}${hash}`} replace />;
 }
 function HomeEntry() {
-  const { campusId } = useGame();
-  return campusId ? <Home /> : <Navigate to="/start" replace />;
+  const { campusId, buildingId } = useGame();
+  const { active } = useGameTutorial();
+  if (!campusId) return <Navigate to="/start" replace />;
+  // 校舎（号館）をまだ選んでいないときは、先に選んでもらう。
+  // 練習中は途中の画面から戻ってこられるように、そのまま表示する
+  if (!active && buildingId === null) return <Navigate to="/start/buildings" replace />;
+  return <Home />;
 }
 
 function App() {
@@ -61,6 +68,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomeEntry />} />
                 <Route path="/start" element={<CampusSelection />} />
+                <Route path="/start/buildings" element={<BuildingSelection />} />
                 <Route path="/quest-loading/:questId" element={<QuestLoading />} />
 
                 <Route

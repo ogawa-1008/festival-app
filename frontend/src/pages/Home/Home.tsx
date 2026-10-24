@@ -6,6 +6,7 @@ import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
 import { findCampus } from "../../data/campuses";
+import { useMapAreas } from "../../context/useMapAreas";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "../../components/Header/HunterRank.css";
@@ -15,8 +16,10 @@ import "./Home.css";
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { rankExp, campusId } = useGame();
+  const { rankExp, campusId, buildingId } = useGame();
   const campus = findCampus(campusId);
+  const mapAreas = useMapAreas();
+  const building = mapAreas.find((area) => area.id === buildingId) ?? null;
   const { startTutorial } = useGameTutorial();
 
   return (
@@ -102,11 +105,11 @@ function Home() {
                 <button
                   type="button"
                   className="side-menu-item"
-                  onClick={() => navigate("/start")}
+                  onClick={() => navigate("/start/buildings")}
                 >
                   <span className="side-menu-item-icon">⌂</span>
                   <span className="side-menu-item-text">
-                    <small>{campus?.name}</small>
+                    <small>{building?.buildingName ?? campus?.name}</small>
                     <strong>校舎を選び直す</strong>
                   </span>
                   <span className="side-menu-arrow">›</span>
@@ -207,6 +210,10 @@ function Home() {
         <h2 className="quest-list-title">
           クエスト一覧
         </h2>
+
+        {building && (
+          <p className="quest-list-building">{building.buildingName}</p>
+        )}
 
 
         {/* =================================
