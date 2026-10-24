@@ -83,6 +83,7 @@ function Battle() {
     // 押した手のボタンは待ち時間の間は押せなくなり、フォーカスが外れる。
     // キーボードや読み上げで操作している人が続けて選べるよう、押せるようになったら押したボタンに戻す
     // （押したときにそのボタンにフォーカスがあった場合だけ。タップ操作の人には戻さない）
+    // 決着した場合は、あとで出る「調査結果を見る」ボタンへ移す（下の ref を参照）
     const lastPressedHand = useRef<HTMLButtonElement | null>(null);
     useEffect(() => {
         const button = lastPressedHand.current;
@@ -173,8 +174,8 @@ function Battle() {
             ? {
                 kind: "start",
                 text: "討伐開始",
-                // 開始の帯は、狩猟開始から HUNT_BANNER_MS の間（その後に1ターン目の待ち時間が続く）
-                startAt: nextTurnAt - TURN_COOLDOWN_MS - HUNT_BANNER_MS,
+                // 開始の帯は、狩猟を始めた時刻から HUNT_BANNER_MS の間（その後に1ターン目の待ち時間が続く）
+                startAt: session.startedAt,
             }
             : isBattleOver && endPhase.isWaiting
                 ? {
@@ -217,13 +218,12 @@ function Battle() {
                 />
             )}
 
-            {/* 画面には出さない読み上げ用の領域。討伐の帯と、手を選べるようになったことを伝える。
-               「Nターン目」は手を出した直後に読むと勝敗の読み上げを途切れさせるため読まず、
-               待ち時間が終わって手のボタンを押せるようになった時点で「手を選べます」と伝える
-               （最初の1手は、メッセージ欄の「下のボタンから…選ぼう！」が読み上げられる） */}
+            {/* 画面には出さない読み上げ用の領域。手を選べるようになったことだけを伝える。
+               討伐の帯（開始・成功・失敗）と「Nターン目」は、同じときに更新されるメッセージ欄の読み上げを
+               途切れさせるため読まない（開始・決着の内容はメッセージ欄の文で伝わる）。
+               最初の1手は、メッセージ欄の「下のボタンから…選ぼう！」が読み上げられる */}
             <div className="battle-sr-only" aria-live="polite">
-                {huntBanner?.text
-                    ?? (session.lastRound && !isBattleOver && !isWaiting ? "手を選べます" : "")}
+                {session.lastRound && !isBattleOver && !isWaiting ? "手を選べます" : ""}
             </div>
 
             {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
@@ -436,6 +436,14 @@ function Battle() {
                     <button
                         type="button"
                         className="battle-retry-button"
+                        // 決着の手をキーボードで押していたら、次に押すこのボタンにフォーカスを移す
+                        ref={(button) => {
+                            if (!button || !lastPressedHand.current) return;
+                            lastPressedHand.current = null;
+                            if (document.activeElement === null || document.activeElement === document.body) {
+                                button.focus({ preventScroll: true });
+                            }
+                        }}
                         onClick={() =>
                             navigate(`/result/${quest.id}`)
                         }
