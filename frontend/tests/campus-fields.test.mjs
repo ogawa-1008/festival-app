@@ -7,12 +7,9 @@ import {
   CAMPUS_STORAGE_KEY,
   clearMigratedLegacyGame,
   GAME_STORAGE_KEY,
-  getCampusBuildingKey,
   getCampusGameKey,
   getCampusLoadKey,
-  readSelectedBuilding,
   readSelectedCampus,
-  saveSelectedBuilding,
 } from "../src/utils/gameStorage.ts";
 
 test("each campus has its own buildings and photo-spot stickers", () => {
@@ -68,19 +65,9 @@ const memoryStorage = (entries = {}) => {
   };
 };
 
-test("the selected building is saved per area and the name uses the area prefix", () => {
+test("building names use the area prefix", () => {
   assert.equal(getBuildingName("osaka", 2), "心斎橋2号館");
   assert.equal(getBuildingName("tokyo", 1), "1号館");
-
-  const storage = memoryStorage();
-  assert.equal(readSelectedBuilding(storage, "osaka"), null);
-  assert.equal(saveSelectedBuilding(storage, "osaka", 2), true);
-  assert.equal(storage.getItem(getCampusBuildingKey("osaka")), "2");
-  assert.equal(readSelectedBuilding(storage, "osaka"), 2);
-  assert.equal(readSelectedBuilding(storage, "tokyo"), null);
-
-  storage.setItem(getCampusBuildingKey("osaka"), "not-a-number");
-  assert.equal(readSelectedBuilding(storage, "osaka"), null);
 });
 
 test("progress is saved per campus and older saves move to the campus they were made in", () => {

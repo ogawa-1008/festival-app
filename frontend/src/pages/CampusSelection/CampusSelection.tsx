@@ -57,7 +57,7 @@ function CampusSelection() {
               <span className="campus-card-labels">
                 <span className="campus-english">{campus.englishName}</span>
                 <span className="campus-name">{campus.name}</span>
-                <span className="campus-card-hint">このエリアの校舎を選ぶ</span>
+                <span className="campus-card-hint">このエリアでクエストに参加</span>
               </span>
               <img className="campus-chevron" src={`${asset}chevron.svg`} alt="" />
             </button>
@@ -82,7 +82,7 @@ function CampusSelection() {
         <p id="campus-confirm-description" className="campus-confirm-description">
           {blocked
             ? <>バトル中、または報酬を受け取る前は<br />エリアを変えられません。</>
-            : <>選択したエリアの校舎を<br />選べます。</>}
+            : <>選択したエリアのクエストと<br />マップを表示します。</>}
         </p>
         <div className="campus-dialog-actions">
           <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
@@ -94,7 +94,7 @@ function CampusSelection() {
             disabled={blocked}
             onClick={() => {
               if (!pendingCampus || blocked) return;
-              if (selectCampus(pendingCampus.id)) navigate("/start/buildings");
+              if (selectCampus(pendingCampus.id)) navigate("/", { replace: true });
             }}
           >
             このエリアに決定

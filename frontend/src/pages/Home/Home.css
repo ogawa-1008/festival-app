@@ -324,28 +324,6 @@
   pointer-events: none;
 }
 
-/* 選んでいる校舎（クエスト一覧の下） */
-.quest-list-building {
-  position: relative;
-
-  margin: -22px 0 26px;
-
-  color: var(--color-text-warm);
-
-  font-family: var(--font-mincho);
-
-  font-size: 14px;
-  font-weight: 700;
-
-  letter-spacing: 0.08em;
-
-  text-align: center;
-
-  pointer-events: none;
-
-  z-index: 10;
-}
-
 /* CTAと一覧を通常のフローに置き、本文の高さを確保 */
 .home .quest-board {
   position: relative;

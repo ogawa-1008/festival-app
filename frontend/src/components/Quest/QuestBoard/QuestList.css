@@ -154,7 +154,7 @@
    */
   overflow: visible;
 }
-/* この校舎のクエストがまだないとき */
+/* このエリアのクエストがまだないとき */
 .quest-board-empty {
   position: absolute;
   top: 80px;
@@ -183,6 +183,3 @@
   box-sizing: border-box;
 }
 
-.home .quest-board + .quest-board {
-  margin-top: var(--space-6);
-}

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
@@ -8,12 +9,17 @@ import "./QuestCard.css";
 
 type QuestCardProps = {
   quest: Quest;
-  position: "top" | "middle" | "bottom";
+  // 掲示板の上から何枚目か（0から）。位置と重なり順をこの番号から決める
+  index: number;
 };
+
+// カード1枚分の縦の間隔（カードの高さ315px＋すき間10px）と、1枚目の位置
+export const QUEST_CARD_PITCH = 325;
+const QUEST_CARD_FIRST_TOP = 45;
 
 function QuestCard({
   quest,
-  position,
+  index,
 }: QuestCardProps) {
   const navigate = useNavigate();
   const { active, advance } = useGameTutorial();
@@ -30,7 +36,9 @@ function QuestCard({
 
   return (
     <button
-      className={`quest-card quest-${position}`}
+      className="quest-card quest-slot"
+      // 上のカードほど手前に重ねる（押したときに少し浮く動きで隠れないように）
+      style={{ top: QUEST_CARD_FIRST_TOP + index * QUEST_CARD_PITCH, "--quest-card-z": 30 - index } as CSSProperties}
       type="button"
       data-tutorial-quest={quest.id}
       onClick={handleQuestClick}
