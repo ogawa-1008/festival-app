@@ -38,6 +38,7 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                 className="janken-rule-button"
                 aria-label="じゃんけんのルールを見る"
                 aria-haspopup="dialog"
+                aria-controls="janken-rule-dialog"
                 onClick={() => {
                     const dialog = dialogRef.current;
                     if (!dialog) return;
@@ -59,6 +60,7 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                 // 背景を押して閉じる仕組みに未対応のブラウザ向け。押し始めも離したところも背景のときだけ閉じる
                 // （ポップの中から外へ指を動かして離したときは閉じない）
                 onPointerDown={(event) => {
+                    if ("closedBy" in HTMLDialogElement.prototype) return;
                     pressedBackdrop.current = event.target === event.currentTarget
                         && isOutside(event.currentTarget, event.clientX, event.clientY);
                 }}

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, type MouseEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -47,6 +47,9 @@ const ROUND_LABELS: Record<RoundResult, string> = {
 };
 
 type LastRound = NonNullable<BattleSession["lastRound"]>;
+
+// 手のボタンの並び（左から）
+const HANDS: Hand[] = ["rock", "scissors", "paper"];
 
 // 直前の手の結果（ダメージ）の文
 function getRoundText(lastRound: LastRound) {
@@ -194,14 +197,15 @@ function Battle() {
         ? TURN_COOLDOWN_MS - ROUND_RESULT_HOLD_MS
         : TURN_COOLDOWN_MS;
     const message = getBattleMessage(session);
-    const lastResult = session.lastRound?.result;
-    // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さず（「勝ち！」と「討伐失敗」が並ばないように）、
-    // 小さく「最後の手」として伝える
+    // 手を使い切って逃げられたときは、最後の手の勝敗を大きく出さず、手も光らせない（「討伐失敗」と食い違わないように）。
+    // 決着したときは、最後の手の結果（ダメージ）を小さく添える（手切れは「最後の手：勝ち！」の形）
     const isTimeout = endReason === "timeout";
-    const roundResult = isTimeout ? undefined : lastResult;
+    const roundResult = isTimeout ? undefined : session.lastRound?.result;
     const roundLabel = roundResult ? ROUND_LABELS[roundResult] : null;
-    const lastRoundSummary = isTimeout && session.lastRound
-        ? `最後の手：${ROUND_LABELS[session.lastRound.result]} ${getRoundText(session.lastRound)}`
+    const lastRoundSummary = isBattleOver && session.lastRound
+        ? isTimeout
+            ? `最後の手：${ROUND_LABELS[session.lastRound.result]} ${getRoundText(session.lastRound)}`
+            : getRoundText(session.lastRound)
         : null;
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
@@ -227,6 +231,12 @@ function Battle() {
         if (round?.session.endReason) {
             setEndBannerUntil(Date.now() + HUNT_BANNER_MS);
         }
+    };
+
+    // どの手のボタンかは data-hand から読む（ボタンごとに関数を作らない）
+    const handleHandClick = (event: MouseEvent<HTMLButtonElement>) => {
+        const hand = event.currentTarget.dataset.hand as Hand | undefined;
+        if (hand && HANDS.includes(hand)) handleHandSelect(hand);
     };
 
     return (
@@ -256,14 +266,15 @@ function Battle() {
             )}
 
             {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
+            {/* 討伐の帯だけを読み上げる。ターン帯は読み上げず、直前の勝敗の読み上げを途切れさせない
+               （何手目かは「残り N 手」で分かる） */}
             <div className="battle-sr-only" aria-live="polite">
-                {huntBanner?.text
-                    ?? (showTurnBanner ? `${turnNumber}ターン目` : "")}
+                {huntBanner?.text ?? ""}
             </div>
 
             {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
-            {/* 決着後はすぐリザルトや再挑戦に移るので出さない */}
-            {!isBattleOver && <JankenRule maxTurns={session.maxTurns} />}
+            {/* 討伐成功のあとは自動でリザルトへ移るので出さない（負け・手切れの再挑戦の前には見られるように残す） */}
+            {endReason !== "victory" && <JankenRule maxTurns={session.maxTurns} />}
 
             <div className="battle-content">
 
@@ -354,17 +365,17 @@ function Battle() {
                     )}
                     {/* 直前の手がなく、手のボタンを押せるときだけ、手の選び方を案内する */}
                     {!session.lastRound && !isBattleOver && !isWaiting && (
-                        <span>下のボタンからグー・チョキ・パーを選ぼう！</span>
+                        <span>下のボタンから{HANDS.map((hand) => HAND_LABELS[hand]).join("・")}を選ぼう！</span>
                     )}
                     {session.lastRound && (
                         <div className="battle-hands">
-                            <figure className={`battle-hand${lastResult === "player" ? " is-winner" : ""}`}>
+                            <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
                                 {/* 出した手も、手を選ぶボタンと同じ画像で表示する */}
                                 <img src={battleAssets[session.lastRound.playerHand]} alt="" />
                                 <figcaption><small>あなた</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.playerHand]}</figcaption>
                             </figure>
                             <span className="battle-hands-vs" aria-hidden="true">VS</span>
-                            <figure className={`battle-hand${lastResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
+                            <figure className={`battle-hand${roundResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
                                 <img src={battleAssets[session.lastRound.enemyHand]} alt="" />
                                 <figcaption><small>モンスター</small><span className="battle-sr-only">：</span>{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
                             </figure>
@@ -423,70 +434,27 @@ function Battle() {
 
                     <div className="janken-buttons" data-tutorial="battle-hands">
 
-                        {/* グー */}
+                        {HANDS.map((hand) => (
+                            <button
+                                key={hand}
+                                type="button"
+                                className={`janken-button janken-${hand}`}
+                                data-hand={hand}
+                                onClick={handleHandClick}
+                                disabled={isBattleOver || isWaiting}
+                            >
+                                <div className="janken-image-frame">
+                                    {/* 名前は下の文字で読み上げるので、画像は飾りとして扱う */}
+                                    <img
+                                        src={battleAssets[hand]}
+                                        alt=""
+                                        className="janken-image"
+                                    />
+                                </div>
 
-                        <button
-                            type="button"
-                            className="janken-button janken-rock"
-                            onClick={() =>
-                                handleHandSelect("rock")
-                            }
-                            disabled={isBattleOver || isWaiting}
-                        >
-                            <div className="janken-image-frame">
-                                <img
-                                    src={battleAssets.rock}
-                                    alt="グー"
-                                    className="janken-image"
-                                />
-                            </div>
-
-                            <span>グー</span>
-                        </button>
-
-
-                        {/* チョキ */}
-
-                        <button
-                            type="button"
-                            className="janken-button janken-scissors"
-                            onClick={() =>
-                                handleHandSelect("scissors")
-                            }
-                            disabled={isBattleOver || isWaiting}
-                        >
-                            <div className="janken-image-frame">
-                                <img
-                                    src={battleAssets.scissors}
-                                    alt="チョキ"
-                                    className="janken-image"
-                                />
-                            </div>
-
-                            <span>チョキ</span>
-                        </button>
-
-
-                        {/* パー */}
-
-                        <button
-                            type="button"
-                            className="janken-button janken-paper"
-                            onClick={() =>
-                                handleHandSelect("paper")
-                            }
-                            disabled={isBattleOver || isWaiting}
-                        >
-                            <div className="janken-image-frame">
-                                <img
-                                    src={battleAssets.paper}
-                                    alt="パー"
-                                    className="janken-image"
-                                />
-                            </div>
-
-                            <span>パー</span>
-                        </button>
+                                <span>{HAND_LABELS[hand]}</span>
+                            </button>
+                        ))}
 
                     </div>
                 </section>
