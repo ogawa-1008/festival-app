@@ -432,8 +432,17 @@ function Battle() {
 
                 <section className="janken-area">
 
+                    {/* 待ち時間の間は、手のボタンが押せない理由をボタンのそばに出す
+                       （背の低い画面でスクロールしていると、モンスター画像の中の「Nターン目」が見えないため）。
+                       読み上げは、押せるようになった時点の「手を選べます」で伝える */}
                     <div className="janken-title">
-                        <span>CHOOSE YOUR HAND</span>
+                        {isWaiting ? (
+                            <span className="janken-title-wait" aria-hidden="true">
+                                {session.lastRound ? "次の手まで少し待ってね" : "まもなく狩猟開始"}
+                            </span>
+                        ) : (
+                            <span>CHOOSE YOUR HAND</span>
+                        )}
                     </div>
 
                     <div className="janken-buttons" data-tutorial="battle-hands">

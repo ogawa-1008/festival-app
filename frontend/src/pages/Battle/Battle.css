@@ -500,9 +500,27 @@
 }
 
 .janken-title {
+  /* 待ち時間の表示に切り替わっても高さが変わらないようにする */
+  min-height: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   text-align: center;
 
   margin-bottom: 10px;
+}
+
+/* 待ち時間の間に出す一言（手のボタンが押せない理由） */
+.janken-title .janken-title-wait {
+  color: var(--color-gold);
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+
+  letter-spacing: 1px;
 }
 
 .janken-title span {
