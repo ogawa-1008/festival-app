@@ -20,6 +20,8 @@ import { useCooldown } from "./useCooldown";
 import "./Battle.css";
 
 const START_MESSAGE = "じゃんけんでモンスターを倒せ！";
+// 勝敗を先に読めるようにしてから、残りの待機時間で次のターンの帯を出す。
+const ROUND_RESULT_HOLD_MS = 600;
 
 const END_MESSAGES: Record<EndReason, string> = {
     victory: "モンスターを討伐した！",
@@ -28,9 +30,9 @@ const END_MESSAGES: Record<EndReason, string> = {
 };
 
 const ROUND_MESSAGES: Record<RoundResult, string> = {
-    draw: "あいこ！ もう一度！",
-    player: "勝利！ モンスターにダメージ！",
-    enemy: "敗北…… ダメージを受けた！",
+    draw: "もう一度！",
+    player: "モンスターにダメージ！",
+    enemy: "ダメージを受けた！",
 };
 
 const HAND_LABELS: Record<Hand, string> = {
@@ -54,8 +56,8 @@ function getBattleMessage(session: BattleSession) {
 
     return {
         hands,
-        text: !lastRound ? START_MESSAGE : lastRound.result === "draw" ? "あいこ！ HPは変わりません" : lastRound.damage !== undefined
-            ? lastRound.result === "player" ? `勝利！ モンスターに${lastRound.damage}ダメージ！` : `敗北…… ${lastRound.damage}ダメージを受けた！`
+        text: !lastRound ? START_MESSAGE : lastRound.result === "draw" ? "HPは変わりません" : lastRound.damage !== undefined
+            ? lastRound.result === "player" ? `モンスターに${lastRound.damage}ダメージ！` : `${lastRound.damage}ダメージを受けた！`
             : ROUND_MESSAGES[lastRound.result],
     };
 }
@@ -88,6 +90,12 @@ function Battle() {
     const startPhase = useCooldown(
         isStarting ? nextTurnAt - TURN_COOLDOWN_MS : 0,
         HUNT_BANNER_MS
+    );
+    const resultPhase = useCooldown(
+        isOwnSession && session.lastRound !== null
+            ? nextTurnAt - TURN_COOLDOWN_MS + ROUND_RESULT_HOLD_MS
+            : 0,
+        ROUND_RESULT_HOLD_MS
     );
 
     // 「討伐成功」「討伐失敗」の帯は決着した瞬間だけ出す（再読み込みでは出さない）
@@ -154,11 +162,16 @@ function Battle() {
     const isWaiting = !isBattleOver && cooldown.isWaiting;
     // 次に迎えるターン（あいこも1ターンとして数える）
     const turnNumber = session.maxTurns - turnsLeft + 1;
-    // 「討伐開始」の帯が終わってから「1ターン目」の帯を出す
-    const showTurnBanner = isWaiting && !startPhase.isWaiting;
+    // 初手は討伐開始の後、それ以降は勝敗を見せてから次のターンの帯を出す。
+    const showTurnBanner = isWaiting && !startPhase.isWaiting && !resultPhase.isWaiting;
+    const turnBannerDuration = session.lastRound
+        ? TURN_COOLDOWN_MS - ROUND_RESULT_HOLD_MS
+        : TURN_COOLDOWN_MS;
     // 再読み込みで途中から表示する場合も、帯の動きを残り時間に合わせる
-    const bannerElapsed = Math.max(0, TURN_COOLDOWN_MS - cooldown.remaining);
+    const bannerElapsed = Math.max(0, turnBannerDuration - cooldown.remaining);
     const message = getBattleMessage(session);
+    const roundResult = session.lastRound?.result;
+    const roundLabel = roundResult === "player" ? "勝ち！" : roundResult === "enemy" ? "負け…" : "あいこ！";
 
     // 下から上に出す討伐の帯（開始・成功・失敗）
     const huntBanner =
@@ -211,21 +224,6 @@ function Battle() {
                 </div>
             )}
 
-            {/* 待ち時間中は画面中央に「Nターン目」の帯を出す */}
-            {showTurnBanner && (
-                <div
-                    key={turnNumber}
-                    className="battle-banner battle-turn-banner"
-                    aria-hidden="true"
-                    style={{
-                        animationDuration: `${TURN_COOLDOWN_MS}ms`,
-                        animationDelay: `-${bannerElapsed}ms`,
-                    }}
-                >
-                    <span>{turnNumber}ターン目</span>
-                </div>
-            )}
-
             {/* 帯は毎回作り直すため、読み上げは常設の領域で行う */}
             <div className="battle-sr-only" aria-live="polite">
                 {huntBanner?.text
@@ -235,7 +233,7 @@ function Battle() {
             <div className="battle-content">
 
                 {/* =========================
-            HEADER
+            ヘッダー
         ========================= */}
 
                 <header className="battle-header">
@@ -248,7 +246,7 @@ function Battle() {
 
 
                 {/* =========================
-            QUEST NAME
+            クエスト名
         ========================= */}
 
                 <section className="battle-quest">
@@ -259,7 +257,7 @@ function Battle() {
 
 
                 {/* =========================
-            MONSTER
+            モンスター
         ========================= */}
 
                 <section className="monster-area">
@@ -274,6 +272,20 @@ function Battle() {
                             alt="モンスター"
                             className="monster-image"
                         />
+                        {/* 待機中のターン帯はモンスター画像内に表示し、勝敗に重ねない。 */}
+                        {showTurnBanner && (
+                            <div
+                                key={turnNumber}
+                                className="battle-banner battle-turn-banner"
+                                aria-hidden="true"
+                                style={{
+                                    animationDuration: `${turnBannerDuration}ms`,
+                                    animationDelay: `-${bannerElapsed}ms`,
+                                }}
+                            >
+                                <span>{turnNumber}ターン目</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="monster-hp" data-tutorial="monster-hp">
@@ -297,21 +309,23 @@ function Battle() {
 
 
                 {/* =========================
-            MESSAGE
+            勝敗メッセージ
         ========================= */}
 
                 <section className="battle-message" key={session.maxTurns - turnsLeft} role="status" aria-live="polite">
+                    {roundResult && (
+                        <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
+                    )}
+                    <span>{message.text}</span>
                     {message.hands && (
                         <span className="battle-message-hands">
                             {message.hands}
                         </span>
                     )}
-
-                    <span>{message.text}</span>
                 </section>
 
                 {/* =========================
-            PLAYER HP
+            ハンターの体力
         ========================= */}
 
                 <section className="player-status">
@@ -349,7 +363,7 @@ function Battle() {
 
 
                 {/* =========================
-            JANKEN
+            じゃんけん
         ========================= */}
 
                 <section className="janken-area">
@@ -499,7 +513,7 @@ function Battle() {
 
 
                 {/* =========================
-            RETRY
+            再挑戦
         ========================= */}
 
                 {/* 「討伐失敗」の帯が消えてから出す */}
