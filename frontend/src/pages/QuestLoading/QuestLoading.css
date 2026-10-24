@@ -79,10 +79,10 @@
 
   background: none;
 
-  color: var(--color-text-muted);
+  color: var(--festival-inactive);
 
   font-family: inherit;
-  font-size: var(--font-size-base);
+  font-size: 14px;
 
   text-decoration: underline;
   text-underline-offset: 4px;

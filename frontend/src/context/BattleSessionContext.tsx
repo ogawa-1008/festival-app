@@ -293,23 +293,25 @@ export function BattleSessionProvider({ children, practice = false }: { children
     return true;
   }, [readOwned, update]);
 
+  // 確認画面には「引き継がれた」状態（takenOver）を持ち込まないよう、readOwned ではなく
+  // 最新の値を読んで canBeginBattle で確かめる
   const beginBattle = useCallback((questId: string) => {
-    const current = readOwned();
+    const current = readLatest();
 
-    if (!current || current.questId !== questId || current.claimed || current.endReason !== null) {
+    if (!current || !canBeginBattle(current, questId)) {
       return false;
     }
 
     update(restartSessionClock(current));
 
     return true;
-  }, [readOwned, update]);
+  }, [readLatest, update]);
 
   const cancelBattle = useCallback((questId: string) => {
     const current = readLatest();
 
     // 自分のタブの、同じクエストで、まだ1手も出していないセッションだけを取り消す
-    if (current && current.ownerTabId === tabId && current.questId === questId && isUntouchedSession(current)) {
+    if (current && canBeginBattle(current, questId) && isUntouchedSession(current)) {
       update(null);
     }
   }, [readLatest, update]);
@@ -347,6 +349,16 @@ export function BattleSessionProvider({ children, practice = false }: { children
 // このタブが持ち主のセッションか（未受け取りのバトル・リザルトは持ち主のタブでのみ表示する）
 export function isOwnedByThisTab(session: BattleSession | null) {
   return session?.ownerTabId === tabId;
+}
+
+// このタブで、このクエストの対戦を始められる（QRを読んでできた、決着前・受け取り前のセッションがある）か
+// 確認画面のボタンの表示と、「狩猟を始める」を押したときの判定の両方で使う
+export function canBeginBattle(session: BattleSession | null, questId: string | undefined): session is BattleSession {
+  return session !== null
+    && session.questId === questId
+    && !session.claimed
+    && session.endReason === null
+    && isOwnedByThisTab(session);
 }
 
 export function useBattleSession() {

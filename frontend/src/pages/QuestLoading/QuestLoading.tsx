@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PatternBackground from "../../components/Festival/PatternBackground";
-import { useBattleSession } from "../../context/BattleSessionContext";
+import { canBeginBattle, useBattleSession } from "../../context/BattleSessionContext";
+import { isUntouchedSession } from "../../utils/battleSession";
 import { useGame } from "../../context/GameContext";
 import { getBattleMonsterImage, prepareBattle } from "../Battle/battleAssets";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
@@ -16,6 +17,9 @@ export default function QuestLoading() {
   const navigate = useNavigate();
   const { active: practice, advance } = useGameTutorial();
   const { session, beginBattle, cancelBattle } = useBattleSession();
+  // QRを読み取ってできたバトル（このタブのもの・まだ受け取っていないもの）がないと始められない
+  // （URLを直接開いただけでは遊べないように）
+  const hasScanned = canBeginBattle(session, questId);
   const quest = quests.find((item) => item.id === questId);
   const monsterImage = quest ? getBattleMonsterImage(quest.image) : undefined;
   const [preparation, setPreparation] = useState<{ questId: string | undefined; phase: Phase }>({ questId, phase: "preparing" });
@@ -27,7 +31,8 @@ export default function QuestLoading() {
   }, [questId]);
 
   useEffect(() => {
-    if (!questId || !quest) return;
+    // 始められないときは、使わない画像を読み込まない
+    if (!questId || !quest || !hasScanned) return;
 
     const controller = new AbortController();
     let disposed = false;
@@ -49,13 +54,10 @@ export default function QuestLoading() {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [questId, quest, monsterImage, attempt]);
+  }, [questId, quest, monsterImage, attempt, hasScanned]);
 
-  // QRを読み取ってできたバトル（まだ受け取っていないもの）がないと始められない
-  // （URLを直接開いただけでは遊べないように）
-  const hasScanned = session !== null && session.questId === questId && !session.claimed && session.endReason === null;
   // 途中まで進めたバトルをQRの読み直しで開いた場合は「続きから」
-  const isResume = hasScanned && (session.lastRound !== null || session.turnsLeft < session.maxTurns);
+  const isResume = hasScanned && !isUntouchedSession(session);
 
   const ready = phase === "ready" && hasScanned;
   const error = !quest || !hasScanned || phase === "error";
@@ -79,8 +81,9 @@ export default function QuestLoading() {
   };
 
   // 「戻る」：まだ1手も出していなければバトルを取り消してホームへ
+  // （練習中は取り消さない。ガイドを再開したときに、この確認画面から続けられるように）
   const handleCancel = () => {
-    if (questId) cancelBattle(questId);
+    if (questId && !practice) cancelBattle(questId);
     navigate("/", { replace: true });
   };
 
@@ -128,16 +131,17 @@ export default function QuestLoading() {
 
         <div className="departure-status">
           {quest && <ol className="departure-steps" aria-label="出発までの進行状況">
-            <li className={hasScanned ? "is-complete" : ""}>読取完了</li>
-            <li className={ready ? "is-complete" : "is-current"} aria-current={!ready ? "step" : undefined}>狩猟準備</li>
+            <li className={hasScanned ? "is-complete" : "is-current"} aria-current={!hasScanned ? "step" : undefined}>読取完了</li>
+            <li className={ready ? "is-complete" : hasScanned ? "is-current" : ""} aria-current={hasScanned && !ready ? "step" : undefined}>狩猟準備</li>
             <li className={ready ? "is-complete" : ""} aria-current={ready ? "step" : undefined}>出発</li>
           </ol>}
           <p role="status" aria-live="polite">{status}</p>
           {!ready && !error && <progress className="departure-progress" aria-label="狩猟フィールドを読み込み中" />}
         </div>
 
+        {/* 練習のガイドが光らせる場所（data-tutorial）。エラーのときも、押せるボタンがガイドの対象に入るようにする */}
         {error ? (
-          <div className="departure-error-actions">
+          <div className="departure-error-actions" data-tutorial="quest-confirm">
             {quest && hasScanned && <button type="button" className="festival-button" onClick={() => {
               setPreparation({ questId, phase: "preparing" });
               setAttempt((value) => value + 1);
@@ -147,11 +151,10 @@ export default function QuestLoading() {
         ) : (
           <>
             {/* 「狩猟を始める」は準備が整うまで押せない。押したときにバトルの開始時刻を決める */}
-            <div className="departure-actions">
+            <div className="departure-actions" data-tutorial="quest-confirm">
               <button
                 type="button"
                 className="festival-button"
-                data-tutorial="quest-confirm"
                 disabled={!ready}
                 onClick={handleStart}
               >
