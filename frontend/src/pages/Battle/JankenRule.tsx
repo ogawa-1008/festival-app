@@ -99,9 +99,11 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                     </dl>
 
                     <p className="janken-rule-goal">
-                        {`${maxTurns}手以内にモンスターのHPを0にすると討伐成功です。`
-                            + "あなたのHPが0になるか、手が残っていないと討伐失敗ですが、"
-                            + "「調査」として報酬の一部を受け取れます。"}
+                        {maxTurns}手以内にモンスターのHPを0にすると討伐成功です。
+                        <br />
+                        あなたのHPが0になるか、手が残っていないと
+                        <br />
+                        討伐失敗ですが、「調査」として報酬の一部を受け取れます。
                     </p>
 
                     <button
