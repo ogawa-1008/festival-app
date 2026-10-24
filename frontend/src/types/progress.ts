@@ -1,5 +1,7 @@
+import type { MaterialId } from "../data/materials.ts";
+
 export type Material = {
-  id: number;
+  id: MaterialId;
   name: string;
   required: number;
   owned: number;

@@ -47,6 +47,10 @@
 
   box-sizing: border-box;
 
+  /* 上から見出し・タイトル・モンスター・詳細を並べ、余った高さはモンスターの枠に回す */
+  display: flex;
+  flex-direction: column;
+
   padding: 18px 20px;
 
   overflow: hidden;
@@ -94,6 +98,17 @@
   inset: 9px;
 
   border: 2px solid rgba(92, 59, 29, 0.55);
+  /* 上の線は、中央の飾り（菱形）の部分だけ途切れさせる（飾りと線が重ならないように） */
+  border-top: none;
+
+  background: linear-gradient(
+      90deg,
+      rgba(92, 59, 29, 0.55) calc(50% - 12px),
+      transparent calc(50% - 12px),
+      transparent calc(50% + 12px),
+      rgba(92, 59, 29, 0.55) calc(50% + 12px)
+    )
+    top / 100% 2px no-repeat;
 
   pointer-events: none;
 
@@ -101,12 +116,13 @@
 }
 
 
+/* 上端中央の飾り（菱形）。内側の枠線の途切れたところに置く */
 .quest-paper::after {
   content: "◆";
 
   position: absolute;
 
-  top: 6px;
+  top: 3px;
 
   left: 50%;
 
@@ -115,6 +131,7 @@
   color: #684523;
 
   font-size: var(--font-size-sm);
+  line-height: 14px;
 
   z-index: 2;
 }
@@ -135,7 +152,8 @@
 
   align-items: center;
 
-  justify-content: space-between;
+  /* 見出しは中央にそろえ、上の飾りと縦にそろえる */
+  justify-content: center;
 
   border-bottom: 2px solid rgba(91, 58, 29, 0.55);
 }
@@ -148,14 +166,10 @@
 
   letter-spacing: 5px;
 
+  /* 最後の文字のあとの字間の分だけ右にずらし、上の飾りと中心をそろえる */
+  margin-right: -5px;
+
   color: #392718;
-}
-
-
-.quest-symbol {
-  font-size: var(--font-size-base);
-
-  color: #76522e;
 }
 
 
@@ -214,9 +228,10 @@
 
   z-index: 3;
 
-  height: 125px;
+  flex: 1;
+  min-height: 125px;
 
-  margin-top: 8px;
+  margin: 8px 0;
 
   display: flex;
 
@@ -226,10 +241,11 @@
 }
 
 
+/* フッターをなくして空いた高さを使い、モンスターを大きく見せる */
 .quest-monster-frame {
-  width: 100px;
+  width: 128px;
 
-  height: 88px;
+  height: 112px;
 
   display: flex;
 
@@ -271,34 +287,28 @@
 
   z-index: 3;
 
-  border-top: 2px solid rgba(80, 52, 27, 0.45);
-
-  border-bottom: 2px solid rgba(80, 52, 27, 0.45);
-
-  padding: 7px 3px;
-}
-
-
-.quest-info-row {
   display: grid;
 
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: auto 1fr;
+
+  align-items: center;
 
   gap: 10px;
+
+  margin: 0;
+
+  border-top: 2px solid rgba(80, 52, 27, 0.45);
+
+  padding: 7px 3px 0;
 }
 
 
-.quest-info-row + .quest-info-row {
-  margin-top: 6px;
-}
-
-
-.quest-info-row > div {
+.quest-info-item {
   display: flex;
 
-  align-items: baseline;
+  align-items: center;
 
-  gap: 4px;
+  gap: 6px;
 
   min-width: 0;
 }
@@ -315,8 +325,14 @@
 }
 
 
-.quest-info strong {
+.quest-info-item dd {
+  margin: 0;
+
+  min-width: 0;
+
   font-size: 9px;
+
+  font-weight: bold;
 
   white-space: nowrap;
 
@@ -328,26 +344,33 @@
 }
 
 
-/* ========================================
-   フッター
-======================================== */
-
-.quest-footer {
-  position: relative;
-
-  z-index: 3;
-
+/* 報酬の素材（アイコン ×数） */
+.quest-rewards {
   display: flex;
-
-  justify-content: space-between;
 
   align-items: center;
 
-  margin-top: 6px;
+  gap: 8px;
+}
 
-  font-size: 7px;
 
-  color: #695037;
+.quest-reward {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 2px;
+}
+
+
+.quest-reward img {
+  width: 18px;
+  height: 18px;
+
+  object-fit: cover;
+
+  border: 1px solid rgba(80, 52, 27, 0.6);
+  border-radius: 3px;
 }
 
 
@@ -373,13 +396,13 @@
   min-width: 315px;
   min-height: 315px;
 
-  max-width: calc(100% - 24px);
-
   box-sizing: border-box;
 
   margin: 0;
 
-  transform: translateX(-50%);
+  /* 幅の狭い画面では、掲示板の内側の枠にかからないよう縮める（--quest-card-scale は QuestList.css） */
+  transform: translateX(-50%) scale(var(--quest-card-scale, 1));
+  transform-origin: top center;
 
   /* 上のカードほど手前に重ねる（押したときに少し浮く動きで隠れないように） */
   z-index: calc(30 - var(--quest-index, 0));
@@ -393,7 +416,8 @@
 .quest-card.quest-slot:not(:disabled):active {
   transform:
     translateX(-50%)
-    translateY(-12px);
+    translateY(-12px)
+    scale(var(--quest-card-scale, 1));
 
   filter: brightness(1.12);
 
@@ -410,7 +434,8 @@
   .quest-card.quest-slot:hover {
     transform:
       translateX(-50%)
-      translateY(-5px);
+      translateY(-5px)
+      scale(var(--quest-card-scale, 1));
 
     filter: brightness(1.05);
 
@@ -421,8 +446,8 @@
 .quest-monster-image {
   display: block;
 
-  width: 94px;
-  height: 82px;
+  width: 120px;
+  height: 105px;
 
   object-fit: contain;
 

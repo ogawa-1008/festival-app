@@ -1,3 +1,4 @@
+import type { MaterialAmount } from "../data/materials.ts";
 import type { Quest } from "./quest";
 
 export type MapArea = {
@@ -24,5 +25,7 @@ export type FieldDefinition = {
   areaName: string;
   photoSpotMonster: string;
   image?: string;
+  // この号館のクエストでもらえる素材。書かなければ共通の報酬（defineFields の DEFAULT_REWARD_MATERIALS）
+  rewardMaterials?: MaterialAmount[];
   quest: Quest;
 };

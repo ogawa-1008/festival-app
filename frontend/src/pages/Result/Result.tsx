@@ -5,7 +5,7 @@ import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useSessionScreen } from "../../context/useSessionScreen";
-import { progressData } from "../../data/progress";
+import { getMaterial } from "../../data/materials";
 import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
 import { getRewardExp } from "../../utils/questReward";
 
@@ -234,14 +234,7 @@ function Result() {
 
                         {quest.rewardMaterials.map((reward) => {
 
-                            const material =
-                                progressData.materials.find(
-                                    (item) => item.id === reward.id
-                                );
-
-                            if (!material) {
-                                return null;
-                            }
+                            const material = getMaterial(reward.id);
 
                             return (
                                 <div
