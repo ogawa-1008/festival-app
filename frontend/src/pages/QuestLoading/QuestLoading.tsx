@@ -4,6 +4,7 @@ import PatternBackground from "../../components/Festival/PatternBackground";
 import { useGame } from "../../context/GameContext";
 import { getBattleMonsterImage, prepareBattle } from "../Battle/battleAssets";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { HAND_NAMES_TEXT } from "../../data/jankenRule";
 import "./QuestLoading.css";
 
 type Phase = "preparing" | "ready" | "error";
@@ -120,7 +121,7 @@ export default function QuestLoading() {
         ) : (
           <aside className="departure-tip">
             <p>― 狩猟の心得 ―</p>
-            <p>グー・チョキ・パーを選んで、<br />モンスターに挑もう。</p>
+            <p>{HAND_NAMES_TEXT}を選んで、<br />モンスターに挑もう。</p>
           </aside>
         )}
       </div>

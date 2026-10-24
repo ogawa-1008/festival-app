@@ -103,7 +103,7 @@ function Battle() {
 
     const { quests } = useGame();
     const { session, playHand } = useBattleSession();
-    const { active: practice, advance } = useGameTutorial();
+    const { active: practice, minimized: guideMinimized, advance } = useGameTutorial();
     const screenStatus = useSessionScreen(questId);
 
     const quest = quests.find(
@@ -276,8 +276,9 @@ function Battle() {
 
             {/* じゃんけんのルール：右上に固定した「？」からポップで開く */}
             {/* 討伐成功のあとは自動でリザルトへ移るので出さない（負け・手切れの再挑戦の前には見られるように残す） */}
-            {/* 練習中はガイドが手のボタン以外を押せなくするので出さない（ルールはガイドの説明に書いてある） */}
-            {endReason !== "victory" && !practice && <JankenRule maxTurns={session.maxTurns} />}
+            {/* 練習中でガイドを開いている間は、手のボタン以外を押せないので出さない（ルールはガイドの説明に書いてある）。
+               ガイドを最小化したら、ルールを見られるように出す */}
+            {endReason !== "victory" && (!practice || guideMinimized) && <JankenRule maxTurns={session.maxTurns} />}
 
             <div className="battle-content">
 
