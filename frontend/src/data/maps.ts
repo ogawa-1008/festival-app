@@ -1,4 +1,4 @@
-import type { CampusId } from "./campuses.ts";
+import { getBuildingName, type CampusId } from "./campuses.ts";
 import { nagoyaFields } from "./campuses/nagoya.ts";
 import { osakaFields } from "./campuses/osaka.ts";
 import { tokyoFields } from "./campuses/tokyo.ts";
@@ -11,10 +11,12 @@ const campusFields: Record<CampusId, FieldDefinition[]> = {
   nagoya: nagoyaFields,
 };
 
-function toMapArea(field: FieldDefinition): MapArea {
+function toMapArea(campusId: CampusId, field: FieldDefinition): MapArea {
+  const buildingName = getBuildingName(campusId, field.building);
+
   return {
     id: field.building,
-    buildingName: `${field.building}号館`,
+    buildingName,
     areaName: field.areaName,
     image: field.image,
     photoSpotMonster: field.photoSpotMonster,
@@ -23,13 +25,16 @@ function toMapArea(field: FieldDefinition): MapArea {
       // ステッカーの絵柄はフォトスポットのモンスターと同じ
       name: `${field.photoSpotMonster} オリジナルステッカー`,
       description: "異なる3校舎のスタンプを集めて、お好きなステッカー1枚と交換できます。",
-      redemptionLocation: `${field.building}号館のフォトスポット`,
+      redemptionLocation: `${buildingName}のフォトスポット`,
     },
   };
 }
 
 const campusMapAreas = Object.fromEntries(
-  Object.entries(campusFields).map(([campusId, fields]) => [campusId, fields.map(toMapArea)]),
+  (Object.entries(campusFields) as [CampusId, FieldDefinition[]][]).map(([campusId, fields]) => [
+    campusId,
+    fields.map((field) => toMapArea(campusId, field)),
+  ]),
 ) as Record<CampusId, MapArea[]>;
 
 // 校舎のフィールド（号館の番号順）。校舎が未選択なら空

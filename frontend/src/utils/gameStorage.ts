@@ -4,10 +4,37 @@ import { restoreRankState, type RankState } from "./hunterRank.ts";
 export const GAME_STORAGE_KEY = "monster-hunter-festival-game";
 // 選んでいる校舎
 export const CAMPUS_STORAGE_KEY = "monster-hunter-festival-campus";
+// 選んでいる号館（校舎）。会場ごとに別の値を持つ
+export const BUILDING_STORAGE_KEY = "monster-hunter-festival-building";
 
 // 進み具合は校舎ごとに分けて保存する
 export function getCampusGameKey(campusId: string) {
   return `${GAME_STORAGE_KEY}:${campusId}`;
+}
+
+export function getCampusBuildingKey(campusId: string) {
+  return `${BUILDING_STORAGE_KEY}:${campusId}`;
+}
+
+// 選んでいる号館。まだ選んでいない・読めないときは null
+export function readSelectedBuilding(storage: StorageReader, campusId: string): number | null {
+  try {
+    const raw = storage.getItem(getCampusBuildingKey(campusId));
+    if (raw === null) return null;
+    const building = Number(raw);
+    return Number.isInteger(building) ? building : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveSelectedBuilding(storage: StorageWriter, campusId: string, building: number): boolean {
+  try {
+    storage.setItem(getCampusBuildingKey(campusId), String(building));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 type StorageReader = Pick<Storage, "getItem">;

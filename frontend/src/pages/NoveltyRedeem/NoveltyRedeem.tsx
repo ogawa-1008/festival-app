@@ -147,7 +147,7 @@ function NoveltyRedeem() {
         ) : !progress.redeemable ? (
           <p className="novelty-note">{getRedeemConditionText(progress)}</p>
         ) : !campusId ? (
-          <p className="novelty-note">校舎を選んでから交換してください。</p>
+          <p className="novelty-note">エリアを選んでから交換してください。</p>
         ) : (
           <>
             <p className="novelty-stock">

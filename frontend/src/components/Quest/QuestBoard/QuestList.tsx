@@ -1,4 +1,5 @@
 import { useGame } from "../../../context/GameContext";
+import { useMapAreas } from "../../../context/useMapAreas";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
 import { PRACTICE_QUEST_ID } from "../../../data/quests";
 import QuestCard from "./QuestCard";
@@ -8,9 +9,18 @@ import "./QuestList.css";
 const positions = ["top", "middle", "bottom"] as const;
 
 function QuestList() {
-  const { quests } = useGame();
+  const { quests, buildingId } = useGame();
   const { active: practice } = useGameTutorial();
-  const visibleQuests = practice ? quests.filter((quest) => quest.id === PRACTICE_QUEST_ID) : quests;
+  const mapAreas = useMapAreas();
+  // 選んでいる校舎（号館）のクエストだけを表示する。
+  // 校舎を選ぶ前・保存データが古いときは、今までどおり会場の全クエストを表示する
+  const building = mapAreas.find((area) => area.id === buildingId);
+  const campusQuests = building
+    ? quests.filter((quest) => building.questIds.includes(quest.id))
+    : quests;
+  const visibleQuests = practice
+    ? quests.filter((quest) => quest.id === PRACTICE_QUEST_ID)
+    : campusQuests;
   const boards = Array.from({ length: Math.max(1, Math.ceil(visibleQuests.length / 3)) }, (_, index) =>
     visibleQuests.slice(index * 3, index * 3 + 3),
   );
