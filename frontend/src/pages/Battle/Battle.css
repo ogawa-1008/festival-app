@@ -100,7 +100,6 @@
 ========================= */
 
 .battle-header {
-  position: relative;
   width: 100%;
 
   padding:
@@ -575,6 +574,12 @@
 .battle-hand.is-winner img {
   border-color: var(--color-accent);
   box-shadow: 0 0 10px var(--color-accent);
+}
+
+/* モンスターが勝ったときは、「負け…」と同じ赤で光らせる */
+.battle-hand.is-enemy-winner img {
+  border-color: var(--color-danger-text);
+  box-shadow: 0 0 10px var(--color-danger);
 }
 
 .battle-hand figcaption {

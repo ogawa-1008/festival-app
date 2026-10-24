@@ -48,13 +48,6 @@ const HAND_LABELS: Record<Hand, string> = {
     paper: "パー",
 };
 
-// 出した手も、手を選ぶボタンと同じ画像で表示する。
-const HAND_IMAGES: Record<Hand, string> = {
-    rock: battleAssets.rock,
-    scissors: battleAssets.scissors,
-    paper: battleAssets.paper,
-};
-
 // メッセージはセッションから組み立てる（再読み込み後も直前の手と勝敗を表示できる）
 function getBattleMessage(session: BattleSession) {
     const { lastRound, endReason } = session;
@@ -332,12 +325,13 @@ function Battle() {
                     {session.lastRound && (
                         <div className="battle-hands">
                             <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
-                                <img src={HAND_IMAGES[session.lastRound.playerHand]} alt="" />
+                                {/* 出した手も、手を選ぶボタンと同じ画像で表示する */}
+                                <img src={battleAssets[session.lastRound.playerHand]} alt="" />
                                 <figcaption>あなた：{HAND_LABELS[session.lastRound.playerHand]}</figcaption>
                             </figure>
                             <span className="battle-hands-vs" aria-hidden="true">VS</span>
-                            <figure className={`battle-hand${roundResult === "enemy" ? " is-winner" : ""}`}>
-                                <img src={HAND_IMAGES[session.lastRound.enemyHand]} alt="" />
+                            <figure className={`battle-hand${roundResult === "enemy" ? " is-winner is-enemy-winner" : ""}`}>
+                                <img src={battleAssets[session.lastRound.enemyHand]} alt="" />
                                 <figcaption>モンスター：{HAND_LABELS[session.lastRound.enemyHand]}</figcaption>
                             </figure>
                         </div>
