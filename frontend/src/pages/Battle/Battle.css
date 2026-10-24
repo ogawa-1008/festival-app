@@ -533,7 +533,7 @@
   line-height: 1.5;
 }
 
-/* 手を使い切ったときの「最後の手」の一言 */
+/* 決着したときに添える最後の手の結果（ダメージの文。手切れは「最後の手：〜」の形） */
 .battle-message-sub {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);

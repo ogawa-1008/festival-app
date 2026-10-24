@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
 import { battleAssets } from "./battleAssets";
-import { HAND_LABELS, JANKEN_RULE_TEXT } from "../../data/jankenRule";
+import { HAND_LABELS, JANKEN_RULE_TEXT, ROUND_NAMES } from "../../data/jankenRule";
 import { HANDS } from "../../game/battle";
 
 import "./JankenRule.css";
@@ -97,15 +97,15 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
 
                     <dl className="janken-rule-results">
                         <div>
-                            <dt className="janken-rule-result-win">勝ち</dt>
+                            <dt className="janken-rule-result-win">{ROUND_NAMES.player}</dt>
                             <dd>モンスターにダメージを与える</dd>
                         </div>
                         <div>
-                            <dt className="janken-rule-result-lose">負け</dt>
+                            <dt className="janken-rule-result-lose">{ROUND_NAMES.enemy}</dt>
                             <dd>あなたがダメージを受ける</dd>
                         </div>
                         <div>
-                            <dt className="janken-rule-result-draw">あいこ</dt>
+                            <dt className="janken-rule-result-draw">{ROUND_NAMES.draw}</dt>
                             <dd>どちらのHPも変わらない（1手に数える）</dd>
                         </div>
                     </dl>

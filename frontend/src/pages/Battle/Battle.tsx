@@ -16,7 +16,7 @@ import {
     TURN_COOLDOWN_MS,
 } from "../../utils/battleSession";
 
-import { HAND_LABELS, HAND_NAMES_TEXT } from "../../data/jankenRule";
+import { HAND_LABELS, HAND_NAMES_TEXT, ROUND_NAMES } from "../../data/jankenRule";
 import { HANDS } from "../../game/battle";
 import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
@@ -43,9 +43,9 @@ const ROUND_MESSAGES: Record<RoundResult, string> = {
 };
 
 const ROUND_LABELS: Record<RoundResult, string> = {
-    player: "勝ち！",
-    enemy: "負け…",
-    draw: "あいこ！",
+    player: `${ROUND_NAMES.player}！`,
+    enemy: `${ROUND_NAMES.enemy}…`,
+    draw: `${ROUND_NAMES.draw}！`,
 };
 
 // 直前の手の結果（ダメージ）の文

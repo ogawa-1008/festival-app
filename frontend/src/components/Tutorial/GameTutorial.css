@@ -85,11 +85,10 @@
 .festival-tour--battle.driver-popover { top: calc(env(safe-area-inset-top, 0px) + 8px) !important; bottom: auto !important; padding: 14px 18px 12px; }
 .festival-tour--battle .driver-popover-title { font-size: 18px; }
 .festival-tour--battle .driver-popover-description { margin-top: 6px !important; line-height: 1.5; }
-.festival-tour--battle .driver-popover-footer { margin-top: 8px; }
 .festival-tour--battle .driver-popover-arrow { display: none; }
 /* 練習のバトルでは「次へ」などのボタンを使わないので、進み具合と「終了する」を1行に並べて背を低くする */
 .festival-tour.festival-tour--battle .driver-popover-navigation-btns { display: none !important; }
-.festival-tour.festival-tour--battle .driver-popover-footer { flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 0; }
+.festival-tour.festival-tour--battle .driver-popover-footer { margin-top: 8px; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 0; }
 .festival-tour.festival-tour--battle .tutorial-end-button { flex: 0 0 auto; margin: 0 0 0 auto; min-height: 44px; }
 
 /* 次に押すところを光らせて目立たせる（driver.js が対象に付けるクラス） */
