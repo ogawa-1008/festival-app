@@ -371,7 +371,7 @@
   margin:
     14px 0;
 
-  min-height: 64px;
+  min-height: 166px;
 
   display: flex;
 
@@ -661,6 +661,24 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .battle-turn-banner {
+    animation-name: battle-turn-banner-fade !important;
+  }
+}
+
+@keyframes battle-turn-banner-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  10%,
+  85% {
+    opacity: 1;
+  }
+}
+
 
 /* ターン帯: 横から流れて消える */
 
@@ -687,8 +705,8 @@
     transform: translate(-40%, -50%);
   }
 
-  20%,
-  75% {
+  10%,
+  85% {
     opacity: 1;
     transform: translate(0, -50%);
   }

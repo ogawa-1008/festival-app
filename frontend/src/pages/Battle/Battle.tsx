@@ -322,6 +322,9 @@ function Battle() {
                         <strong className={`battle-round-result battle-round-result--${roundResult}`}>{roundLabel}</strong>
                     )}
                     <span>{message.text}</span>
+                    {!session.lastRound && !isBattleOver && (
+                        <span>下のボタンからグー・チョキ・パーを選ぼう！</span>
+                    )}
                     {session.lastRound && (
                         <div className="battle-hands">
                             <figure className={`battle-hand${roundResult === "player" ? " is-winner" : ""}`}>
