@@ -10,6 +10,7 @@ import {
 import Home from "./pages/Home/Home";
 import CampusSelection from "./pages/CampusSelection/CampusSelection";
 import QuestLoading from "./pages/QuestLoading/QuestLoading";
+import QrEntry from "./pages/QrEntry/QrEntry";
 import GameTutorial from "./components/Tutorial/GameTutorial";
 import Map from "./pages/Map/Map";
 import Progress from "./pages/Progress/Progress";
@@ -64,6 +65,8 @@ function App() {
                 {/* 以前あった校舎（建物）選択の画面。エリアの全建物を遊べるようにしたので、ホームへ転送する */}
                 <Route path="/start/buildings" element={<Navigate to="/" replace />} />
                 <Route path="/quest-loading/:questId" element={<QuestLoading />} />
+                {/* 標準カメラで会場のQRコードを開いたときの受け口（QRの中身は https://ドメイン/q/QUEST_OSAKA_1） */}
+                <Route path="/q/:code" element={<QrEntry />} />
 
                 <Route
                   path="/map"

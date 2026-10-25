@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import HunterRank from "../../components/Header/HunterRank";
 import CollaborationLogo from "../../components/Logo/CollaborationLogo";
 import QuestList from "../../components/Quest/QuestBoard/QuestList";
@@ -19,6 +19,9 @@ function Home() {
   const { rankExp, campusId } = useGame();
   const campus = findCampus(campusId);
   const { startTutorial } = useGameTutorial();
+  // 標準カメラで開いたQRが、ほかのエリアのもの・クエスト用でないものだったときの案内
+  const location = useLocation();
+  const qrNotice = (location.state as { qrNotice?: string } | null)?.qrNotice ?? null;
 
   return (
     <main className="home">
@@ -181,6 +184,18 @@ function Home() {
         <div className="home-collaboration">
           <CollaborationLogo />
         </div>
+
+        {qrNotice && (
+          <div className="home-qr-notice" role="alert">
+            <p>{qrNotice}</p>
+            <button
+              type="button"
+              onClick={() => navigate(location.pathname, { replace: true, state: null })}
+            >
+              閉じる
+            </button>
+          </div>
+        )}
 
         <Link to="/qr-scanner" className="home-qr-cta">
           <svg
