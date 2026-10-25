@@ -91,6 +91,10 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
           endButton.textContent = "チュートリアルを終了する";
           endButton.addEventListener("click", () => finish());
           popover.footer.appendChild(endButton);
+          // 説明文以外（見出し・ボタン・余白）の高さを CSS に渡し、ポップが画面に収まる分だけ説明文を表示する
+          // （それ以上は説明文の中でスクロールする。GameTutorial.css）
+          const chrome = popover.wrapper.offsetHeight - popover.description.offsetHeight;
+          popover.wrapper.style.setProperty("--tutorial-popover-chrome", `${chrome}px`);
         },
         onHighlighted: (element) => {
           if (element instanceof HTMLElement) {
