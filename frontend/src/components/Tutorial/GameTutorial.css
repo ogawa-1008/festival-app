@@ -92,6 +92,18 @@
 .festival-tour.festival-tour--battle .driver-popover-footer { margin-top: 8px; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 0; }
 .festival-tour.festival-tour--battle .tutorial-end-button { flex: 0 0 auto; margin: 0 0 0 auto; min-height: 44px; }
 
+/* 暗い背景（driver.js の SVG）は指を受け止めず、下の画面に通す。
+   受け止めると画面全体に固定された背景の上で指を動かすことになり、ページをスクロールできない。
+   光らせていないボタンなどは、別途 inert で押せないようにしている */
+.driver-active .driver-overlay path { pointer-events: none !important; }
+/* 中の枠でスクロールする画面（リザルトなど）は、その枠だけ指を受けられるようにし、
+   driver.js がかけるスクロール止めも元の overflow に戻す（印と元の値は GameTutorial.tsx で付ける） */
+.driver-active [data-tutorial-scroll] { pointer-events: auto; }
+.driver-active [data-tutorial-scroll].driver-active-element-parent-no-scroll {
+  overflow-x: var(--tutorial-overflow-x) !important;
+  overflow-y: var(--tutorial-overflow-y) !important;
+}
+
 /* 次に押すところを光らせて目立たせる（driver.js が対象に付けるクラス） */
 .driver-active .driver-active-element {
   outline: 3px solid var(--color-accent);

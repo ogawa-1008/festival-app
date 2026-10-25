@@ -11,6 +11,42 @@ import "driver.js/dist/driver.css";
 import "../Festival/FestivalDesign.css";
 import "./GameTutorial.css";
 
+// driver.js は光らせていない部分の指をすべて受け流し（pointer-events: none）、光らせた部品の親がスクロールする枠なら
+// スクロールも止める（overflow: hidden）。中の枠でスクロールする画面（リザルトなど）でも指で動かせるよう、
+// 実際にスクロールする枠に印を付け、元の overflow を CSS に渡す（GameTutorial.css）。
+// 印は React が書き換える class ではなく data 属性にする
+const DRIVER_NO_SCROLL = "driver-active-element-parent-no-scroll";
+
+function markScrollContainers() {
+  const found: { element: HTMLElement; x: string; y: string }[] = [];
+  // 読み取りをまとめてから書き込む（読み書きを交互にすると、そのたびに配置を計算し直すため）
+  for (const element of document.querySelectorAll<HTMLElement>(".app *")) {
+    if (element.dataset.tutorialScroll !== undefined) continue;
+    // 中身があふれていない枠・入力欄・ダイアログは対象にしない（指を受けると、背景を押したときの処理などが動く）
+    if (element instanceof HTMLDialogElement || element instanceof HTMLTextAreaElement) continue;
+    if (element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth) continue;
+    // driver.js がスクロールを止めている枠は、止める前の値を読む
+    const locked = element.classList.contains(DRIVER_NO_SCROLL);
+    if (locked) element.classList.remove(DRIVER_NO_SCROLL);
+    const { overflowX, overflowY } = getComputedStyle(element);
+    if (locked) element.classList.add(DRIVER_NO_SCROLL);
+    if (/auto|scroll/.test(overflowX + overflowY)) found.push({ element, x: overflowX, y: overflowY });
+  }
+  for (const { element, x, y } of found) {
+    element.style.setProperty("--tutorial-overflow-x", x);
+    element.style.setProperty("--tutorial-overflow-y", y);
+    element.dataset.tutorialScroll = "";
+  }
+}
+
+function unmarkScrollContainers() {
+  for (const element of document.querySelectorAll<HTMLElement>("[data-tutorial-scroll]")) {
+    element.style.removeProperty("--tutorial-overflow-x");
+    element.style.removeProperty("--tutorial-overflow-y");
+    delete element.dataset.tutorialScroll;
+  }
+}
+
 function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
   stepId: string; steps: TutorialStep[]; advance: (action: string) => void; finish: (completed?: boolean) => void; minimize: () => void;
 }) {
@@ -108,6 +144,15 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
     const observer = new MutationObserver(updateControls);
     const app = document.querySelector(".app");
     if (app) observer.observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-tutorial"] });
+    // スクロールする枠は、光らせる前に印を付ける（driver.js がスクロールを止めた瞬間から CSS で戻せるように）。
+    // 中身や class が変わってあふれるようになった枠にも付けるが、画面の変化が続いても1フレームに1回だけ調べる
+    markScrollContainers();
+    let scrollFrame = 0;
+    const scrollObserver = new MutationObserver(() => {
+      cancelAnimationFrame(scrollFrame);
+      scrollFrame = requestAnimationFrame(markScrollContainers);
+    });
+    if (app) scrollObserver.observe(app, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "style"] });
     tour.setConfig({ ...tour.getConfig(), overlayOpacity: stepId === "battle" ? .42 : .68 });
     const onSliderTab = (event: KeyboardEvent) => {
       if (stepId !== "confirm" || event.key !== "Tab") return;
@@ -126,7 +171,10 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
       cancelAnimationFrame(frame);
       window.removeEventListener("keydown", onSliderTab, true);
       observer.disconnect();
+      scrollObserver.disconnect();
+      cancelAnimationFrame(scrollFrame);
       previous.forEach((inert, element) => { element.inert = inert; });
+      unmarkScrollContainers();
     };
   }, [tour, stepId, steps, pathname]);
 
