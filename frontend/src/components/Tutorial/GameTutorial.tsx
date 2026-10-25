@@ -57,6 +57,12 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
           popover.footer.appendChild(endButton);
         },
         onHighlighted: (element) => {
+          // driver.js は光らせた部品の親がスクロールする枠だと、スクロールを止める（overflow: hidden）。
+          // リザルトのように画面の中身がその枠に入っている画面では、下まで見られなくなるため止めない
+          for (const parent of document.querySelectorAll<HTMLElement>(".driver-active-element-parent-no-scroll")) {
+            parent.classList.remove("driver-active-element-parent-no-scroll");
+            parent.classList.add("tutorial-scrollable");
+          }
           if (element instanceof HTMLElement) {
             const rect = element.getBoundingClientRect();
             if (rect.top < 0 || rect.bottom > window.innerHeight) {
@@ -103,6 +109,12 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
         if (!previous.has(element)) previous.set(element, element.inert);
         element.inert = target?.contains(element) ? previous.get(element)! : true;
       }
+      // driver.js は光らせていない部分の指を全部受け流すため、中の枠でスクロールする画面（リザルトなど）は
+      // その枠を指で動かせない。スクロールできる枠だけ指を受けられるようにする（ボタンは上の inert で押せない）
+      for (const element of document.querySelectorAll<HTMLElement>(".app *")) {
+        const { overflowX, overflowY } = getComputedStyle(element);
+        if (/auto|scroll/.test(overflowY + overflowX)) element.classList.add("tutorial-scrollable");
+      }
     };
     updateControls();
     const observer = new MutationObserver(updateControls);
@@ -127,6 +139,7 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
       window.removeEventListener("keydown", onSliderTab, true);
       observer.disconnect();
       previous.forEach((inert, element) => { element.inert = inert; });
+      document.querySelectorAll(".tutorial-scrollable").forEach((element) => element.classList.remove("tutorial-scrollable"));
     };
   }, [tour, stepId, steps, pathname]);
 
