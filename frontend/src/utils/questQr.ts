@@ -26,11 +26,16 @@ export function parseQuestQr(text: string): string | null {
 
 function readCode(raw: string) {
   try {
-    const code = decodeURIComponent(raw.replace(/\/$/, ""));
-    return /^[A-Za-z0-9_-]+$/.test(code) ? code : null;
+    return toQuestCode(decodeURIComponent(raw.replace(/\/$/, "")));
   } catch {
     return null;
   }
+}
+
+// クエストの文字列として使える形（英数字・_・-）なら、そのまま返す。
+// /q/:code の code のように、すでに URL のデコードが済んだ値に使う
+export function toQuestCode(value: string): string | null {
+  return /^[A-Za-z0-9_-]+$/.test(value) ? value : null;
 }
 
 // 会場に貼るQRコードの中身（URL）を作る。baseUrl は本番のアプリの URL（https://example.com など）

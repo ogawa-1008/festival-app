@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import HunterRank from "../../components/Header/HunterRank";
 import CollaborationLogo from "../../components/Logo/CollaborationLogo";
 import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
+import { useQrNotice } from "../../context/qrNotice";
 import { findCampus } from "../../data/campuses";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getHistoryIndex } from "../../utils/historyIndex";
@@ -20,8 +21,7 @@ function Home() {
   const campus = findCampus(campusId);
   const { startTutorial } = useGameTutorial();
   // 標準カメラで開いたQRが、ほかのエリアのもの・クエスト用でないものだったときの案内
-  const location = useLocation();
-  const qrNotice = (location.state as { qrNotice?: string } | null)?.qrNotice ?? null;
+  const { qrNotice, setQrNotice } = useQrNotice();
 
   return (
     <main className="home">
@@ -190,7 +190,7 @@ function Home() {
             <p>{qrNotice}</p>
             <button
               type="button"
-              onClick={() => navigate(location.pathname, { replace: true, state: null })}
+              onClick={() => setQrNotice(null)}
             >
               閉じる
             </button>

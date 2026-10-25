@@ -16,9 +16,19 @@ const option = (name) => {
   return index >= 0 ? args[index + 1] : undefined;
 };
 
-const baseUrl = option("base") ?? process.env.QR_BASE_URL;
-if (!baseUrl || !/^https?:\/\//.test(baseUrl)) {
-  console.error("本番のアプリの URL を --base で指定してください（例：npm run qr -- --base https://festival.example.com）");
+// アプリはドメイン直下（/q/...）でだけ受け付けるので、パス・?・# の付いた URL は使えない
+const readBaseUrl = (value) => {
+  try {
+    const url = new URL(value);
+    const rootOnly = url.pathname === "/" && !url.search && !url.hash && !/[?#]/.test(value);
+    return /^https?:$/.test(url.protocol) && rootOnly ? url.origin : null;
+  } catch {
+    return null;
+  }
+};
+const baseUrl = readBaseUrl(option("base") ?? process.env.QR_BASE_URL ?? "");
+if (!baseUrl) {
+  console.error("本番のアプリの URL（ドメインまで）を --base で指定してください（例：npm run qr -- --base https://festival.example.com）");
   process.exit(1);
 }
 const outDir = resolve(option("out") ?? "quest-qr");

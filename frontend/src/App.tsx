@@ -26,6 +26,8 @@ import Exchange from "./pages/Exchange/Exchange.tsx";
 import NoveltyRedeem from "./pages/NoveltyRedeem/NoveltyRedeem.tsx";
 import { GameProvider, useGame } from "./context/GameContext";
 import { BattleSessionProvider } from "./context/BattleSessionContext";
+import { QrNoticeProvider } from "./context/QrNoticeProvider";
+import { QUEST_QR_PATH } from "./utils/questQr";
 
 import "./App.css";
 
@@ -58,6 +60,7 @@ function App() {
       <BattleSessionProvider>
         <BrowserRouter>
           <div className="app">
+            <QrNoticeProvider>
             <GameTutorial>
               <Routes>
                 <Route path="/" element={<HomeEntry />} />
@@ -66,7 +69,7 @@ function App() {
                 <Route path="/start/buildings" element={<Navigate to="/" replace />} />
                 <Route path="/quest-loading/:questId" element={<QuestLoading />} />
                 {/* 標準カメラで会場のQRコードを開いたときの受け口（QRの中身は https://ドメイン/q/QUEST_OSAKA_1） */}
-                <Route path="/q/:code" element={<QrEntry />} />
+                <Route path={`${QUEST_QR_PATH}:code`} element={<QrEntry />} />
 
                 <Route
                   path="/map"
@@ -104,6 +107,7 @@ function App() {
                 <Route path="/novelty/:fieldId" element={<NoveltyRedeem />} />
               </Routes>
             </GameTutorial>
+            </QrNoticeProvider>
           </div>
         </BrowserRouter>
       </BattleSessionProvider>

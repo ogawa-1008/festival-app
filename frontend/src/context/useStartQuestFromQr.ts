@@ -30,11 +30,12 @@ export function useStartQuestFromQr() {
   const { startBattle } = useBattleSession();
   const { weaponClaimed, quests } = useGame();
 
-  // カメラ起動後に別タブで武器を交換しても、読み取った時点の値を使えるよう最新値を持つ
-  const latest = useRef({ weaponClaimed, quests });
+  // カメラの読み取り処理は起動したときの関数を使い続けるため、読み取った時点の値を使えるよう最新値を持つ
+  // （カメラ起動後に別タブで武器を交換した・練習を終えた場合など）
+  const latest = useRef({ weaponClaimed, quests, practice, advance });
   useEffect(() => {
-    latest.current = { weaponClaimed, quests };
-  }, [weaponClaimed, quests]);
+    latest.current = { weaponClaimed, quests, practice, advance };
+  }, [weaponClaimed, quests, practice, advance]);
 
   // 選んでいるエリアのクエストから探す（練習中は練習用のクエストも）
   const lookup = useCallback((code: string | null): QrLookup => {
@@ -82,11 +83,12 @@ export function useStartQuestFromQr() {
           : null,
       });
     } else {
+      const { practice, advance } = latest.current;
       if (practice) advance("qr-scanned");
       navigate(`/quest-loading/${quest.id}`, { replace: options.replace || practice });
     }
     return true;
-  }, [startBattle, navigate, practice, advance]);
+  }, [startBattle, navigate]);
 
   return { lookup, start };
 }
