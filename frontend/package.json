@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "qr": "node --experimental-strip-types scripts/generate-quest-qr.mjs"
   },
   "dependencies": {
     "driver.js": "1.10.2",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
+    "qrcode": "^1.5.4",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   }

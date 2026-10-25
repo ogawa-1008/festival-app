@@ -2,12 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useBattleSession } from "../../context/BattleSessionContext";
-import { findCampus } from "../../data/campuses";
-import { allCampusQuests } from "../../data/maps";
-import { quests as allQuests } from "../../data/quests";
 import { useGame } from "../../context/GameContext";
-import { getBattleStats } from "../../utils/battleStats";
+import { useStartQuestFromQr } from "../../context/useStartQuestFromQr";
+import { parseQuestQr } from "../../utils/questQr";
 import {
   classifyCameraError,
   classifyEnvironment,
@@ -20,12 +17,6 @@ import {
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 
 import "./QRScanner.css";
-
-const getTakeOverMessage = (title: string) =>
-  `別のタブで開いていた「${title}」のバトル・リザルトがあります。\nこのタブで続きから引き継ぎますか？`;
-
-const getDiscardMessage = (title: string, isElsewhere: boolean) =>
-  `${isElsewhere ? "別のタブで開いていた" : ""}「${title}」のバトルが途中です。\nこのバトルを破棄して、新しくバトルを始めますか？`;
 
 const SCAN_SETTINGS = {
   fps: 10,
@@ -59,18 +50,9 @@ function QRScanner() {
   const location = useLocation();
   const { active: practice, step, questId: practiceQuestId, advance } = useGameTutorial();
 
-  const { startBattle } = useBattleSession();
-  const { weaponClaimed, quests } = useGame();
-
-  // カメラ起動後に別タブで武器を交換しても、読み取った時点の値を使えるよう最新値を持つ
-  const weaponClaimedRef = useRef(weaponClaimed);
-  // 読み取れるのは選んでいる校舎のクエストだけ（練習中は練習用のクエストも）
-  const questsRef = useRef(quests);
-
-  useEffect(() => {
-    weaponClaimedRef.current = weaponClaimed;
-    questsRef.current = quests;
-  }, [weaponClaimed, quests]);
+  const { quests } = useGame();
+  // 読み取れるのは選んでいるエリアのクエストだけ（練習中は練習用のクエストも）
+  const { lookup, start } = useStartQuestFromQr();
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
@@ -171,80 +153,24 @@ function QRScanner() {
     };
   }, [practice]);
 
-  // QRコードを読み取れたとき
+  // QRコードを読み取れたとき（中身は URL でも、以前の文字列でもよい）
   const handleScanSuccess = (decodedText: string) => {
     if (hasScannedRef.current) {
       return;
     }
 
-    const quests = questsRef.current;
-    const quest = quests.find(
-      (item) =>
-        item.qrCode === decodedText
-    );
+    const found = lookup(parseQuestQr(decodedText));
 
-    if (quest) {
-      hasScannedRef.current = true;
-      setIsScanning(false);
-
-      // 交換済みの武器を反映した、このバトルのステータス
-      const stats = getBattleStats(quest, {
-        weaponClaimed: weaponClaimedRef.current,
-      });
-
-      // QRを読み取った証拠としてバトルセッションを開始する
-      let start = startBattle(quest.id, stats);
-
-      // 別タブのセッション・別クエストが戦闘中の場合は確認する
-      if (start.type === "confirm") {
-        const previousId = start.questId;
-        const title =
-          allQuests.find((item) => item.id === previousId)?.title
-            ?? "前回のクエスト";
-        const message = start.mode === "takeover"
-          ? getTakeOverMessage(title)
-          : getDiscardMessage(title, start.isElsewhere);
-
-        if (!window.confirm(message)) {
-          navigate("/");
-          void stopScanner();
-          return;
-        }
-
-        start = startBattle(quest.id, stats, { force: true });
-      }
-
-      // カメラの停止完了を待つと、端末によっては
-      // 映像だけが黒いまま遷移しないことがある。
-      if (start.type === "result") {
-        const pendingTitle =
-          allQuests.find((item) => item.id === start.questId)?.title;
-
-        // 別クエストのQRを読んだのに前のリザルトへ進む理由を伝える
-        navigate(`/result/${start.questId}`, {
-          state: start.questId !== quest.id && pendingTitle
-            ? {
-                notice: `「${pendingTitle}」の報酬を受け取ってから、次のバトルを始められます`,
-              }
-            : null,
-        });
-      } else {
-        if (practice) advance("qr-scanned");
-        navigate(`/quest-loading/${quest.id}`, { replace: practice });
-      }
-      void stopScanner();
-    } else {
-      // ほかの校舎のQRなら、どの校舎のものかを伝える
-      const otherCampus = findCampus(
-        allCampusQuests.find((item) => item.quest.qrCode === decodedText)?.campusId ?? null,
-      );
-      setErrorMessage(
-        otherCampus
-          ? `このQRコードは${otherCampus.name}のクエストです。選んでいるエリアのQRコードを読み取ってください`
-          : "このQRコードはクエスト用ではありません"
-      );
+    if (found.kind !== "quest") {
+      setErrorMessage(found.message);
+      return;
     }
 
+    hasScannedRef.current = true;
+    setIsScanning(false);
+    // カメラの停止完了を待つと、端末によっては映像だけが黒いまま遷移しないことがあるため、先に進む
+    start(found.quest);
+    void stopScanner();
   };
 
   // カメラを起動する。起動中に画面を離れたり止められたりしていたら、起動したカメラを止める

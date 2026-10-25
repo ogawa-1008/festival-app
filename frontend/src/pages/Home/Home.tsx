@@ -5,6 +5,7 @@ import CollaborationLogo from "../../components/Logo/CollaborationLogo";
 import QuestList from "../../components/Quest/QuestBoard/QuestList";
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGame } from "../../context/GameContext";
+import { useQrNotice } from "../../context/qrNotice";
 import { findCampus } from "../../data/campuses";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getHistoryIndex } from "../../utils/historyIndex";
@@ -19,6 +20,8 @@ function Home() {
   const { rankExp, campusId } = useGame();
   const campus = findCampus(campusId);
   const { startTutorial } = useGameTutorial();
+  // 標準カメラで開いたQRが、ほかのエリアのもの・クエスト用でないものだったときの案内
+  const { qrNotice, setQrNotice } = useQrNotice();
 
   return (
     <main className="home">
@@ -181,6 +184,18 @@ function Home() {
         <div className="home-collaboration">
           <CollaborationLogo />
         </div>
+
+        {qrNotice && (
+          <div className="home-qr-notice" role="alert">
+            <p>{qrNotice}</p>
+            <button
+              type="button"
+              onClick={() => setQrNotice(null)}
+            >
+              閉じる
+            </button>
+          </div>
+        )}
 
         <Link to="/qr-scanner" className="home-qr-cta">
           <svg

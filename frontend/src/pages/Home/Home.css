@@ -333,6 +333,50 @@
   margin: 0 auto;
 }
 
+/* 標準カメラで開いたQRが使えなかったときの案内 */
+.home-qr-notice {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin: 0 16px 12px;
+  padding: 12px;
+
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+
+  background: rgba(40, 12, 10, 0.9);
+
+  color: var(--color-text);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.home-qr-notice p {
+  flex: 1;
+
+  margin: 0;
+}
+
+.home-qr-notice button {
+  flex-shrink: 0;
+
+  min-height: 44px;
+  padding: 0 12px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-bg-panel);
+
+  color: var(--color-text);
+
+  cursor: pointer;
+}
+
 .home-qr-cta {
   display: flex;
   align-items: center;

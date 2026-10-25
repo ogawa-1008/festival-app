@@ -4,6 +4,7 @@ import type { Driver } from "driver.js";
 import { BattleSessionProvider } from "../../context/BattleSessionContext";
 import { GameProvider, useGame } from "../../context/GameContext";
 import { GameTutorialContext } from "./useGameTutorial";
+import { useQrNotice } from "../../context/qrNotice";
 import { clearPractice, createTutorialSteps, hasSeenTutorial, readActiveTutorialStep, saveActiveTutorialStep, saveTutorialStatus, type TutorialStep } from "./tutorialSteps";
 import { PRACTICE_QUEST_ID } from "../../data/quests";
 import "driver.js/dist/driver.css";
@@ -162,7 +163,9 @@ export default function GameTutorial({ children }: { children: ReactNode }) {
   const [requestedStep, setRequestedStep] = useState<string | null>(() => readActiveTutorialStep(pathname, steps));
   // ×で閉じた（最小化した）状態。練習は続いているので、いつでも再開できる
   const [minimized, setMinimized] = useState(false);
-  const step = requestedStep ?? (!seen && campusId && pathname === "/" ? "welcome" : null);
+  // QRの案内がホームに出ている間は、閉じるまで最初のガイドを始めない（ガイドに隠れて読めなくなるため）
+  const { qrNotice } = useQrNotice();
+  const step = requestedStep ?? (!seen && campusId && pathname === "/" && !qrNotice ? "welcome" : null);
   const active = step !== null && campusId !== null;
   const restoreFocus = useRef(false);
 

@@ -10,6 +10,7 @@ import {
 import Home from "./pages/Home/Home";
 import CampusSelection from "./pages/CampusSelection/CampusSelection";
 import QuestLoading from "./pages/QuestLoading/QuestLoading";
+import QrEntry from "./pages/QrEntry/QrEntry";
 import GameTutorial from "./components/Tutorial/GameTutorial";
 import Map from "./pages/Map/Map";
 import Progress from "./pages/Progress/Progress";
@@ -25,6 +26,8 @@ import Exchange from "./pages/Exchange/Exchange.tsx";
 import NoveltyRedeem from "./pages/NoveltyRedeem/NoveltyRedeem.tsx";
 import { GameProvider, useGame } from "./context/GameContext";
 import { BattleSessionProvider } from "./context/BattleSessionContext";
+import { QrNoticeProvider } from "./context/QrNoticeProvider";
+import { QUEST_QR_PATH } from "./utils/questQr";
 
 import "./App.css";
 
@@ -57,6 +60,7 @@ function App() {
       <BattleSessionProvider>
         <BrowserRouter>
           <div className="app">
+            <QrNoticeProvider>
             <GameTutorial>
               <Routes>
                 <Route path="/" element={<HomeEntry />} />
@@ -64,6 +68,8 @@ function App() {
                 {/* 以前あった校舎（建物）選択の画面。エリアの全建物を遊べるようにしたので、ホームへ転送する */}
                 <Route path="/start/buildings" element={<Navigate to="/" replace />} />
                 <Route path="/quest-loading/:questId" element={<QuestLoading />} />
+                {/* 標準カメラで会場のQRコードを開いたときの受け口（QRの中身は https://ドメイン/q/QUEST_OSAKA_1） */}
+                <Route path={`${QUEST_QR_PATH}:code`} element={<QrEntry />} />
 
                 <Route
                   path="/map"
@@ -101,6 +107,7 @@ function App() {
                 <Route path="/novelty/:fieldId" element={<NoveltyRedeem />} />
               </Routes>
             </GameTutorial>
+            </QrNoticeProvider>
           </div>
         </BrowserRouter>
       </BattleSessionProvider>
