@@ -5,10 +5,10 @@ import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
-import { progressData } from "../../data/progress";
 import { getFieldProgress } from "../../utils/fieldProgress";
 import { getWallpaperProgress } from "../../utils/hunterRankReward";
-import { countEnoughWeaponMaterials, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
+import { weapons } from "../../data/weapons";
+import { hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
 
 import "./Progress.css";
 
@@ -17,7 +17,6 @@ function Progress() {
   const { materials, weaponClaimed, requiresUpdate, quests, obtainedFieldNoveltyIds, rankExp } = useGame();
   const { active, advance } = useGameTutorial();
 
-  const enoughMaterials = countEnoughWeaponMaterials(materials);
   const canCraft = !weaponClaimed && !requiresUpdate && hasEnoughWeaponMaterials(materials);
 
   const mapAreas = useMapAreas();
@@ -30,20 +29,19 @@ function Progress() {
 
   const wallpaper = getWallpaperProgress(rankExp);
 
-  const allMaterials = progressData.materials.length;
+  // 作った武器の数（今は武器が1本だけなので、作ったかどうかで数える）
+  const craftedWeapons = weaponClaimed ? 1 : 0;
 
   const cards = [
     {
       to: "/progress/weapons",
       icon: "⚔",
       title: "武器を作る",
-      status: weaponClaimed
-        ? "作成済み"
-        : requiresUpdate
-          ? "アプリの更新が必要です"
-          : canCraft
+      status: requiresUpdate && !weaponClaimed
+        ? "アプリの更新が必要です"
+        : canCraft
           ? "素材がそろいました。作れます"
-          : `そろった素材 ${enoughMaterials} / ${allMaterials} 種類`,
+          : `作った武器 ${craftedWeapons} / ${weapons.length} 個`,
       highlight: canCraft,
       tutorial: "progress-weapons",
     },
