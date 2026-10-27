@@ -18,6 +18,7 @@ import { HANDS } from "../../game/battle";
 import { getBattleMessage, getShownRoundResult, ROUND_LABELS } from "./battleMessage";
 import JankenRule from "./JankenRule";
 import { useCooldown } from "./useCooldown";
+import { playSe } from "../../utils/sound";
 
 import "./Battle.css";
 
@@ -203,6 +204,7 @@ function Battle() {
 
         if (round?.session.endReason) {
             setEndBannerUntil(Date.now() + HUNT_BANNER_MS);
+            playSe(round.session.endReason === "victory" ? "questClear" : "questFailed");
         }
     };
 

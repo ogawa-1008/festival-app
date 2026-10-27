@@ -7,6 +7,7 @@ import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getWeaponAttack } from "../../utils/playerStats";
 import { canUpgradeWeapon, formatZenny, getCurrentWeapon, getNextWeapon } from "../../utils/weaponUpgrade";
 import type { Weapon } from "../../data/weapons";
+import { playSe } from "../../utils/sound";
 
 import "./Exchange.css";
 
@@ -42,6 +43,7 @@ function Exchange() {
     if (!next) return false;
     const target = { from: current, to: next };
     if (!upgradeWeapon()) return false;
+    playSe("questClear");
 
     setUpgraded(target);
     setIsFinishing(true);

@@ -6,6 +6,7 @@ import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { campuses } from "../../data/campuses";
 import { getHistoryIndex } from "../../utils/historyIndex";
+import { hasChosenSound, setSoundEnabled, startBgm } from "../../utils/sound";
 import "./CampusSelection.css";
 
 type Campus = (typeof campuses)[number];
@@ -20,6 +21,8 @@ function CampusSelection() {
   // 決めたときに、今の画面がそのすぐ次なら1つ戻る（履歴にホームが2つ並ばないように）
   const returnIdx = (useLocation().state as { returnIdx?: number } | null)?.returnIdx;
   const [pendingCampus, setPendingCampus] = useState<Campus | null>(null);
+  // エリアを決めたあと、まだ選んでいなければ、音を鳴らすかを聞く
+  const [askingSound, setAskingSound] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   // バトル中・報酬を受け取る前は、別の校舎に変えると報酬を受け取れなくなるので変えさせない
   const isBattleUnfinished = session !== null && !session.claimed;
@@ -32,6 +35,21 @@ function CampusSelection() {
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
+  // （履歴の位置が読めないときも、ホームへ進むだけで困らない）
+  const leave = () => {
+    const currentIdx = getHistoryIndex();
+    if (returnIdx !== undefined && currentIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
+    else navigate("/", { replace: true });
+  };
+
+  // 鳴らすかを選んだらホームへ（スマホは、タップした瞬間でないとBGMを流し始められないため、ここで流し始める）
+  const chooseSound = (on: boolean) => {
+    setSoundEnabled(on);
+    if (on) startBgm();
+    leave();
+  };
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -46,7 +64,7 @@ function CampusSelection() {
 
       <div className="campus-content">
         <header className="campus-heading">
-          <p className="campus-eyebrow">― 文化祭 × モンハンコラボ ―</p>
+          <p className="campus-eyebrow">― バンタン文化祭 × モンハンコラボ ―</p>
           <h1>エリアを選択</h1>
         </header>
 
@@ -77,48 +95,71 @@ function CampusSelection() {
 
       <dialog
         ref={dialogRef}
-        className="campus-dialog campus-paper festival-ui"
+        className={`campus-dialog campus-paper festival-ui${askingSound ? " campus-dialog--sound" : ""}`}
         aria-labelledby="campus-confirm-title"
-        aria-describedby="campus-confirm-name campus-confirm-description"
-        onClose={() => setPendingCampus(null)}
+        aria-describedby={askingSound ? "campus-confirm-description" : "campus-confirm-name campus-confirm-description"}
+        // 音を聞いている途中で閉じたら（Esc など）、選ばずにホームへ進む（音はオフのまま。次にエリアを選ぶときにまた聞く）
+        onClose={() => {
+          setPendingCampus(null);
+          if (askingSound) leave();
+        }}
       >
         <span className="campus-dialog-ornament" aria-hidden="true" />
-        <p className="campus-eyebrow">― 出発前の確認 ―</p>
-        <h2 id="campus-confirm-title">このエリアで始めますか？</h2>
-        <div className="campus-chosen">
-          <p id="campus-confirm-name">{pendingCampus?.name}</p>
-          <p className="campus-english">{pendingCampus?.englishName}</p>
-        </div>
-        <p id="campus-confirm-description" className="campus-confirm-description">
-          {blockedByPractice
-            ? <>操作の練習中は<br />エリアを変えられません。</>
-            : blocked
-            ? <>バトル中、または報酬を受け取る前は<br />エリアを変えられません。</>
-            : <>選択したエリアのクエストと<br />マップを表示します。</>}
-        </p>
-        <div className="campus-dialog-actions">
-          <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
-            選び直す
-          </button>
-          <button
-            type="button"
-            className="festival-button"
-            disabled={blocked}
-            onClick={() => {
-              if (!pendingCampus || blocked) return;
-              // 同じエリアを選んだときは選び直さない（練習中も、進み具合を読み直さずにそのまま戻る）
-              if (!changingCampus || selectCampus(pendingCampus.id)) {
-                // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
-                // （履歴の位置が読めないときも、ホームへ進むだけで困らない）
-                const currentIdx = getHistoryIndex();
-                if (returnIdx !== undefined && currentIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
-                else navigate("/", { replace: true });
-              }
-            }}
-          >
-            このエリアに決定
-          </button>
-        </div>
+        {askingSound ? (
+          <>
+            <p className="campus-eyebrow">― サウンドの設定 ―</p>
+            <h2 id="campus-confirm-title">音を鳴らしますか？</h2>
+            <p id="campus-confirm-description" className="campus-confirm-description">
+              BGMと効果音が流れます。<br />あとからメニューで切り替えられます。
+            </p>
+            <div className="campus-dialog-actions">
+              <button type="button" className="campus-cancel" autoFocus onClick={() => chooseSound(false)}>
+                鳴らさない
+              </button>
+              <button type="button" className="festival-button" onClick={() => chooseSound(true)}>
+                鳴らす
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="campus-eyebrow">― 出発前の確認 ―</p>
+            <h2 id="campus-confirm-title">このエリアで始めますか？</h2>
+            <div className="campus-chosen">
+              <p id="campus-confirm-name">{pendingCampus?.name}</p>
+              <p className="campus-english">{pendingCampus?.englishName}</p>
+            </div>
+            <p id="campus-confirm-description" className="campus-confirm-description">
+              {blockedByPractice
+                ? <>操作の練習中は<br />エリアを変えられません。</>
+                : blocked
+                ? <>バトル中、または報酬を受け取る前は<br />エリアを変えられません。</>
+                : <>選択したエリアのクエストと<br />マップを表示します。</>}
+            </p>
+            <div className="campus-dialog-actions">
+              <button type="button" className="campus-cancel" autoFocus onClick={() => dialogRef.current?.close()}>
+                選び直す
+              </button>
+              <button
+                type="button"
+                className="festival-button"
+                disabled={blocked}
+                onClick={() => {
+                  if (!pendingCampus || blocked) return;
+                  // スマホは、タップした瞬間でないとBGMを流し始められないため、決定を押したときに流し始める（オフなら流さない）
+                  startBgm();
+                  // 同じエリアを選んだときは選び直さない（練習中も、進み具合を読み直さずにそのまま戻る）
+                  if (!changingCampus || selectCampus(pendingCampus.id)) {
+                    if (hasChosenSound()) leave();
+                    else setAskingSound(true);
+                  }
+                }}
+              >
+                このエリアに決定
+              </button>
+            </div>
+          </>
+        )}
       </dialog>
     </main>
   );

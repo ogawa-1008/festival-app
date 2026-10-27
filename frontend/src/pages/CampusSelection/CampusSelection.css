@@ -57,6 +57,10 @@
   text-align: center;
 }
 .campus-dialog[open] { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+/* 音を鳴らすかを聞くときは中身が少ないので、上下の真ん中に置く */
+.campus-dialog--sound[open] { justify-content: center; }
+/* 「鳴らさない」「鳴らす」はどちらかに寄せず、同じ大きさにする */
+.campus-dialog--sound .campus-dialog-actions { grid-template-columns: 1fr 1fr; }
 .campus-dialog::backdrop { background: rgb(8 6 6 / 72%); }
 .campus-dialog .campus-eyebrow { color: var(--festival-surface); }
 .campus-dialog h2 { margin: 0; font-size: 22px; font-weight: 400; line-height: 1.28; letter-spacing: .04em; text-wrap: balance; }
