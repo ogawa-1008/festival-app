@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
@@ -27,11 +27,8 @@ type Remaining = number | null | undefined;
 // フィールドのステッカーをフォトスポットで交換する画面
 function NoveltyRedeem() {
   const navigate = useNavigate();
-  // マップ・スタンプから開いたときはその画面へ、それ以外はステッカー一覧へ戻る
-  const returnTo = (useLocation().state as { returnTo?: string } | null)?.returnTo;
-  const back = returnTo
-    ? { to: returnTo, label: "前の画面へ戻る", replace: true }
-    : { to: "/progress/stickers", label: "ステッカーの画面へ戻る", replace: false };
+  // 交換画面へは進捗のステッカーの画面から進むので、そこへ戻る
+  const back = { to: "/progress/stickers", label: "ステッカーの画面へ戻る", replace: false };
   const { fieldId: fieldIdParam } = useParams();
   const { campusId, quests, obtainedFieldNoveltyIds, requiresUpdate, claimFieldNovelty } = useGame();
   const { active: practice } = useGameTutorial();

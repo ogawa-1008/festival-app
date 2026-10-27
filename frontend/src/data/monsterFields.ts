@@ -2,7 +2,7 @@
 // 今あるフィールド（ワールド・アイスボーン）のうち、原作で出てくるところに置く。
 // 原作でこれらのフィールドに出てこないモンスターは、雰囲気の近いところに仮で置いている
 // （リオレウス・ジンオウガ以外は仮。正式な配置が決まったら書き換える）
-export const MONSTER_FIELDS: Record<string, { areaName: string; image?: string }> = {
+export const MONSTER_FIELDS = {
   // 原作どおり
   リオレウス: { areaName: "古代樹の森", image: "/images/maps/image copy.png" },
   ジンオウガ: { areaName: "陸珊瑚の台地", image: "/images/maps/image copy 2.png" },
@@ -15,4 +15,7 @@ export const MONSTER_FIELDS: Record<string, { areaName: string; image?: string }
   アルシュベルド: { areaName: "大蟻塚の荒地", image: "/images/maps/image copy 3.png" },
   // ライズでは寒冷群島にも出るタマミツネは、雪と氷の渡りの凍て地
   タマミツネ: { areaName: "渡りの凍て地" },
-};
+} as const satisfies Record<string, { areaName: string; image?: string }>;
+
+// フォトスポットのモンスター（この表にないモンスター・書き間違いは型のチェックで分かる）
+export type MonsterName = keyof typeof MONSTER_FIELDS;

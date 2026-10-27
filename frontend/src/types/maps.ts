@@ -22,11 +22,17 @@ export type MapArea = {
   };
 };
 
-// 1つの建物にフォトスポット1つ、対戦クエスト1つ。
-export type FieldDefinition = {
+import type { MonsterName } from "../data/monsterFields";
+
+// 校舎のデータに書く内容（号館とフォトスポットのモンスター）
+export type FieldInput = {
   building: number;
+  photoSpotMonster: MonsterName;
+};
+
+// 1つの建物にフォトスポット1つ、対戦クエスト1つ。フィールド名と画像はモンスターから決まる
+export type FieldDefinition = FieldInput & {
   areaName: string;
-  photoSpotMonster: string;
   image?: string;
   quest: Quest;
 };

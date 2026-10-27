@@ -90,10 +90,6 @@ export function FieldStatus({ progress }: { progress: FieldProgress }) {
         <span aria-hidden="true">{progress.complete ? "✓" : "◇"}</span> スタンプ{" "}
         {progress.available ? `${progress.earned}/${progress.total}` : "準備中"}
       </span>
-      <span className={progress.noveltyObtained ? "field-status-earned" : ""}>
-        <span aria-hidden="true">{progress.noveltyObtained ? "✓" : "◇"}</span>{" "}
-        ステッカー {progress.noveltyObtained ? "獲得済み" : progress.rally.redeemed ? "交換終了" : "未獲得"}
-      </span>
     </span>
   );
 }
