@@ -37,10 +37,10 @@ test('configured festival hunts remain short and winnable under uniform random p
   let seed=20261020;
   const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
   // 同じ強さの校舎はまとめて検証し、各モンスターで同じシミュレーションを繰り返さない。
-  const configurations = new Map(quests.map((quest) => [JSON.stringify(getBattleStats(quest, { weaponClaimed: false })), quest]));
+  const configurations = new Map(quests.map((quest) => [JSON.stringify(getBattleStats(quest, { weaponLevel: 0 })), quest]));
   for(const quest of configurations.values()){
     const id=quest.id;
-    const stats=getBattleStats(quest,{weaponClaimed:false});
+    const stats=getBattleStats(quest,{weaponLevel:0});
     let wins=0;
     const turns=[];
     for(let i=0;i<10000;i++){

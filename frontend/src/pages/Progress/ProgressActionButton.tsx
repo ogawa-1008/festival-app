@@ -10,7 +10,7 @@ type ProgressActionButtonProps = {
   compact?: boolean;
 };
 
-// 進捗の各ページで使う共通の作成・交換ボタン（武器の作成ボタンの見た目）
+// 進捗の各ページで使う共通の強化・交換ボタン（武器の強化ボタンの見た目）
 function ProgressActionButton({
   label,
   disabled = false,

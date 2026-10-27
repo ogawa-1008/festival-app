@@ -6,7 +6,7 @@ import ProgressSubHeader from "./ProgressSubHeader";
 
 import "./Progress.css";
 
-// 進捗：ハンターランクの報酬（スマホ壁紙）。武器の作成ページと同じ部品で組む
+// 進捗：ハンターランクの報酬（スマホ壁紙）。武器の強化ページと同じ部品で組む
 // 受け取るまでの楽しみにするため、壁紙の画像は見せない
 // 受け取り・保存は別の作業で実装する
 function ProgressWallpaper() {

@@ -3,37 +3,49 @@ import { useNavigate } from "react-router-dom";
 
 import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
 import { useGame } from "../../context/GameContext";
-import { progressData } from "../../data/progress";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { getWeaponAttackBonus } from "../../utils/playerStats";
-import { getOwnedMaterial, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
+import { getWeaponAttack } from "../../utils/playerStats";
+import { canUpgradeWeapon, formatZenny, getCurrentWeapon, getNextWeapon } from "../../utils/weaponUpgrade";
+import type { Weapon } from "../../data/weapons";
 
 import "./Exchange.css";
 
+// 武器の強化（次の段階の武器・必要なゼニーを確認して、スライドで強化する）
 function Exchange() {
   const navigate = useNavigate();
-  const { materials, weaponClaimed, requiresUpdate, claimWeapon } = useGame();
+  const { zenny, weaponLevel, requiresUpdate, upgradeWeapon } = useGame();
   const { active: practice, step, advance } = useGameTutorial();
   const [isConfirming, setIsConfirming] = useState(practice && step === "confirm");
-  // 「交換完了」を見せている間（キャンセル不可）
+  // 「強化完了」を見せている間（キャンセル不可）
   const [isFinishing, setIsFinishing] = useState(false);
+  // この画面で強化したときの、強化前と強化後の武器（強化すると次の段階が変わるため、押したときの武器を覚えておく）
+  const [upgraded, setUpgraded] = useState<{ from: Weapon; to: Weapon } | null>(null);
   const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
     if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
   }, []);
 
-  const attackBonus = getWeaponAttackBonus();
+  const current = getCurrentWeapon(weaponLevel);
+  const next = getNextWeapon(weaponLevel);
+  const canUpgrade = canUpgradeWeapon({ weaponLevel, zenny });
 
-  const hasEnoughMaterials = hasEnoughWeaponMaterials(materials);
+  // 「攻撃力 10 → 11（+1）」のように、強化前と強化後の攻撃力を並べる
+  const attackChange = (from: Weapon, to: Weapon) =>
+    `${getWeaponAttack(from)} → ${getWeaponAttack(to)}（+${to.attackBonus - from.attackBonus}）`;
 
-  // スワイプで確定したら武器を作成し、「作成完了」を少し見せてから作成済み画面にする
-  const handleExchange = () => {
-    if (!claimWeapon()) return false;
+  // 確認ダイアログ・強化完了で見せる武器（強化した直後は、強化した武器のまま見せる）
+  const shown = upgraded ?? (next ? { from: current, to: next } : null);
 
+  // スワイプで確定したら強化し、「強化完了」を少し見せてから強化した画面にする
+  const handleUpgrade = () => {
+    if (!next) return false;
+    const target = { from: current, to: next };
+    if (!upgradeWeapon()) return false;
+
+    setUpgraded(target);
     setIsFinishing(true);
     if (practice) advance("exchange-confirmed");
-    // 作成済みの表示は weaponClaimed で切り替わる。ここでは確認画面を閉じるだけ
     finishTimerRef.current = setTimeout(() => {
       setIsConfirming(false);
       setIsFinishing(false);
@@ -45,43 +57,53 @@ function Exchange() {
   return (
     <main className="exchange-page">
       <section className="exchange-card">
-        <span className="exchange-eyebrow">WEAPON CRAFT</span>
-        <h1>{progressData.weaponName}</h1>
+        <span className="exchange-eyebrow">WEAPON UPGRADE</span>
+        <h1>{shown?.to.name ?? current.name}</h1>
         <img
-          src={progressData.weaponImage}
-          alt={progressData.weaponName}
+          src={shown?.to.image ?? current.image}
+          alt={shown?.to.name ?? current.name}
           className="exchange-image"
         />
 
-        {weaponClaimed ? (
+        {upgraded && !isConfirming ? (
           <div className="exchange-complete">
-            <h2>{practice ? "作成の練習ができました" : "作成済みです"}</h2>
+            <h2>{practice ? "強化の練習ができました" : "強化しました"}</h2>
             <p>
-              攻撃力が +{attackBonus} 上がりました。モンスターに与えるダメージが増えます。
-              {practice && "（練習用の画面です。本番の攻撃力には影響しません）"}
+              {upgraded.to.name}に強化しました。攻撃力が {attackChange(upgraded.from, upgraded.to)} に上がり、モンスターに与えるダメージが増えます。
+              {practice && "（練習用の画面です。本番の武器・ゼニーには影響しません）"}
             </p>
+          </div>
+        ) : !next ? (
+          <div className="exchange-complete">
+            <h2>最終段階まで強化済みです</h2>
+            <p>これ以上は強化できません。</p>
           </div>
         ) : (
           <>
             <p className="exchange-effect">
-              作成すると攻撃力が +{attackBonus} 上がります
+              強化すると攻撃力が {attackChange(current, next)} に上がります
             </p>
             <div className="exchange-materials">
-              {progressData.materials.map((material) => (
-                <p key={material.id}>
-                  <span>{material.name}</span>
-                  <strong>{getOwnedMaterial(materials, material.id)} / {material.required}</strong>
-                </p>
-              ))}
+              <p>
+                <span>{current.name} → {next.name}</span>
+              </p>
+              <p>
+                <span>必要なゼニー</span>
+                <strong>{formatZenny(next.upgradeCost)}</strong>
+              </p>
+              <p>
+                <span>持っているゼニー</span>
+                <strong>{formatZenny(zenny)}</strong>
+              </p>
             </div>
             <button
               type="button"
               className="exchange-primary"
               data-tutorial="exchange-open"
-              disabled={!hasEnoughMaterials || requiresUpdate}
+              disabled={!canUpgrade || requiresUpdate}
               onClick={() => { setIsConfirming(true); if (practice) advance("exchange-open"); }}
             >
-              {hasEnoughMaterials ? "武器を作成する" : "素材が不足しています"}
+              {canUpgrade ? "武器を強化する" : "ゼニーが不足しています"}
             </button>
           </>
         )}
@@ -93,20 +115,21 @@ function Exchange() {
         </button>
       </section>
 
-      {isConfirming && (
+      {isConfirming && shown && (
         <div className="exchange-modal" role="dialog" aria-modal="true" aria-labelledby="exchange-title">
           <div>
             <h2 id="exchange-title">
-              {isFinishing ? "武器を作成しました" : "武器を作成しますか？"}
+              {isFinishing ? "武器を強化しました" : "武器を強化しますか？"}
             </h2>
-            <p>素材を消費して{progressData.weaponName}を作成します。作成は1回だけです。</p>
+            <p>{formatZenny(shown.to.upgradeCost)}を使って、{shown.from.name}を{shown.to.name}に強化します。</p>
+            <p className="exchange-modal-attack">攻撃力 {attackChange(shown.from, shown.to)}</p>
             <div className="exchange-modal-actions">
               <div data-tutorial="exchange-confirm">
               <SwipeToConfirm
-                label="右にスライドして作成"
-                confirmedLabel="作成完了"
+                label="右にスライドして強化"
+                confirmedLabel="強化完了"
                 disabled={requiresUpdate}
-                onConfirm={handleExchange}
+                onConfirm={handleUpgrade}
               />
               </div>
               <button

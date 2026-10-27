@@ -344,42 +344,6 @@
 }
 
 
-/* 報酬の素材（アイコン ×数）。数が多いときは隠さずに折り返す */
-.quest-info-item dd.quest-rewards {
-  display: flex;
-
-  flex-wrap: wrap;
-
-  align-items: center;
-
-  gap: 4px 8px;
-
-  overflow: visible;
-
-  white-space: normal;
-}
-
-
-.quest-reward {
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 2px;
-}
-
-
-.quest-reward img {
-  width: 18px;
-  height: 18px;
-
-  object-fit: cover;
-
-  border: 1px solid rgba(80, 52, 27, 0.6);
-  border-radius: 3px;
-}
-
-
 /* ========================================
    クエスト配置
 ======================================== */

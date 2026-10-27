@@ -9,6 +9,7 @@ import { useQrNotice } from "../../context/qrNotice";
 import { findCampus } from "../../data/campuses";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getHistoryIndex } from "../../utils/historyIndex";
+import { formatZenny } from "../../utils/weaponUpgrade";
 
 import "../../components/Header/HunterRank.css";
 import "../../components/Logo/CollaborationLogo.css";
@@ -17,7 +18,7 @@ import "./Home.css";
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { rankExp, campusId } = useGame();
+  const { rankExp, campusId, zenny } = useGame();
   const campus = findCampus(campusId);
   const { startTutorial } = useGameTutorial();
   // 標準カメラで開いたQRが、ほかのエリアのもの・クエスト用でないものだったときの案内
@@ -37,6 +38,12 @@ function Home() {
           {/* ハンターランク */}
           <div className="home-rank-area">
             <HunterRank rankExp={rankExp} />
+          </div>
+
+          {/* 持っているゼニー */}
+          <div className="home-zenny" aria-label={`所持ゼニー ${formatZenny(zenny)}`}>
+            <span className="home-zenny-label">ZENNY</span>
+            <span className="home-zenny-value">{formatZenny(zenny)}</span>
           </div>
 
           {/* ハンバーガーメニュー */}
@@ -118,21 +125,6 @@ function Home() {
                 </button>
 
 
-
-                <button
-                  type="button"
-                  className="side-menu-item"
-                  onClick={() => navigate("/materials")}
-                >
-                  <span className="side-menu-item-icon">▤</span>
-
-                  <span className="side-menu-item-text">
-                    <small>INVENTORY</small>
-                    <strong>素材一覧</strong>
-                  </span>
-
-                  <span className="side-menu-arrow">›</span>
-                </button>
 
                 <button
                   type="button"

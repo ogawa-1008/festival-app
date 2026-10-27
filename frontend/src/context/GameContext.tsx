@@ -10,7 +10,6 @@ import {
 } from "react";
 
 import { practiceQuest } from "../data/quests";
-import { progressData } from "../data/progress";
 import { findCampus, type CampusId } from "../data/campuses";
 import { practiceStorageKey } from "../components/Tutorial/tutorialSteps";
 import { getBattleRankReward, RANK_PROGRESS_VERSION, type BattleOutcome } from "../utils/hunterRank";
@@ -30,13 +29,11 @@ import {
 import { getCampusQuests, getMapAreas } from "../data/maps";
 import type { Quest } from "../types/quest";
 import { getFieldProgress, restoreFieldNoveltyIds } from "../utils/fieldProgress";
-import { getWeaponAttackBonus } from "../utils/playerStats";
-import { hasEnoughWeaponMaterials } from "../utils/weaponMaterials";
-
-type MaterialStock = Record<number, number>;
+import { formatZenny, getCurrentWeapon, getNextWeapon, getRewardZenny, normalizeWeaponLevel, normalizeZenny, upgradeWeapon } from "../utils/weaponUpgrade";
 
 export type Activity = {
   id: string;
+  // craft は武器の強化（以前の武器の作成の履歴も同じ種類）
   type: "hunt" | "investigation" | "exchange" | "craft";
   title: string;
   detail: string;
@@ -46,11 +43,13 @@ export type Activity = {
 type GameState = {
   campusId: CampusId | null;
   quests: Quest[];
-  materials: MaterialStock;
+  // 持っているゼニー（クエストでもらい、武器の強化に使う）
+  zenny: number;
   rank: number;
   rankExp: number;
   rankProgressVersion: number;
-  weaponClaimed: boolean;
+  // 武器を何段階強化したか（data/weapons.ts の WEAPONS の番号。0 は初期の武器）
+  weaponLevel: number;
   obtainedFieldNoveltyIds: number[];
   activities: Activity[];
 };
@@ -67,32 +66,26 @@ type GameContextType = GameState & {
     outcome: BattleOutcome,
     isGoldCrown?: boolean
   ) => void;
-  claimWeapon: () => boolean;
+  // 武器を次の段階へ強化する。強化できなかったら false
+  upgradeWeapon: () => boolean;
   // ステッカーの交換が成功したことを記録する（在庫の減算は API で行う）
   // 記録できなかったら false（新しいバージョンのデータがある場合など）
   claimFieldNovelty: (fieldId: number) => boolean;
 };
 
-const initialMaterials: MaterialStock = Object.fromEntries(
-  progressData.materials.map((material) => [
-    material.id,
-    material.owned,
-  ])
-);
-
 const initialGameState: GameState = {
   campusId: null,
   quests: [],
-  materials: initialMaterials,
+  zenny: 0,
   rank: 0,
   rankExp: 0,
   rankProgressVersion: RANK_PROGRESS_VERSION,
-  weaponClaimed: false,
+  weaponLevel: 0,
   obtainedFieldNoveltyIds: [],
   activities: [],
 };
 
-// クエストの定義（素材・手数・ステータス・EXP）は常に校舎のデータ（data/campuses）を使い、
+// クエストの定義（手数・ステータス・EXP）は常に校舎のデータ（data/campuses）を使い、
 // 保存データからは進行度（討伐済み・金冠・調査済み）だけを引き継ぐ。定義を変えてもキャッシュ削除が不要になる
 // investigated を記録する前に調査したクエストは、履歴の「調査」から補う
 function mergeQuestProgress(
@@ -131,6 +124,12 @@ function createCampusState(campusId: CampusId, practice: boolean): GameState {
   };
 }
 
+// 保存データのゼニー・強化段階を、使える値にそろえる。
+// 素材で武器を作っていたころのデータ（materials・weaponClaimed）は引き継がず、初期の武器・0z から始める
+function normalizeWeaponState(saved: GameState) {
+  return { zenny: normalizeZenny(saved.zenny), weaponLevel: normalizeWeaponLevel(saved.weaponLevel) };
+}
+
 // 以前あった建物選択の保存を消したか（ページを開いて最初の読み込みで1回だけ消す）
 let legacyBuildingCleared = false;
 
@@ -141,15 +140,17 @@ function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | nu
   }
 
   if (practiceCampus) {
+    // 練習の狩猟で討伐しても調査になっても、次の段階へ強化できるゼニーになるようにしておく
     const defaults = {
       ...createCampusState(practiceCampus, true),
-      materials: Object.fromEntries(progressData.materials.map((material) => [material.id, Math.max(0, material.required - (practiceQuest.rewardMaterials.find((reward) => reward.id === material.id)?.amount ?? 0))])),
+      zenny: Math.max(0, (getNextWeapon(0)?.upgradeCost ?? 0) - getRewardZenny("failure")),
     };
 
     try {
       const saved = loadSavedGame({ getItem: () => window.sessionStorage.getItem(practiceStorageKey) }, defaults);
       return {
         ...saved,
+        ...normalizeWeaponState(saved),
         campusId: practiceCampus,
         quests: mergeQuestProgress(defaults.quests, saved.quests, saved.activities),
         obtainedFieldNoveltyIds: [],
@@ -179,6 +180,7 @@ function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | nu
 
     return {
       ...saved,
+      ...normalizeWeaponState(saved),
       campusId,
       quests: mergeQuestProgress(defaults.quests, saved.quests, saved.activities),
       // 分ける前のデータのフィールド番号（1〜4）は今の号館の番号と意味が違い、ステッカーも別のものなので引き継がない
@@ -303,20 +305,11 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
           return current;
         }
 
-        const rewardRate = outcome === "victory" ? 1 : 0.5;
-        const rewards = quest.rewardMaterials.map((reward) => ({
-          ...reward,
-          amount: Math.max(1, Math.ceil(reward.amount * rewardRate)),
-        }));
+        const rewardZenny = getRewardZenny(outcome);
         // EXP はクエストごとの報酬（調査は3割）。ランクの上限処理は getBattleRankReward に任せる
         const { gainedExp, rank: nextRank, rankExp: nextExp } =
           getBattleRankReward(current.rankExp, getRewardExp(quest.id, outcome));
-        const expDetail = gainedExp > 0 ? `経験値 +${gainedExp}` : "ハンターランク上限";
-        const materials = { ...current.materials };
-
-        rewards.forEach((reward) => {
-          materials[reward.id] = (materials[reward.id] ?? 0) + reward.amount;
-        });
+        const expDetail = `${formatZenny(rewardZenny)}・${gainedExp > 0 ? `経験値 +${gainedExp}` : "ハンターランク上限"}`;
 
         const activity: Activity = {
           id: `${Date.now()}-${questId}-${outcome}`,
@@ -341,7 +334,7 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
               ? { ...item, completed: true, goldCrown: item.goldCrown || isGoldCrown }
               : { ...item, investigated: true };
           }),
-          materials,
+          zenny: current.zenny + rewardZenny,
           rank: nextRank,
           rankExp: nextExp,
           activities: [activity, ...current.activities],
@@ -349,37 +342,26 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       });
     };
 
-    const claimWeapon = () => {
-      if (!canUpdateGame()) return false;
-      const canClaim =
-        !gameState.weaponClaimed &&
-        hasEnoughWeaponMaterials(gameState.materials);
-
-      if (!canClaim) {
-        return false;
-      }
+    const upgradeCurrentWeapon = () => {
+      if (!canUpdateGame() || !upgradeWeapon(gameState)) return false;
 
       setGameState((current) => {
-        if (current.weaponClaimed || current.rankProgressVersion > RANK_PROGRESS_VERSION) {
-          return current;
-        }
+        if (current.rankProgressVersion > RANK_PROGRESS_VERSION) return current;
+        const upgraded = upgradeWeapon(current);
+        if (!upgraded) return current;
 
-        const materials = { ...current.materials };
-
-        progressData.materials.forEach((material) => {
-          materials[material.id] -= material.required;
-        });
+        const before = getCurrentWeapon(current.weaponLevel);
+        const after = getCurrentWeapon(upgraded.weaponLevel);
 
         return {
           ...current,
-          materials,
-          weaponClaimed: true,
+          ...upgraded,
           activities: [
             {
-              id: `${Date.now()}-weapon-exchange`,
+              id: `${Date.now()}-weapon-upgrade-${upgraded.weaponLevel}`,
               type: "craft",
-              title: `${progressData.weaponName}を作成`,
-              detail: `攻撃力 +${getWeaponAttackBonus()}`,
+              title: `${after.name}に強化`,
+              detail: `攻撃力 +${after.attackBonus - before.attackBonus}・${formatZenny(after.upgradeCost)}を使用`,
               createdAt: new Date().toISOString(),
             },
             ...current.activities,
@@ -440,7 +422,7 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
       setGameState(loadGameState(undefined, campusId));
       return true;
     };
-    return { ...gameState, reloadSelection, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, claimWeapon, claimFieldNovelty };
+    return { ...gameState, reloadSelection, selectCampus, requiresUpdate, canUpdateGame, resolveBattle, upgradeWeapon: upgradeCurrentWeapon, claimFieldNovelty };
   }, [gameState, reloadSelection, requiresUpdate, canUpdateGame, practiceCampus]);
 
   return (

@@ -6,7 +6,7 @@ import { getBattleBalance } from "../game/battle.ts";
 // Snapshot current quest configuration and weapon bonuses at scan time.
 export function getBattleStats(
   quest: Pick<Quest, "id" | "maxTurns" | "monsterHp" | "monsterAttack" | "monsterAttackMin" | "monsterAttackMax">,
-  state: { weaponClaimed: boolean }
+  state: { weaponLevel: number }
 ): BattleStats {
   const player = getPlayerStats(state);
   const balance = getBattleBalance(quest.id);

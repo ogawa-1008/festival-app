@@ -96,7 +96,8 @@ function App() {
                   element={<ResultRoute />}
                 />
 
-                <Route path="/materials" element={<Collection view="materials" />} />
+                {/* 以前あった素材一覧。素材をなくしたので、ホームへ転送する */}
+                <Route path="/materials" element={<Navigate to="/" replace />} />
                 <Route path="/progress/weapons" element={<ProgressWeapons />} />
                 <Route path="/progress/stickers" element={<ProgressStickers />} />
                 <Route path="/progress/wallpaper" element={<ProgressWallpaper />} />

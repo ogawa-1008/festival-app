@@ -115,29 +115,3 @@ test("old building selections saved before the building screen was removed are c
   assert.equal(storage.getItem("monster-hunter-festival-building:tokyo"), null);
   assert.equal(storage.getItem(CAMPUS_STORAGE_KEY), "osaka", "the selected area is kept");
 });
-
-test("every reward material is defined in the material list, and a building can set its own rewards", async () => {
-  const { MATERIALS } = await import("../src/data/materials.ts");
-  const { defineFields, DEFAULT_REWARD_MATERIALS } = await import("../src/data/campuses/defineFields.ts");
-  for (const quest of quests) {
-    for (const reward of quest.rewardMaterials) {
-      assert.ok(reward.id in MATERIALS, `${quest.id} uses an undefined material ${reward.id}`);
-      assert.ok(reward.amount > 0);
-    }
-    const ids = quest.rewardMaterials.map((reward) => reward.id);
-    assert.equal(new Set(ids).size, ids.length, `${quest.id} lists the same material twice`);
-  }
-  const [withDefault, withOwn] = defineFields("osaka", [
-    { building: 1, areaName: "a", photoSpotMonster: "ジンオウガ" },
-    { building: 2, areaName: "b", photoSpotMonster: "リオレウス", rewardMaterials: [{ id: 3, amount: 1 }] },
-  ]);
-  assert.deepEqual(withDefault.quest.rewardMaterials, DEFAULT_REWARD_MATERIALS);
-  assert.deepEqual(withOwn.quest.rewardMaterials, [{ id: 3, amount: 1 }]);
-});
-
-test("an unknown material id gives no material instead of an empty one", async () => {
-  const { getMaterial, MATERIAL_IDS } = await import("../src/data/materials.ts");
-  assert.equal(getMaterial(99), null);
-  assert.equal(getMaterial(1)?.name, "歴戦竜の剛爪");
-  assert.deepEqual(MATERIAL_IDS, [1, 2, 3, 4]);
-});

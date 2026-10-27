@@ -1,10 +1,11 @@
 import { hunterMaxHp, getBattleBalance } from "../game/battle.ts";
-import { AGITO_WEAPON_ID, weapons } from "../data/weapons.ts";
+import type { Weapon } from "../data/weapons.ts";
+import { getCurrentWeapon } from "./weaponUpgrade.ts";
 
 // バトル開始時のプレイヤーの最大HP
 export const PLAYER_MAX_HP = hunterMaxHp;
 
-// 武器なしの攻撃力（勝ったときモンスターに与えるダメージ）
+// 初期の武器（ボーンスラッシャー）の攻撃力（勝ったときモンスターに与えるダメージ）
 export const PLAYER_BASE_ATTACK = Math.floor((getBattleBalance("quest-001").playerDamage.min + getBattleBalance("quest-001").playerDamage.max) / 2);
 
 export type PlayerStats = {
@@ -12,25 +13,15 @@ export type PlayerStats = {
   attack: number;
 };
 
-// 交換済みの武器ID。今は武器が1本だけなので weaponClaimed から求める
-// （武器を増やすときは、交換済みの武器を GameState に一覧で記録する形にする）
-function getClaimedWeaponIds(state: { weaponClaimed: boolean }) {
-  return state.weaponClaimed ? [AGITO_WEAPON_ID] : [];
+// その武器を持ったときの攻撃力
+export function getWeaponAttack(weapon: Weapon): number {
+  return PLAYER_BASE_ATTACK + weapon.attackBonus;
 }
 
-export function getPlayerStats(state: { weaponClaimed: boolean }): PlayerStats {
-  const attackBonus = getClaimedWeaponIds(state).reduce(
-    (sum, weaponId) => sum + getWeaponAttackBonus(weaponId),
-    0,
-  );
-
+// 強化した武器の分だけ攻撃力を上げる
+export function getPlayerStats(state: { weaponLevel: number }): PlayerStats {
   return {
     maxHp: PLAYER_MAX_HP,
-    attack: PLAYER_BASE_ATTACK + attackBonus,
+    attack: getWeaponAttack(getCurrentWeapon(state.weaponLevel)),
   };
-}
-
-// 武器を作成したときに上がる攻撃力（画面の表示用）
-export function getWeaponAttackBonus(weaponId: string = AGITO_WEAPON_ID) {
-  return weapons.find((weapon) => weapon.id === weaponId)?.attackBonus ?? 0;
 }

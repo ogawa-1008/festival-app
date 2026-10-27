@@ -9,7 +9,7 @@ import ProgressSubHeader from "./ProgressSubHeader";
 
 import "./Progress.css";
 
-// 進捗：フィールドのステッカーをもらう（武器の作成ページと同じ部品で組む）
+// 進捗：フィールドのステッカーをもらう（武器の強化ページと同じ部品で組む）
 function ProgressStickers() {
   const { quests, obtainedFieldNoveltyIds } = useGame();
   const mapAreas = useMapAreas();
