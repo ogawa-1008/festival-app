@@ -33,10 +33,7 @@ export function FieldCollectionSummary({
 }) {
   const { quests, obtainedFieldNoveltyIds } = useGame();
   const mapAreas = useMapAreas();
-  const fields = mapAreas.map((area) => ({
-    area,
-    ...getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas),
-  }));
+  const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas));
   const total = fields.reduce((sum, field) => sum + field.total, 0);
   const earned = fields.reduce((sum, field) => sum + field.earned, 0);
 

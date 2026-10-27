@@ -23,7 +23,8 @@ test("each campus has its own buildings and photo-spot stickers", () => {
   assert.equal(osaka1.buildingName, "心斎橋1号館");
   assert.equal(osaka1.areaName, "瘴気の谷");
   assert.equal(osaka1.photoSpotMonster, "リオレウス");
-  assert.equal(osaka1.novelty.name, "リオレウス オリジナルステッカー");
+  assert.equal(osaka1.novelty.name, "オリジナルステッカー");
+  assert.ok(getMapAreas("tokyo").every((area) => area.novelty.name === osaka1.novelty.name), "one sticker for every building");
 });
 
 test("field names are assigned in building order for every campus", () => {

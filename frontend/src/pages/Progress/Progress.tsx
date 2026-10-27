@@ -5,7 +5,7 @@ import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
-import { getFieldProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getStampRallyProgress } from "../../utils/fieldProgress";
 import { getWallpaperProgress } from "../../utils/hunterRankReward";
 import { MAX_WEAPON_LEVEL } from "../../data/weapons";
 import { canUpgradeWeapon } from "../../utils/weaponUpgrade";
@@ -23,7 +23,7 @@ function Progress() {
   const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas));
   // 練習中はステッカーをもらえないので、もらえる枚数に数えない
   const redeemableStickers = !active && fields.some((field) => field.redeemable) ? 1 : 0;
-  const obtainedStickers = fields.some((field) => field.noveltyObtained) ? 1 : 0;
+  const rally = getStampRallyProgress(mapAreas, quests, obtainedFieldNoveltyIds);
   const stampsEarned = fields.reduce((sum, field) => sum + field.earned, 0);
   const stampsTotal = fields.reduce((sum, field) => sum + field.total, 0);
 
@@ -48,7 +48,9 @@ function Progress() {
       title: "ステッカーをもらう",
       status: redeemableStickers > 0
         ? `もらえるステッカーが ${redeemableStickers} 枚あります`
-        : `もらったステッカー ${obtainedStickers} / 1 枚（スタンプ3つで交換）`,
+        : rally.redeemed
+          ? "ステッカーをもらいました"
+          : `集めたスタンプ ${rally.earned} / ${rally.required} 個`,
       highlight: redeemableStickers > 0,
     },
     {

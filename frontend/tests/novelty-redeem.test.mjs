@@ -4,8 +4,9 @@ import { getCampusQuests, getMapAreas } from "../src/data/maps.ts";
 import { getFieldProgress, getRedeemConditionText } from "../src/utils/fieldProgress.ts";
 import { fetchNoveltyStocks, redeemNovelty } from "../src/api/noveltyApi.ts";
 
-const mapAreas = getMapAreas("osaka");
-const quests = getCampusQuests("osaka");
+// 交換場所が決まっていない校舎（スタンプを集めた号館で交換する）
+const mapAreas = getMapAreas("tokyo");
+const quests = getCampusQuests("tokyo");
 const progressFor = (area, progress, receipts = []) => getFieldProgress(area, progress, receipts, mapAreas);
 
 test("three different buildings grant one sticker; hunts and investigations each grant one stamp", () => {
@@ -35,7 +36,7 @@ test("three different buildings grant one sticker; hunts and investigations each
 
 test("repeat hunts, practice, and another campus never replace visits to three buildings", () => {
   const hunted = quests.map((quest, index) => ({ ...quest, completed: index === 0, investigated: index === 0 }));
-  const extras = getCampusQuests("tokyo").map((quest) => ({ ...quest, completed: true }));
+  const extras = getCampusQuests("osaka").map((quest) => ({ ...quest, completed: true }));
   const progress = [...hunted, ...extras, ...Array.from({ length: 3 }, () => hunted[0]), { id: "quest-001", completed: true }];
   assert.equal(progressFor(mapAreas[0], progress).rally.earned, 1);
   assert.equal(progressFor(mapAreas[0], progress).redeemable, false);
@@ -79,4 +80,14 @@ test("redeem maps 409, 404, other errors and network failures", async () => {
 test("stock list is parsed per field", async () => {
   mockFetch(() => json(200, { campus: "tokyo", novelties: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] }));
   assert.deepEqual(await fetchNoveltyStocks("tokyo"), { ok: true, value: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] });
+});
+
+test("a campus with fixed redemption spots lets you redeem only there, even without visiting it", () => {
+  const areas = getMapAreas("osaka");
+  const osakaQuests = getCampusQuests("osaka");
+  const three = osakaQuests.map((quest, index) => ({ ...quest, completed: index < 3 }));
+  const redeemable = areas.filter((area) => getFieldProgress(area, three, [], areas).redeemable).map((area) => area.id);
+  assert.deepEqual(redeemable, [5, 6], "buildings 5 and 6 are the spots; 1–3 were visited but are not spots");
+  assert.match(getRedeemConditionText(getFieldProgress(areas[0], three, [], areas)), /この号館では交換できません/);
+  assert.ok(areas.every((area) => !getFieldProgress(area, three, [5], areas).redeemable), "only one sticker in total");
 });
