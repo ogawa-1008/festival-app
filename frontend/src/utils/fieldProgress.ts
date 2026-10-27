@@ -63,14 +63,15 @@ export function getFieldProgress(
 // ステッカーを交換できる条件の説明（交換画面とスタンプ画面で共通）
 export function getRedeemConditionText(progress: ReturnType<typeof getFieldProgress>) {
   if (progress.rally.redeemed) return "ステッカーは1枚受け取り済みです。";
+  if (progress.redeemable) return "スタンプ3つ達成！ このフォトスポットでステッカー1枚と交換できます。";
+  // 交換場所に決まっている号館は、その号館のクエストが準備中でも交換できる
+  if (!progress.available && progress.area.novelty.redemptionSpot !== "here") return "このフィールドのクエストは準備中です。";
   if (progress.rally.remaining > 0) {
     return `異なる3校舎で討伐・調査を終え、スタンプ3つでステッカー1枚と交換できます（${progress.rally.earned} / ${progress.rally.required}）`;
   }
-  if (progress.redeemable) return "スタンプ3つ達成！ このフォトスポットでステッカー1枚と交換できます。";
   if (progress.area.novelty.redemptionSpot === "none") {
     return `この号館では交換できません。${progress.area.novelty.redemptionLocation}で交換してください。`;
   }
-  if (!progress.available) return "このフィールドのクエストは準備中です。";
   return "この校舎のモンスターを討伐または調査してから交換できます。";
 }
 

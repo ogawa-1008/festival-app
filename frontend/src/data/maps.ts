@@ -1,4 +1,4 @@
-import { getBuildingName, type CampusId } from "./campuses.ts";
+import { findCampus, getBuildingName, type CampusId } from "./campuses.ts";
 import { nagoyaFields } from "./campuses/nagoya.ts";
 import { osakaFields } from "./campuses/osaka.ts";
 import { tokyoFields } from "./campuses/tokyo.ts";
@@ -12,18 +12,18 @@ const campusFields: Record<CampusId, FieldDefinition[]> = {
   nagoya: nagoyaFields,
 };
 
-// ステッカーを交換できる場所の説明（交換場所が決まっていない校舎は、スタンプを集めた号館）
 // 交換場所の号館（決まっていない校舎・空のときは null）
 function getRedemptionBuildings(campusId: CampusId | null) {
   const buildings = campusId ? STICKER_REDEMPTION_BUILDINGS[campusId] : undefined;
   return buildings && buildings.length > 0 ? buildings : null;
 }
 
+// ステッカーを交換できる場所の説明（交換場所が決まっていない校舎は、スタンプを集めた号館）
 export function getStickerRedemptionText(campusId: CampusId | null) {
   const buildings = getRedemptionBuildings(campusId);
-  return buildings && campusId
+  return buildings
     // 「心斎橋5、6号館」のように、号館の番号だけを並べる
-    ? `${getBuildingName(campusId, buildings[0]).replace(/\d+号館$/, "")}${buildings.join("、")}号館のフォトスポット`
+    ? `${findCampus(campusId)?.buildingPrefix ?? ""}${buildings.join("、")}号館のフォトスポット`
     : "スタンプを集めた号館のフォトスポット";
 }
 

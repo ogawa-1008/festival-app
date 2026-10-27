@@ -5,7 +5,7 @@ import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
 import { getStickerRedemptionText } from "../../data/maps";
 import { STICKER } from "../../data/sticker";
-import { getFieldProgress, REQUIRED_STAMPS } from "../../utils/fieldProgress";
+import { getFieldProgress, getStampRallyProgress } from "../../utils/fieldProgress";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
 
@@ -17,13 +17,11 @@ function ProgressStickers() {
   const mapAreas = useMapAreas();
   const { active: practice } = useGameTutorial();
 
-  const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas));
-  // スタンプの数は校舎全体で同じなので、どのフィールドから読んでもよい
-  const rally = fields[0]?.rally ?? { earned: 0, required: REQUIRED_STAMPS, remaining: REQUIRED_STAMPS, redeemed: false };
+  const rally = getStampRallyProgress(mapAreas, quests, obtainedFieldNoveltyIds);
   const reached = rally.remaining === 0;
   const percent = Math.round((Math.min(rally.earned, rally.required) / rally.required) * 100);
   // 今交換できるフォトスポット。どこでもらっても同じなので、ボタンは1つにして最初の場所の交換画面を開く
-  const spot = fields.find((field) => field.redeemable)?.area;
+  const spot = mapAreas.find((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas).redeemable);
   const location = getStickerRedemptionText(campusId);
 
   return (
@@ -81,10 +79,10 @@ function ProgressStickers() {
                   : `スタンプが${rally.required}つ集まりました！ ${location}へ行って、ステッカーと交換しましょう。`
                 : `あと ${rally.remaining} 校舎のスタンプでステッカーと交換できます`}
           </p>
-          {!reached && <p className="progress-reward-note">交換場所：{location}</p>}
+          {!reached && !rally.redeemed && <p className="progress-reward-note">交換場所：{location}</p>}
         </section>
 
-        {!reached && (
+        {!reached && !rally.redeemed && (
           <section className="materials-area" aria-labelledby="sticker-howto-title">
             <div className="decorative-title">
               <span className="decorative-line left" />
