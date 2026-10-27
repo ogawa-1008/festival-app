@@ -31,7 +31,7 @@ function NoveltyRedeem() {
   const returnTo = (useLocation().state as { returnTo?: string } | null)?.returnTo;
   const back = returnTo
     ? { to: returnTo, label: "前の画面へ戻る", replace: true }
-    : { to: "/progress/stickers", label: "ステッカー一覧へ戻る", replace: false };
+    : { to: "/progress/stickers", label: "ステッカーの画面へ戻る", replace: false };
   const { fieldId: fieldIdParam } = useParams();
   const { campusId, quests, obtainedFieldNoveltyIds, requiresUpdate, claimFieldNovelty } = useGame();
   const { active: practice } = useGameTutorial();

@@ -13,8 +13,14 @@ const campusFields: Record<CampusId, FieldDefinition[]> = {
 };
 
 // ステッカーを交換できる場所の説明（交換場所が決まっていない校舎は、スタンプを集めた号館）
-export function getStickerRedemptionText(campusId: CampusId | null) {
+// 交換場所の号館（決まっていない校舎・空のときは null）
+function getRedemptionBuildings(campusId: CampusId | null) {
   const buildings = campusId ? STICKER_REDEMPTION_BUILDINGS[campusId] : undefined;
+  return buildings && buildings.length > 0 ? buildings : null;
+}
+
+export function getStickerRedemptionText(campusId: CampusId | null) {
+  const buildings = getRedemptionBuildings(campusId);
   return buildings && campusId
     // 「心斎橋5、6号館」のように、号館の番号だけを並べる
     ? `${getBuildingName(campusId, buildings[0]).replace(/\d+号館$/, "")}${buildings.join("、")}号館のフォトスポット`
@@ -23,7 +29,7 @@ export function getStickerRedemptionText(campusId: CampusId | null) {
 
 function toMapArea(campusId: CampusId, field: FieldDefinition): MapArea {
   const buildingName = getBuildingName(campusId, field.building);
-  const redemptionBuildings = STICKER_REDEMPTION_BUILDINGS[campusId];
+  const redemptionBuildings = getRedemptionBuildings(campusId);
 
   return {
     id: field.building,

@@ -70,6 +70,7 @@ export function getRedeemConditionText(progress: ReturnType<typeof getFieldProgr
   if (progress.area.novelty.redemptionSpot === "none") {
     return `この号館では交換できません。${progress.area.novelty.redemptionLocation}で交換してください。`;
   }
+  if (!progress.available) return "このフィールドのクエストは準備中です。";
   return "この校舎のモンスターを討伐または調査してから交換できます。";
 }
 
