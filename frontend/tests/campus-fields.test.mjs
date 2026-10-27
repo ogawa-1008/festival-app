@@ -21,19 +21,25 @@ test("each campus has its own buildings and photo-spot stickers", () => {
 
   const [osaka1] = getMapAreas("osaka");
   assert.equal(osaka1.buildingName, "心斎橋1号館");
-  assert.equal(osaka1.areaName, "瘴気の谷");
+  assert.equal(osaka1.areaName, "古代樹の森");
   assert.equal(osaka1.photoSpotMonster, "リオレウス");
   assert.equal(osaka1.novelty.name, "オリジナルステッカー");
   assert.ok(getMapAreas("tokyo").every((area) => area.novelty.name === osaka1.novelty.name), "one sticker for every building");
 });
 
-test("field names are assigned in building order for every campus", () => {
-  const names = ["瘴気の谷", "古代樹の森", "大蟻塚の荒地", "陸珊瑚の台地", "龍結晶の地", "渡りの凍て地"];
+test("each monster lives in the same field on every campus, and no campus repeats a field", () => {
+  const expected = {
+    リオレウス: "古代樹の森",
+    ジンオウガ: "陸珊瑚の台地",
+    "メル・ゼナ": "龍結晶の地",
+    マガイマガド: "瘴気の谷",
+    アルシュベルド: "大蟻塚の荒地",
+    タマミツネ: "渡りの凍て地",
+  };
   for (const campus of campuses) {
-    assert.deepEqual(
-      getMapAreas(campus.id).map((area) => area.areaName),
-      names.slice(0, getMapAreas(campus.id).length),
-    );
+    const areas = getMapAreas(campus.id);
+    for (const area of areas) assert.equal(area.areaName, expected[area.photoSpotMonster], `${campus.id} ${area.photoSpotMonster}`);
+    assert.equal(new Set(areas.map((area) => area.areaName)).size, areas.length, `${campus.id} has no duplicate fields`);
   }
 });
 

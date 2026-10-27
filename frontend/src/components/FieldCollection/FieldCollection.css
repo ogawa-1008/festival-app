@@ -252,8 +252,7 @@
 .field-stamp-copy .field-state-label {
   margin-inline: auto;
 }
-.field-stamp--earned .field-state-label,
-.field-novelty--earned .field-state-label {
+.field-stamp--earned .field-state-label {
   color: var(--color-accent);
   border-color: var(--color-accent);
 }
@@ -262,51 +261,6 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   line-height: 1.7;
-}
-.field-novelty {
-  margin-top: var(--space-2);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border-subtle);
-}
-.field-novelty .field-state-label {
-  margin: 0;
-}
-.field-novelty-content {
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-  margin-top: var(--space-3);
-}
-.field-novelty-art {
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 80px;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-raised);
-  color: var(--color-text-warm);
-}
-.field-novelty-art svg {
-  width: 42px;
-  height: 42px;
-}
-.field-novelty-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.field-novelty-content h4 {
-  margin: var(--space-1) 0 0;
-  font-size: var(--font-size-md);
-  line-height: 1.5;
-}
-.field-rewards p.field-novelty-note {
-  padding: var(--space-2);
-  background: var(--color-bg-panel);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
 }
 .field-pending {
   padding-block: var(--space-4);
@@ -335,30 +289,4 @@
   .field-stamp-copy .field-state-label {
     margin-inline: 0;
   }
-}
-
-/* ステッカーの交換へ進むボタンと、交換の条件 */
-
-.field-novelty-redeem {
-  display: block;
-
-  margin-top: var(--space-3);
-  padding: 12px;
-
-  border: 2px solid var(--color-accent);
-  border-radius: var(--radius-md);
-
-  color: var(--color-accent);
-
-  font-weight: bold;
-  text-align: center;
-  text-decoration: none;
-}
-
-.field-rewards p.field-novelty-condition {
-  margin: var(--space-2) 0 0;
-
-  color: var(--color-text-subtle);
-
-  font-size: var(--font-size-sm);
 }

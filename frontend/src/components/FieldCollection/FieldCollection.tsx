@@ -1,10 +1,9 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext";
-import { useGameTutorial } from "../Tutorial/useGameTutorial";
 import { useMapAreas } from "../../context/useMapAreas";
 import type { MapArea } from "../../types/maps";
-import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
+import { getFieldProgress } from "../../utils/fieldProgress";
 import "./FieldCollection.css";
 
 type FieldProgress = ReturnType<typeof getFieldProgress>;
@@ -106,12 +105,6 @@ export function FieldRewards({
   area: MapArea;
   progress: FieldProgress;
 }) {
-  // 練習中は交換できないので、交換ボタンを出さない
-  const { active: practice } = useGameTutorial();
-  // 交換画面の「戻る」で、開いた画面（マップ・スタンプ）のそのフィールドへ戻れるようにする
-  const { pathname, search } = useLocation();
-  const returnTo = `${pathname}${search}#field-${area.id}`;
-
   return (
     <div className="field-rewards">
       <section
@@ -165,49 +158,6 @@ export function FieldRewards({
           <p className="field-pending">
             このフィールドのクエストは準備中です。
           </p>
-        )}
-      </section>
-      <section
-        className={`field-novelty ${progress.noveltyObtained ? "field-novelty--earned" : ""}`}
-        aria-label={`${area.areaName}のステッカー`}
-      >
-        <div className="field-section-heading">
-          <h3>フィールド報酬・ステッカー</h3>
-          <span className="field-state-label">
-            {progress.noveltyObtained ? "✓ 獲得済み" : progress.rally.redeemed ? "別の校舎で交換済み" : "未獲得"}
-          </span>
-        </div>
-        <div className="field-novelty-content">
-          <div className="field-novelty-art" aria-hidden="true">
-            {area.novelty.image ? (
-              <img src={area.novelty.image} alt="" />
-            ) : (
-              <StickerIcon />
-            )}
-          </div>
-          <div>
-            <span className="field-eyebrow">
-              FIELD {String(area.id).padStart(2, "0")} REWARD
-            </span>
-            <h4>{area.novelty.name}</h4>
-            <p>{area.novelty.description}</p>
-          </div>
-        </div>
-        <p className="field-novelty-note">
-          交換場所：{area.novelty.redemptionLocation}
-        </p>
-        {!progress.noveltyObtained && !practice && (
-          progress.redeemable ? (
-            <Link className="field-novelty-redeem" to={`/novelty/${area.id}`} state={{ returnTo }}>
-              ステッカーを交換する <span aria-hidden="true">›</span>
-            </Link>
-          ) : (
-            progress.available && (
-              <p className="field-novelty-condition">
-                {getRedeemConditionText(progress)}
-              </p>
-            )
-          )
         )}
       </section>
     </div>
