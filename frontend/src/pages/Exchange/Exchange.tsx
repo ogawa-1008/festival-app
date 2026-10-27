@@ -43,7 +43,7 @@ function Exchange() {
     if (!next) return false;
     const target = { from: current, to: next };
     if (!upgradeWeapon()) return false;
-    playSe("questClear");
+    playSe("weaponUpgrade");
 
     setUpgraded(target);
     setIsFinishing(true);

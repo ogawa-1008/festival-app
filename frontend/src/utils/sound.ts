@@ -5,6 +5,8 @@ const SE_FILES = {
   questStart: "/sounds/quest-start.m4a",
   questClear: "/sounds/quest-clear.m4a",
   questFailed: "/sounds/quest-failed.m4a",
+  // 今はクエストクリアと同じ音。別の音が届いたら差し替える
+  weaponUpgrade: "/sounds/quest-clear.m4a",
 } as const;
 
 // エリアを選んだあと、どの画面でも流すBGM（約4分あるので、読み込みきらずに少しずつ再生する）
@@ -21,6 +23,8 @@ const BGM_FADE_OUT_SECONDS = 0.6;
 const BGM_DUCK_VOLUME = 0.1;
 const BGM_DUCK_SECONDS = 0.2;
 const BGM_RESTORE_SECONDS = 0.8;
+// 読み込みに時間がかかって、これより遅れた効果音は鳴らさない（別の画面で急に鳴らないように）
+const SE_MAX_DELAY_MS = 1000;
 
 const STORAGE_KEY = "festival-game-sound:v1";
 
@@ -76,6 +80,7 @@ const applyEnabled = (value: boolean) => {
   if (enabled === value) return;
   enabled = value;
   if (!value) {
+    clearStopTimer();
     bgm?.element.pause();
   } else {
     preloadSounds();
@@ -129,9 +134,10 @@ export function playSe(name: SoundEffect) {
   const ctx = getContext();
   if (!ctx) return;
   void ctx.resume().catch(() => undefined);
+  const requestedAt = performance.now();
 
   void loadSe(name).then((buffer) => {
-    if (!buffer || !enabled) return;
+    if (!buffer || !enabled || performance.now() - requestedAt > SE_MAX_DELAY_MS) return;
     const source = ctx.createBufferSource();
     const gain = ctx.createGain();
     gain.gain.value = SE_VOLUME;
@@ -147,9 +153,7 @@ const duckBgm = (ctx: AudioContext, seconds: number) => {
   if (!bgm || !bgmWanted || bgm.element.paused) return;
   const volume = bgm.gain.gain;
   const now = ctx.currentTime;
-  volume.cancelScheduledValues(now);
-  volume.setValueAtTime(volume.value, now);
-  volume.linearRampToValueAtTime(BGM_DUCK_VOLUME, now + BGM_DUCK_SECONDS);
+  rampBgm(BGM_DUCK_VOLUME, BGM_DUCK_SECONDS);
   const end = now + Math.max(seconds, BGM_DUCK_SECONDS);
   volume.setValueAtTime(BGM_DUCK_VOLUME, end);
   volume.linearRampToValueAtTime(BGM_VOLUME, end + BGM_RESTORE_SECONDS);
@@ -174,13 +178,39 @@ const getBgm = () => {
   return bgm;
 };
 
-const playBgmElement = () => {
-  if (!bgm || !enabled || !bgm.element.paused) return;
-  // 自動再生が止められたら、次のタップ（unlockSound）でかけ直す
-  void bgm.element.play().catch(() => undefined);
+// BGMの音量を、今の音量から target まで seconds 秒かけて変える
+const rampBgm = (target: number, seconds: number) => {
+  if (!context || !bgm) return;
+  const volume = bgm.gain.gain;
+  const now = context.currentTime;
+  volume.cancelScheduledValues(now);
+  volume.setValueAtTime(volume.value, now);
+  volume.linearRampToValueAtTime(target, now + seconds);
 };
 
-// エリアを選んだら、最初から小さく流し始めて少しずつ大きくする
+// フェードアウトしたあとに止めるタイマー（また流すことになったら取り消す）
+let stopTimer: ReturnType<typeof setTimeout> | null = null;
+const clearStopTimer = () => {
+  if (stopTimer) clearTimeout(stopTimer);
+  stopTimer = null;
+};
+
+// 実際に流れ始めたときに、小さくから少しずつ大きくする
+// （自動再生が止められて、あとのタップで流れ始めたときも、いきなり大きな音にしない）
+const playBgmElement = () => {
+  const current = bgm;
+  if (!current || !enabled || !bgmWanted || document.hidden || !current.element.paused) return;
+  current.gain.gain.cancelScheduledValues(0);
+  current.gain.gain.value = 0;
+  // 自動再生が止められたら、次のタップ（unlockSound）でかけ直す
+  void current.element.play()
+    .then(() => {
+      if (bgm === current && bgmWanted) rampBgm(BGM_VOLUME, BGM_FADE_IN_SECONDS);
+    })
+    .catch(() => undefined);
+};
+
+// エリアを選んだら、最初から流し始める
 export function startBgm() {
   const wasWanted = bgmWanted;
   bgmWanted = true;
@@ -190,19 +220,13 @@ export function startBgm() {
   const current = getBgm();
   if (!ctx || !current) return;
 
+  clearStopTimer();
   void ctx.resume().catch(() => undefined);
-  const now = ctx.currentTime;
   // もう流している（エリアを決定したときに流し始めた）ならそのまま。フェードアウト中にまた流すことになったら、止めずに音量を戻す
   if (!current.element.paused) {
-    if (wasWanted) return;
-    current.gain.gain.cancelScheduledValues(now);
-    current.gain.gain.setValueAtTime(current.gain.gain.value, now);
-    current.gain.gain.linearRampToValueAtTime(BGM_VOLUME, now + BGM_FADE_OUT_SECONDS);
+    if (!wasWanted) rampBgm(BGM_VOLUME, BGM_FADE_OUT_SECONDS);
     return;
   }
-  current.gain.gain.cancelScheduledValues(now);
-  current.gain.gain.setValueAtTime(0, now);
-  current.gain.gain.linearRampToValueAtTime(BGM_VOLUME, now + BGM_FADE_IN_SECONDS);
   current.element.currentTime = 0;
   playBgmElement();
 }
@@ -210,17 +234,14 @@ export function startBgm() {
 // エリアを選んでいない状態に戻ったら、短くフェードアウトして止める
 export function stopBgm() {
   bgmWanted = false;
-  const ctx = context;
   const current = bgm;
-  if (!ctx || !current || current.element.paused) return;
+  if (!current || current.element.paused) return;
 
-  const now = ctx.currentTime;
-  current.gain.gain.cancelScheduledValues(now);
-  current.gain.gain.setValueAtTime(current.gain.gain.value, now);
-  current.gain.gain.linearRampToValueAtTime(0, now + BGM_FADE_OUT_SECONDS);
-  setTimeout(() => {
-    // フェードアウト中にまた流すことになったら止めない
-    if (!bgmWanted) current.element.pause();
+  clearStopTimer();
+  rampBgm(0, BGM_FADE_OUT_SECONDS);
+  stopTimer = setTimeout(() => {
+    stopTimer = null;
+    current.element.pause();
   }, BGM_FADE_OUT_SECONDS * 1000);
 }
 
@@ -230,7 +251,13 @@ export function stopBgm() {
 // （iPhone は指を離したとき〔touchend・pointerup〕のタップしか音を出すきっかけとして扱わないため、そちらでも試す）
 const unlockSound = () => {
   void context?.resume().catch(() => undefined);
-  if (bgmWanted) playBgmElement();
+  playBgmElement();
+};
+
+// 保存されているオン・オフに合わせる（ほかのタブで切り替えたとき。保存を読めなければ今のまま）
+const syncSetting = () => {
+  const saved = readSetting();
+  if (saved !== null) applyEnabled(saved === "on");
 };
 
 // ほかのアプリに切り替えたら止め、戻ってきたら続きから流す
@@ -239,8 +266,9 @@ const handleVisibilityChange = () => {
     bgm?.element.pause();
     void context?.suspend().catch(() => undefined);
   } else {
+    syncSetting();
     void context?.resume().catch(() => undefined);
-    if (bgmWanted) playBgmElement();
+    playBgmElement();
   }
 };
 
@@ -249,8 +277,9 @@ export function installSoundUnlock() {
     document.addEventListener(type, unlockSound, true);
   });
   document.addEventListener("visibilitychange", handleVisibilityChange);
-  // ほかのタブでオン・オフを切り替えたら、この画面にも合わせる
+  // ほかのタブでオン・オフを切り替えたら、この画面にも合わせる（戻る・進むでページが復元されたときも読み直す）
   window.addEventListener("storage", (event) => {
-    if (event.key === STORAGE_KEY || event.key === null) applyEnabled(readSetting() === "on");
+    if (event.key === STORAGE_KEY || event.key === null) syncSetting();
   });
+  window.addEventListener("pageshow", syncSetting);
 }
