@@ -38,16 +38,19 @@ function CampusSelection() {
 
   // ホームのメニューから開いて、すぐ前がそのホームなら戻る。それ以外（最初の選択など）はホームへ進む
   // （履歴の位置が読めないときも、ホームへ進むだけで困らない）
+  const leavingRef = useRef(false);
   const leave = () => {
+    // 続けて2回押しても、2つ前の画面まで戻らないようにする
+    if (leavingRef.current) return;
+    leavingRef.current = true;
     const currentIdx = getHistoryIndex();
     if (returnIdx !== undefined && currentIdx !== undefined && currentIdx === returnIdx + 1) navigate(-1);
     else navigate("/", { replace: true });
   };
 
-  // 鳴らすかを選んだらホームへ（スマホは、タップした瞬間でないとBGMを流し始められないため、ここで流し始める）
+  // 鳴らすかを選んだらホームへ（オンにすると、タップしたその場でBGMが流れ始める）
   const chooseSound = (on: boolean) => {
     setSoundEnabled(on);
-    if (on) startBgm();
     leave();
   };
 
@@ -146,10 +149,11 @@ function CampusSelection() {
                 disabled={blocked}
                 onClick={() => {
                   if (!pendingCampus || blocked) return;
-                  // スマホは、タップした瞬間でないとBGMを流し始められないため、決定を押したときに流し始める（オフなら流さない）
-                  startBgm();
                   // 同じエリアを選んだときは選び直さない（練習中も、進み具合を読み直さずにそのまま戻る）
                   if (!changingCampus || selectCampus(pendingCampus.id)) {
+                    // スマホは、タップした瞬間でないとBGMを流し始められないため、決めたときに流し始める
+                    // （オフなら、オンにしたときに流れる。まだ選んでいなければ、このあと聞く）
+                    startBgm();
                     if (hasChosenSound()) leave();
                     else setAskingSound(true);
                   }

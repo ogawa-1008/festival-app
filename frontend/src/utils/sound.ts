@@ -64,12 +64,17 @@ export function isSoundEnabled() {
 }
 
 export function setSoundEnabled(value: boolean) {
-  enabled = value;
   try {
     localStorage.setItem(STORAGE_KEY, value ? "on" : "off");
   } catch {
     // 保存できなくても、この画面を開いている間は切り替える
   }
+  applyEnabled(value);
+}
+
+const applyEnabled = (value: boolean) => {
+  if (enabled === value) return;
+  enabled = value;
   if (!value) {
     bgm?.element.pause();
   } else {
@@ -81,7 +86,7 @@ export function setSoundEnabled(value: boolean) {
     }
   }
   listeners.forEach((listener) => listener());
-}
+};
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -145,8 +150,9 @@ const duckBgm = (ctx: AudioContext, seconds: number) => {
   volume.cancelScheduledValues(now);
   volume.setValueAtTime(volume.value, now);
   volume.linearRampToValueAtTime(BGM_DUCK_VOLUME, now + BGM_DUCK_SECONDS);
-  volume.setValueAtTime(BGM_DUCK_VOLUME, now + seconds);
-  volume.linearRampToValueAtTime(BGM_VOLUME, now + seconds + BGM_RESTORE_SECONDS);
+  const end = now + Math.max(seconds, BGM_DUCK_SECONDS);
+  volume.setValueAtTime(BGM_DUCK_VOLUME, end);
+  volume.linearRampToValueAtTime(BGM_VOLUME, end + BGM_RESTORE_SECONDS);
 };
 
 // ---- BGM ----
@@ -159,7 +165,8 @@ const getBgm = () => {
 
   const element = new Audio(BGM_FILE);
   element.loop = true;
-  element.preload = "auto";
+  // 最初から全部は読み込まず、流し始めてから少しずつ読み込む
+  element.preload = "metadata";
   const gain = ctx.createGain();
   gain.gain.value = 0;
   ctx.createMediaElementSource(element).connect(gain).connect(ctx.destination);
@@ -220,6 +227,7 @@ export function stopBgm() {
 // ---- スマホで音を出せるようにする ----
 
 // スマホのブラウザは、画面をタップするまで音を出せない。タップのたびに音を出せる状態に戻す
+// （iPhone は指を離したとき〔touchend・pointerup〕のタップしか音を出すきっかけとして扱わないため、そちらでも試す）
 const unlockSound = () => {
   void context?.resume().catch(() => undefined);
   if (bgmWanted) playBgmElement();
@@ -237,7 +245,12 @@ const handleVisibilityChange = () => {
 };
 
 export function installSoundUnlock() {
-  document.addEventListener("pointerdown", unlockSound, true);
-  document.addEventListener("keydown", unlockSound, true);
+  ["pointerdown", "pointerup", "touchend", "keydown"].forEach((type) => {
+    document.addEventListener(type, unlockSound, true);
+  });
   document.addEventListener("visibilitychange", handleVisibilityChange);
+  // ほかのタブでオン・オフを切り替えたら、この画面にも合わせる
+  window.addEventListener("storage", (event) => {
+    if (event.key === STORAGE_KEY || event.key === null) applyEnabled(readSetting() === "on");
+  });
 }
