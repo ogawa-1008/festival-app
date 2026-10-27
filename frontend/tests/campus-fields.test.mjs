@@ -28,7 +28,7 @@ test("each campus has its own buildings and photo-spot stickers", () => {
 });
 
 test("field names are assigned in building order for every campus", () => {
-  const names = ["瘴気の谷", "古代樹の森", "大蟻塚", "陸珊瑚の台地", "龍結晶の地", "渡りの凍て地"];
+  const names = ["瘴気の谷", "古代樹の森", "大蟻塚の荒地", "陸珊瑚の台地", "龍結晶の地", "渡りの凍て地"];
   for (const campus of campuses) {
     assert.deepEqual(
       getMapAreas(campus.id).map((area) => area.areaName),

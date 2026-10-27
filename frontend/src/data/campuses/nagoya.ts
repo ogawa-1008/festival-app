@@ -16,7 +16,7 @@ export const nagoyaFields = defineFields("nagoya", [
   },
   {
     building: 3,
-    areaName: "大蟻塚",
+    areaName: "大蟻塚の荒地",
     photoSpotMonster: "マガイマガド",
     image: "/images/maps/image copy 3.png",
   },

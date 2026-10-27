@@ -16,7 +16,7 @@ export const tokyoFields = defineFields("tokyo", [
   },
   {
     building: 4,
-    areaName: "大蟻塚",
+    areaName: "大蟻塚の荒地",
     photoSpotMonster: "リオレウス",
     image: "/images/maps/image copy 3.png",
   },

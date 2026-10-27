@@ -16,7 +16,7 @@ export const osakaFields = defineFields("osaka", [
   },
   {
     building: 3,
-    areaName: "大蟻塚",
+    areaName: "大蟻塚の荒地",
     photoSpotMonster: "メルゼナ",
     image: "/images/maps/image copy 3.png",
   },
