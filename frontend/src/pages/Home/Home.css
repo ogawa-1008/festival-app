@@ -936,6 +936,32 @@
 }
 
 
+/* サウンドのオン・オフ */
+
+.side-menu-sound-state {
+  flex-shrink: 0;
+
+  margin-left: 6px;
+  padding: 4px 10px;
+
+  border: 1px solid #6d5d43;
+  border-radius: var(--radius-md);
+
+  color: #9c8f78;
+
+  font-size: var(--font-size-base);
+  font-weight: bold;
+
+  white-space: nowrap;
+}
+
+.side-menu-sound-state.is-on {
+  border-color: var(--color-accent);
+
+  color: var(--color-accent);
+}
+
+
 /* ========================================
    下部装飾
 ======================================== */

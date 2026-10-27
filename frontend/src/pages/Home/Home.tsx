@@ -10,6 +10,7 @@ import { findCampus } from "../../data/campuses";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { getHistoryIndex } from "../../utils/historyIndex";
 import { formatZenny } from "../../utils/weaponUpgrade";
+import { setSoundEnabled, useSoundEnabled } from "../../utils/sound";
 
 import "../../components/Header/HunterRank.css";
 import "../../components/Logo/CollaborationLogo.css";
@@ -21,6 +22,7 @@ function Home() {
   const { rankExp, campusId, zenny } = useGame();
   const campus = findCampus(campusId);
   const { startTutorial } = useGameTutorial();
+  const soundEnabled = useSoundEnabled();
   // 標準カメラで開いたQRが、ほかのエリアのもの・クエスト用でないものだったときの案内
   const { qrNotice, setQrNotice } = useQrNotice();
 
@@ -154,6 +156,25 @@ function Home() {
                   </span>
 
                   <span className="side-menu-arrow">›</span>
+                </button>
+
+                {/* 効果音・BGMのオン・オフ（メニューは閉じずに、その場で切り替える） */}
+                <button
+                  type="button"
+                  className="side-menu-item"
+                  aria-pressed={soundEnabled}
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                >
+                  <span className="side-menu-item-icon" aria-hidden="true">♪</span>
+
+                  <span className="side-menu-item-text">
+                    <small>SOUND</small>
+                    <strong>サウンド</strong>
+                  </span>
+
+                  <span className={`side-menu-sound-state${soundEnabled ? " is-on" : ""}`}>
+                    {soundEnabled ? "オン" : "オフ"}
+                  </span>
                 </button>
 
               </div>

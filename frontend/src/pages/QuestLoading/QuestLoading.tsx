@@ -6,6 +6,7 @@ import { isUntouchedSession } from "../../utils/battleSession";
 import { useGame } from "../../context/GameContext";
 import { getBattleMonsterImage, prepareBattle } from "../Battle/battleAssets";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
+import { playSe } from "../../utils/sound";
 import "./QuestLoading.css";
 
 type Phase = "preparing" | "ready" | "error";
@@ -76,6 +77,7 @@ export default function QuestLoading() {
       navigate("/", { replace: true });
       return;
     }
+    playSe("questStart");
     if (practice) advance("battle-ready");
     navigate(`/battle/${questId}`, { replace: true });
   };

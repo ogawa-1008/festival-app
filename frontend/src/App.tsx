@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -28,6 +29,7 @@ import { GameProvider, useGame } from "./context/GameContext";
 import { BattleSessionProvider } from "./context/BattleSessionContext";
 import { QrNoticeProvider } from "./context/QrNoticeProvider";
 import { QUEST_QR_PATH } from "./utils/questQr";
+import { preloadSounds, startBgm, stopBgm } from "./utils/sound";
 
 import "./App.css";
 
@@ -54,9 +56,24 @@ function HomeEntry() {
   return campusId ? <Home /> : <Navigate to="/start" replace />;
 }
 
+// エリアを選んでいる間は、どの画面でもBGMを流す（開き直したときは、最初のタップで流れ始める）
+function BackgroundMusic() {
+  const { campusId } = useGame();
+
+  useEffect(() => {
+    if (!campusId) return;
+    preloadSounds();
+    startBgm();
+    return () => stopBgm();
+  }, [campusId]);
+
+  return null;
+}
+
 function App() {
   return (
     <GameProvider>
+      <BackgroundMusic />
       <BattleSessionProvider>
         <BrowserRouter>
           <div className="app">
