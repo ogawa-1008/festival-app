@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
-import { getMaterial } from "../../../data/materials";
+import { formatZenny, getRewardZenny } from "../../../utils/weaponUpgrade";
 
 import "./QuestCard.css";
 
@@ -95,21 +95,10 @@ function QuestCard({
             <dd>{buildingName ?? "練習フィールド"}</dd>
           </div>
 
-          {/* 報酬の素材は、アイコンと数で並べる（名前は読み上げ用） */}
+          {/* 討伐でもらえるゼニー */}
           <div className="quest-info-item">
             <dt className="quest-info-label">REWARD</dt>
-            <dd className="quest-rewards">
-              {quest.rewardMaterials.map((reward, index) => {
-                const material = getMaterial(reward.id);
-                if (!material) return null;
-                return (
-                  <span key={`${reward.id}-${index}`} className="quest-reward" title={material.name}>
-                    <img src={material.image} alt={material.name} />
-                    <span>×{reward.amount}</span>
-                  </span>
-                );
-              })}
-            </dd>
+            <dd>{formatZenny(getRewardZenny("victory"))}</dd>
           </div>
 
         </dl>

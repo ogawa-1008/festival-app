@@ -28,14 +28,14 @@ export function useStartQuestFromQr() {
   const navigate = useNavigate();
   const { active: practice, advance } = useGameTutorial();
   const { startBattle } = useBattleSession();
-  const { weaponClaimed, quests } = useGame();
+  const { weaponLevel, quests } = useGame();
 
   // カメラの読み取り処理は起動したときの関数を使い続けるため、読み取った時点の値を使えるよう最新値を持つ
   // （カメラ起動後に別タブで武器を交換した・練習を終えた場合など）
-  const latest = useRef({ weaponClaimed, quests, practice, advance });
+  const latest = useRef({ weaponLevel, quests, practice, advance });
   useEffect(() => {
-    latest.current = { weaponClaimed, quests, practice, advance };
-  }, [weaponClaimed, quests, practice, advance]);
+    latest.current = { weaponLevel, quests, practice, advance };
+  }, [weaponLevel, quests, practice, advance]);
 
   // 選んでいるエリアのクエストから探す（練習中は練習用のクエストも）
   const lookup = useCallback((code: string | null): QrLookup => {
@@ -53,7 +53,7 @@ export function useStartQuestFromQr() {
   // replace：今の画面を履歴に残さない。始めなかった（確認で「キャンセル」）ときは false
   const start = useCallback((quest: Quest, options: { replace?: boolean } = {}) => {
     // 交換済みの武器を反映した、このバトルのステータス
-    const stats = getBattleStats(quest, { weaponClaimed: latest.current.weaponClaimed });
+    const stats = getBattleStats(quest, { weaponLevel: latest.current.weaponLevel });
     let result = startBattle(quest.id, stats);
 
     // 別タブのセッション・別クエストが戦闘中の場合は確認する

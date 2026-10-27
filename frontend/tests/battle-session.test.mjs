@@ -4,7 +4,7 @@ import { quests } from '../src/data/quests.ts';
 import { getBattleStats } from '../src/utils/battleStats.ts';
 import { createSession, parseSession, playRound, TURN_COOLDOWN_MS } from '../src/utils/battleSession.ts';
 
-const fresh = () => ({ ...createSession(quests[0].id,getBattleStats(quests[0],{weaponClaimed:false}),'owner'), nextTurnAt: Date.now()-1 });
+const fresh = () => ({ ...createSession(quests[0].id,getBattleStats(quests[0],{weaponLevel:0}),'owner'), nextTurnAt: Date.now()-1 });
 
 test('a persisted hunt retains its HP, owner, cooldown, damage ranges and one-time result', () => {
   const initial=fresh();
@@ -39,13 +39,13 @@ test('legacy hunts retain fixed attacks while new hunts snapshot quest and weapo
   assert.equal(hit.maxTurns,9);
   assert.equal(hit.playerDamageMin,1);
   for(const quest of quests){
-    const base=getBattleStats(quest,{weaponClaimed:false});
-    const armed=getBattleStats(quest,{weaponClaimed:true});
+    const base=getBattleStats(quest,{weaponLevel:0});
+    const armed=getBattleStats(quest,{weaponLevel:3});
     assert.equal(base.monsterMaxHp,quest.monsterHp);
     assert.equal(base.maxTurns,30);
     assert.equal(base.playerMaxHp,100);
-    assert.equal(armed.playerDamageMin-base.playerDamageMin,1);
-    assert.equal(armed.playerDamageMax-base.playerDamageMax,1);
+    assert.equal(armed.playerDamageMin-base.playerDamageMin,4);
+    assert.equal(armed.playerDamageMax-base.playerDamageMax,4);
   }
 });
 
@@ -68,7 +68,7 @@ test('the final permitted hand prioritizes victory and defeat over timeout, and 
 
 test('pressing 狩猟を始める restarts the clock only for a battle with no hand played yet', async () => {
   const { restartSessionClock, isUntouchedSession } = await import('../src/utils/battleSession.ts');
-  const created = createSession(quests[0].id, getBattleStats(quests[0], { weaponClaimed: false }), 'owner');
+  const created = createSession(quests[0].id, getBattleStats(quests[0], { weaponLevel: 0 }), 'owner');
   const now = created.startedAt + 5000;
   const restarted = restartSessionClock(created, now);
   assert.equal(isUntouchedSession(created), true);

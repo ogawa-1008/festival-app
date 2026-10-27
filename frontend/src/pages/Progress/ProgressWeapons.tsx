@@ -1,24 +1,27 @@
 import { useGame } from "../../context/GameContext";
-import { progressData } from "../../data/progress";
 import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { getOwnedMaterial, hasEnoughWeaponMaterials } from "../../utils/weaponMaterials";
+import { MAX_WEAPON_LEVEL } from "../../data/weapons";
+import { canUpgradeWeapon, formatZenny, getCurrentWeapon, getNextWeapon, getRewardZenny } from "../../utils/weaponUpgrade";
+import { getWeaponAttack } from "../../utils/playerStats";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
 
 import "./Progress.css";
 
-// 進捗：武器の作成（今の武器・必要素材）
+// 進捗：武器の強化（今の武器・次の武器と必要なゼニー）
 function ProgressWeapons() {
-  const { materials, weaponClaimed, requiresUpdate } = useGame();
+  const { zenny, weaponLevel, requiresUpdate } = useGame();
   const navigate = useNavigate();
   const { active, advance } = useGameTutorial();
 
-  const hasEnoughMaterials = hasEnoughWeaponMaterials(materials);
+  const weapon = getCurrentWeapon(weaponLevel);
+  const next = getNextWeapon(weaponLevel);
+  const canUpgrade = canUpgradeWeapon({ weaponLevel, zenny });
 
-  const handleCreateWeapon = () => {
+  const handleUpgrade = () => {
     if (active) advance("craft-open");
     navigate("/exchange/weapon", { replace: active });
   };
@@ -26,124 +29,97 @@ function ProgressWeapons() {
   return (
     <main className="progress-page">
       <div className="progress-content">
-        <ProgressSubHeader eyebrow="WEAPON CRAFT" title="武器を作る" />
+        <ProgressSubHeader eyebrow="WEAPON UPGRADE" title="武器を強化する" />
 
         {/* =========================
-            武器
+            今の武器
         ========================= */}
         <section className="weapon-area">
 
           <div className="weapon-title-frame">
-            <h2>{progressData.weaponName}</h2>
+            <h2>{weapon.name}</h2>
           </div>
 
           <div className="weapon-image-area">
             <img
-              src={progressData.weaponImage}
-              alt={progressData.weaponName}
+              src={weapon.image}
+              alt={weapon.name}
               className="weapon-image"
             />
           </div>
+
+          <p className="weapon-stage">
+            強化 {weaponLevel} / {MAX_WEAPON_LEVEL} 段階・攻撃力 {getWeaponAttack(weapon)}
+          </p>
         </section>
 
 
         {/* =========================
-            必要素材
+            次の強化
         ========================= */}
         <section className="materials-area">
 
-          <div className="decorative-title" data-tutorial="required-materials">
+          <div className="decorative-title">
             <span className="decorative-line left" />
 
-            <h2>必要素材</h2>
+            <h2>次の強化</h2>
 
             <span className="decorative-line right" />
           </div>
 
+          {next ? (
+            <div className="materials-list">
+              <div className={`material-row ${zenny >= next.upgradeCost ? "material-enough" : "material-not-enough"}`}>
 
-          <div className="materials-list">
-
-            {progressData.materials.map((material) => {
-              const owned = getOwnedMaterial(materials, material.id);
-
-              const isEnough =
-                owned >= material.required;
-
-              return (
-                <div
-                  key={material.id}
-                  className={`material-row ${isEnough
-                    ? "material-enough"
-                    : "material-not-enough"
-                    }`}
-                >
-
-                  {/* 素材画像 */}
-                  <div className="material-image-frame">
-                    <img
-                      src={material.image}
-                      alt={material.name}
-                      className="material-image"
-                    />
-                  </div>
-
-
-                  {/* 素材名・必要数 */}
-                  <div className="material-main">
-
-                    <h3>
-                      {material.name}
-                    </h3>
-
-                    <div className="material-required">
-                      <span className="material-x">
-                        必要
-                      </span>
-
-                      <span>
-                        {material.required}
-                      </span>
-                    </div>
-
-                  </div>
-
-
-                  {/* 所持数 */}
-                  <div className="material-owned">
-
-                    <span className="owned-icon">
-                      持っている
-                    </span>
-
-                    <span className="owned-number">
-                      {owned}
-                    </span>
-
-                  </div>
-
+                {/* 次の武器の画像 */}
+                <div className="material-image-frame">
+                  <img src={next.image} alt="" className="material-image" />
                 </div>
-              );
-            })}
 
-          </div>
+                {/* 次の武器・必要なゼニー */}
+                <div className="material-main">
+                  <h3>{next.name}</h3>
 
-          {!weaponClaimed && !hasEnoughMaterials && (
+                  <div className="material-required">
+                    <span className="material-x">攻撃力</span>
+                    <span>{getWeaponAttack(weapon)} → {getWeaponAttack(next)}（+{next.attackBonus - weapon.attackBonus}）</span>
+                  </div>
+
+                  <div className="material-required">
+                    <span className="material-x">必要</span>
+                    <span>{formatZenny(next.upgradeCost)}</span>
+                  </div>
+                </div>
+
+                {/* 持っているゼニー */}
+                <div className="material-owned">
+                  <span className="owned-icon">持っている</span>
+                  <span className="owned-number">{formatZenny(zenny)}</span>
+                </div>
+
+              </div>
+            </div>
+          ) : (
+            <p className="progress-reward-note">最終段階まで強化しました。</p>
+          )}
+
+          {next && !canUpgrade && (
             <p className="progress-reward-note">
-              足りない素材は、マップにいるモンスターを討伐・調査するともらえます。
+              ゼニーは、マップにいるモンスターを討伐（{formatZenny(getRewardZenny("victory"))}）・調査（{formatZenny(getRewardZenny("failure"))}）するともらえます。
             </p>
           )}
 
         </section>
 
-        {/* 素材が足りないとき・作成済みのとき・アプリの更新が必要なときは押せない */}
+        {/* ゼニーが足りないとき・最終段階のとき・アプリの更新が必要なときは押せない */}
         <ProgressActionButton
-          label={weaponClaimed
-            ? "作成済み"
+          label={!next
+            ? "最終段階まで強化済み"
             : requiresUpdate
               ? "アプリを更新してください"
-              : hasEnoughMaterials ? "武器を作成する" : "素材が足りません"}
-          disabled={weaponClaimed || requiresUpdate || !hasEnoughMaterials}
-          onClick={handleCreateWeapon}
+              : canUpgrade ? "武器を強化する" : "ゼニーが足りません"}
+          disabled={!next || requiresUpdate || !canUpgrade}
+          onClick={handleUpgrade}
           tutorialId="create-weapon"
         />
 

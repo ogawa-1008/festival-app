@@ -589,6 +589,16 @@
     inset 0 0 7px rgba(0, 0, 0, 0.7);
 }
 
+/* ゼニーのアイコン（金色の「z」） */
+.result-reward-zenny {
+  color: var(--color-gold);
+
+  font-family: var(--font-mincho);
+  font-size: 26px;
+  font-weight: 900;
+}
+
+
 .result-reward-image img {
   display: block;
 

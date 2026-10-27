@@ -5,9 +5,9 @@ import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useSessionScreen } from "../../context/useSessionScreen";
-import { getMaterial } from "../../data/materials";
 import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
 import { getRewardExp } from "../../utils/questReward";
+import { formatZenny, getRewardZenny } from "../../utils/weaponUpgrade";
 
 import { useExpRewardAnimation } from "./useExpRewardAnimation";
 
@@ -72,7 +72,7 @@ function Result() {
         : "failure";
     const isTimeout = session.endReason === "timeout";
     const isGoldCrown = session.goldCrown;
-    const rewardRate = outcome === "victory" ? 1 : 0.5;
+    const rewardZenny = getRewardZenny(outcome);
     const claimed = session.claimed;
     const rewardExp = getBattleRankReward(
         rankExp,
@@ -231,41 +231,19 @@ function Result() {
                     </div>
 
                     <div className="result-reward-list">
+                        <div className="result-reward-item">
+                            <div className="result-reward-image result-reward-zenny" aria-hidden="true">
+                                z
+                            </div>
 
-                        {quest.rewardMaterials.map((reward, index) => {
+                            <div className="result-reward-name">
+                                ゼニー
+                            </div>
 
-                            const material = getMaterial(reward.id);
-
-                            // 一覧にない素材は表示しない
-                            if (!material) {
-                                return null;
-                            }
-
-                            return (
-                                <div
-                                    key={`${reward.id}-${index}`}
-                                    className="result-reward-item"
-                                >
-
-                                    <div className="result-reward-image">
-                                        <img
-                                            src={material.image}
-                                            alt={material.name}
-                                        />
-                                    </div>
-
-                                    <div className="result-reward-name">
-                                        {material.name}
-                                    </div>
-
-                                    <div className="result-reward-amount">
-                                        × {Math.max(1, Math.ceil(reward.amount * rewardRate))}
-                                    </div>
-
-                                </div>
-                            );
-                        })}
-
+                            <div className="result-reward-amount">
+                                {formatZenny(rewardZenny)}
+                            </div>
+                        </div>
                     </div>
 
                 </section>
