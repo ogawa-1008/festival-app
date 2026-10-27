@@ -347,6 +347,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
 
       setGameState((current) => {
         if (current.rankProgressVersion > RANK_PROGRESS_VERSION) return current;
+        // 画面で確認した段階から、ほかのタブなどで変わっていたら強化しない
+        if (current.weaponLevel !== gameState.weaponLevel) return current;
         const upgraded = upgradeWeapon(current);
         if (!upgraded) return current;
 

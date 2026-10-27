@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import type { Quest } from "../../../types/quest";
 import { useGameTutorial } from "../../Tutorial/useGameTutorial";
-import { REWARD_ZENNY } from "../../../data/weapons";
-import { formatZenny } from "../../../utils/weaponUpgrade";
+import { formatZenny, getRewardZenny } from "../../../utils/weaponUpgrade";
 
 import "./QuestCard.css";
 
@@ -99,7 +98,7 @@ function QuestCard({
           {/* 討伐でもらえるゼニー */}
           <div className="quest-info-item">
             <dt className="quest-info-label">REWARD</dt>
-            <dd>{formatZenny(REWARD_ZENNY.victory)}</dd>
+            <dd>{formatZenny(getRewardZenny("victory"))}</dd>
           </div>
 
         </dl>

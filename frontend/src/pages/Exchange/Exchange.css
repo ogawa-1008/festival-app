@@ -12,6 +12,7 @@
 .exchange-back { margin-top: 10px; border: 1px solid var(--color-border-muted); color: var(--color-text-warm); background: transparent; }
 .exchange-complete { margin: 20px 0; padding: 18px; border: 1px solid var(--color-accent); background: rgba(56, 78, 24, .45); }
 .exchange-complete h2 { margin: 0; color: var(--color-accent); }
+.exchange-complete .exchange-next { margin-top: 4px; }
 .exchange-complete p { margin: 10px 0 0; font-size: var(--font-size-base); line-height: 1.7; }
 .exchange-modal { position: fixed; inset: 0; z-index: var(--z-modal); display: grid; place-items: center; padding: 20px; background: var(--color-overlay); }
 .exchange-modal > div { width: min(100%, 340px); padding: 24px 18px; border: 2px solid var(--color-border-strong); background: var(--color-bg-panel); text-align: center; }

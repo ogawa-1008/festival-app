@@ -72,6 +72,12 @@ function Exchange() {
               {upgraded.to.name}に強化しました。攻撃力が {attackChange(upgraded.from, upgraded.to)} に上がり、モンスターに与えるダメージが増えます。
               {practice && "（練習用の画面です。本番の武器・ゼニーには影響しません）"}
             </p>
+            {/* 次の段階があれば、この画面のまま次の強化を確認できる */}
+            {!practice && next && (
+              <button type="button" className="exchange-primary exchange-next" onClick={() => setUpgraded(null)}>
+                次の強化を見る
+              </button>
+            )}
           </div>
         ) : !next ? (
           <div className="exchange-complete">

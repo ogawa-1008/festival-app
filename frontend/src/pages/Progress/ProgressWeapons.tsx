@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { MAX_WEAPON_LEVEL, REWARD_ZENNY } from "../../data/weapons";
-import { canUpgradeWeapon, formatZenny, getCurrentWeapon, getNextWeapon } from "../../utils/weaponUpgrade";
+import { MAX_WEAPON_LEVEL } from "../../data/weapons";
+import { canUpgradeWeapon, formatZenny, getCurrentWeapon, getNextWeapon, getRewardZenny } from "../../utils/weaponUpgrade";
 import { getWeaponAttack } from "../../utils/playerStats";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
@@ -105,7 +105,7 @@ function ProgressWeapons() {
 
           {next && !canUpgrade && (
             <p className="progress-reward-note">
-              ゼニーは、マップにいるモンスターを討伐（{formatZenny(REWARD_ZENNY.victory)}）・調査（{formatZenny(REWARD_ZENNY.failure)}）するともらえます。
+              ゼニーは、マップにいるモンスターを討伐（{formatZenny(getRewardZenny("victory"))}）・調査（{formatZenny(getRewardZenny("failure"))}）するともらえます。
             </p>
           )}
 
