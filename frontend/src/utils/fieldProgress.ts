@@ -49,11 +49,8 @@ export function getFieldProgress(
     total: area.questIds.length,
     available,
     complete: available && attempted === 1,
-    // 3校舎のスタンプで合計1枚。交換場所が決まっている校舎はその号館で、決まっていなければ訪問済みの号館で交換する。
-    redeemable: rally.remaining === 0 && !rally.redeemed && (
-      area.novelty.redemptionSpot === "here"
-      || (area.novelty.redemptionSpot === "visited" && available && attempted === 1)
-    ),
+    // 3校舎のスタンプで合計1枚。ステッカーはどの号館のフォトスポットでも交換できる。
+    redeemable: rally.remaining === 0 && !rally.redeemed,
     rally,
     // 討伐済みとノベルティの受取済みは別の記録として扱う。
     noveltyObtained: obtainedNoveltyIds.includes(area.id),
@@ -64,15 +61,8 @@ export function getFieldProgress(
 export function getRedeemConditionText(progress: ReturnType<typeof getFieldProgress>) {
   if (progress.rally.redeemed) return "ステッカーは1枚受け取り済みです。";
   if (progress.redeemable) return "スタンプ3つ達成！ このフォトスポットでステッカー1枚と交換できます。";
-  // 交換場所に決まっている号館は、その号館のクエストが準備中でも交換できる
-  if (!progress.available && progress.area.novelty.redemptionSpot !== "here") return "このフィールドのクエストは準備中です。";
-  if (progress.rally.remaining > 0) {
-    return `異なる3校舎で討伐・調査を終え、スタンプ3つでステッカー1枚と交換できます（${progress.rally.earned} / ${progress.rally.required}）`;
-  }
-  if (progress.area.novelty.redemptionSpot === "none") {
-    return `この号館では交換できません。${progress.area.novelty.redemptionLocation}で交換してください。`;
-  }
-  return "この校舎のモンスターを討伐または調査してから交換できます。";
+  if (!progress.available) return "このフィールドのクエストは準備中です。";
+  return `異なる3校舎で討伐・調査を終え、スタンプ3つでステッカー1枚と交換できます（${progress.rally.earned} / ${progress.rally.required}）`;
 }
 
 export function restoreFieldNoveltyIds(

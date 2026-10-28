@@ -3,7 +3,6 @@ import { StickerIcon } from "../../components/FieldCollection/FieldCollection";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
-import { getStickerRedemptionText } from "../../data/maps";
 import { STICKER } from "../../data/sticker";
 import { getFieldProgress, getStampRallyProgress } from "../../utils/fieldProgress";
 import ProgressActionButton from "./ProgressActionButton";
@@ -13,7 +12,7 @@ import "./Progress.css";
 
 // 進捗：フィールド報酬のステッカー（1種類）。スマホ壁紙のページと同じ作りで、集めたスタンプと集め方を見せる
 function ProgressStickers() {
-  const { campusId, quests, obtainedFieldNoveltyIds } = useGame();
+  const { quests, obtainedFieldNoveltyIds } = useGame();
   const mapAreas = useMapAreas();
   const { active: practice } = useGameTutorial();
 
@@ -22,7 +21,6 @@ function ProgressStickers() {
   const percent = Math.round((Math.min(rally.earned, rally.required) / rally.required) * 100);
   // 今交換できるフォトスポット。どこでもらっても同じなので、ボタンは1つにして最初の場所の交換画面を開く
   const spot = mapAreas.find((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas).redeemable);
-  const location = getStickerRedemptionText(campusId);
 
   return (
     <main className="progress-page">
@@ -76,10 +74,9 @@ function ProgressStickers() {
               : reached
                 ? practice
                   ? `スタンプが${rally.required}つ集まりました！（練習中はステッカーと交換できません）`
-                  : `スタンプが${rally.required}つ集まりました！ ${location}へ行って、ステッカーと交換しましょう。`
+                  : `スタンプが${rally.required}つ集まりました！ フォトスポットで、ステッカーと交換しましょう。`
                 : `あと ${rally.remaining} 校舎のスタンプでステッカーと交換できます`}
           </p>
-          {!reached && !rally.redeemed && <p className="progress-reward-note">交換場所：{location}</p>}
         </section>
 
         {!reached && !rally.redeemed && (
