@@ -31,10 +31,10 @@ test("each monster lives in the same field on every campus, and no campus repeat
   const expected = {
     リオレウス: "古代樹の森",
     ジンオウガ: "陸珊瑚の台地",
-    "メル・ゼナ": "龍結晶の地",
-    マガイマガド: "瘴気の谷",
-    アルシュベルド: "大蟻塚の荒地",
-    タマミツネ: "渡りの凍て地",
+    タマミツネ: "緋の森",
+    アルシュベルド: "竜都の跡形",
+    "メル・ゼナ": "城塞高地",
+    マガイマガド: "大社跡",
   };
   for (const campus of campuses) {
     const areas = getMapAreas(campus.id);
