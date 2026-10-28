@@ -29,12 +29,12 @@ jobs:
       - name: Check build output
         run: ls -la frontend/dist/
 
-      - name: FTP Deploy
+      - name: Deploy to Xserver
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
-          server-dir: ./
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
           local-dir: frontend/dist/
