@@ -10,36 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # GitHubのリポジトリを取得
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node.jsをセットアップ
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # frontendの依存関係をインストール
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
-      # Reactアプリをビルド
       - name: Build application
         working-directory: frontend
         run: npm run build
 
-      # ビルド結果を確認
       - name: Check build output
         run: ls -la frontend/dist/
 
-      # XserverへFTPでアップロード
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: public_html/
+          protocol: ftp
+          server-dir: ./
           local-dir: frontend/dist/
