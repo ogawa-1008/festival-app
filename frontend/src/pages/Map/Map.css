@@ -351,11 +351,6 @@
   color: var(--color-text-muted);
 }
 
-.map-area-detail-content .field-rewards p.field-novelty-note {
-  padding: var(--space-2);
-  background: var(--color-bg-panel);
-}
-
 .map-field-quest {
   display: grid;
   gap: 4px;
