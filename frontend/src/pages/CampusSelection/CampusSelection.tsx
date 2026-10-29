@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import PatternBackground from "../../components/Festival/PatternBackground";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { campuses } from "../../data/campuses";
 import { getHistoryIndex } from "../../utils/historyIndex";
 import { hasChosenSound, setSoundEnabled, startBgm } from "../../utils/sound";
+import "../../components/Festival/FestivalDesign.css";
 import "./CampusSelection.css";
 
 type Campus = (typeof campuses)[number];
@@ -63,11 +63,9 @@ function CampusSelection() {
 
   return (
     <main className="campus-selection festival-ui">
-      <PatternBackground />
-
       <div className="campus-content">
         <header className="campus-heading">
-          <p className="campus-eyebrow">― バンタン文化祭 × モンハンコラボ ―</p>
+          <p className="campus-eyebrow">― モンスターハンター × 2026バンタン文化祭 ―</p>
           <h1>エリアを選択</h1>
         </header>
 

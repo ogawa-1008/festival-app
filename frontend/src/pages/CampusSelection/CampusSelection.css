@@ -3,6 +3,8 @@
   isolation: isolate;
   min-height: max(100dvh, 874px);
   padding: 130px 24px 80px;
+  /* ホームなど下層の画面と同じ背景 */
+  background: radial-gradient(ellipse at center top, #55452f 0%, #352c21 42%, #211d18 100%);
 }
 .campus-heading { min-height: 96px; text-align: center; }
 .campus-eyebrow { margin: 0; font-size: 14px; line-height: 1.2; }
