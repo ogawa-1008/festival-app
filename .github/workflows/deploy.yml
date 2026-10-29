@@ -57,5 +57,5 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
-          server-dir: /home/kdgunei/
+          server-dir: /vantan-monhan-festival.com/public_html/
           local-dir: frontend/dist/
