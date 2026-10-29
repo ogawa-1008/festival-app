@@ -1,5 +1,4 @@
-import { getBuildingName } from "../campuses.ts";
-import type { CampusId } from "../campuses.ts";
+import { getBuildingName, type CampusId } from "../campuses.ts";
 import { defineQuest } from "../questDefinition.ts";
 import { MONSTER_FIELDS } from "../monsterFields.ts";
 import type { FieldDefinition, FieldInput } from "../../types/maps.ts";
@@ -19,7 +18,7 @@ export function defineFields(
       quest: defineQuest({
         id: `${campusId}-${field.building}`,
         title: `${field.photoSpotMonster}を討伐せよ！`,
-        description: `${getBuildingName(campusId, field.building)}（${areaName}）のフォトスポットで挑戦しよう！`,
+        description: `${getBuildingName(field)}（${areaName}）のフォトスポットで挑戦しよう！`,
         // ジンオウガ以外のイラストは未提供のため、共通のターゲットアイコンを使う。
         image: field.photoSpotMonster === "ジンオウガ"
           ? "/images/quests/image.png"

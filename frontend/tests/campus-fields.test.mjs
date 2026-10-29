@@ -14,7 +14,7 @@ import {
 } from "../src/utils/gameStorage.ts";
 
 test("each campus has its own buildings and photo-spot stickers", () => {
-  assert.deepEqual(getMapAreas("tokyo").map((area) => area.id), [1, 3, 4, 5, 6, 7]);
+  assert.deepEqual(getMapAreas("tokyo").map((area) => area.id), [1, 3, 4, 5, 6, 7, 9]);
   assert.deepEqual(getMapAreas("osaka").map((area) => area.id), [1, 2, 3, 5, 6]);
   assert.deepEqual(getMapAreas("nagoya").map((area) => area.id), [1, 2, 3]);
   assert.deepEqual(getMapAreas(null), []);
@@ -35,6 +35,7 @@ test("each monster lives in the same field on every campus, and no campus repeat
     アルシュベルド: "竜都の跡形",
     "メル・ゼナ": "城塞高地",
     マガイマガド: "大社跡",
+    ナルガクルガ: "闘技場",
   };
   for (const campus of campuses) {
     const areas = getMapAreas(campus.id);
@@ -77,9 +78,13 @@ const memoryStorage = (entries = {}) => {
   };
 };
 
-test("building names use the area prefix", () => {
-  assert.equal(getBuildingName("osaka", 2), "心斎橋2号館");
-  assert.equal(getBuildingName("tokyo", 1), "1号館");
+test("building names use each building's place name", () => {
+  assert.equal(getBuildingName({ building: 2, place: "心斎橋" }), "心斎橋2号館");
+  assert.deepEqual(getMapAreas("tokyo").map((area) => area.buildingName),
+    ["中目黒1号館", "中目黒3号館", "恵比寿4号館", "恵比寿5号館", "中目黒6号館", "五反田7号館", "五反田9号館"]);
+  assert.deepEqual(getMapAreas("osaka").map((area) => area.buildingName),
+    ["心斎橋1号館", "心斎橋2号館", "心斎橋3号館", "心斎橋5号館", "本町6号館"]);
+  assert.deepEqual(getMapAreas("nagoya").map((area) => area.buildingName), ["名古屋1号館", "名古屋2号館", "名古屋3号館"]);
 });
 
 test("progress is saved per campus and older saves move to the campus they were made in", () => {

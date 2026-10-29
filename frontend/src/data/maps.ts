@@ -12,8 +12,8 @@ const campusFields: Record<CampusId, FieldDefinition[]> = {
   nagoya: nagoyaFields,
 };
 
-function toMapArea(campusId: CampusId, field: FieldDefinition): MapArea {
-  const buildingName = getBuildingName(campusId, field.building);
+function toMapArea(field: FieldDefinition): MapArea {
+  const buildingName = getBuildingName(field);
 
   return {
     id: field.building,
@@ -35,7 +35,7 @@ function toMapArea(campusId: CampusId, field: FieldDefinition): MapArea {
 const campusMapAreas = Object.fromEntries(
   (Object.entries(campusFields) as [CampusId, FieldDefinition[]][]).map(([campusId, fields]) => [
     campusId,
-    fields.map((field) => toMapArea(campusId, field)),
+    fields.map(toMapArea),
   ]),
 ) as Record<CampusId, MapArea[]>;
 

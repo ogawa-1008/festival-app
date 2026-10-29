@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS novelty_stock (
 -- フロントの frontend/src/data/campuses/*.ts の号館と同じ番号にする
 -- IGNORE なので再実行しても既存の残数（減算済みの値）は上書きしない
 INSERT IGNORE INTO novelty_stock (campus_id, field_id, remaining) VALUES
-    ('tokyo', 1, 500), ('tokyo', 3, 500), ('tokyo', 4, 500), ('tokyo', 5, 500), ('tokyo', 6, 500), ('tokyo', 7, 500),
+    ('tokyo', 1, 500), ('tokyo', 3, 500), ('tokyo', 4, 500), ('tokyo', 5, 500), ('tokyo', 6, 500), ('tokyo', 7, 500), ('tokyo', 9, 500),
     ('osaka', 1, 500), ('osaka', 2, 500), ('osaka', 3, 500), ('osaka', 5, 500), ('osaka', 6, 500),
     ('nagoya', 1, 500), ('nagoya', 2, 500), ('nagoya', 3, 500);
 

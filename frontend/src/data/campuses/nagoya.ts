@@ -4,14 +4,17 @@ import { defineFields } from "./defineFields.ts";
 export const nagoyaFields = defineFields("nagoya", [
   {
     building: 1,
+    place: "名古屋",
     photoSpotMonster: "ジンオウガ",
   },
   {
     building: 2,
+    place: "名古屋",
     photoSpotMonster: "タマミツネ",
   },
   {
     building: 3,
+    place: "名古屋",
     photoSpotMonster: "マガイマガド",
   },
 ]);

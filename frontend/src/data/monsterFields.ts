@@ -11,6 +11,7 @@ export const MONSTER_FIELDS = {
   "メル・ゼナ": { areaName: "城塞高地" },
   // 妖怪がモチーフで、初めて登場した場所
   マガイマガド: { areaName: "大社跡" },
+  ナルガクルガ: { areaName: "闘技場" },
 } as const satisfies Record<string, { areaName: string; image?: string }>;
 
 // フォトスポットのモンスター（この表にないモンスター・書き間違いは型のチェックで分かる）
