@@ -59,3 +59,4 @@ jobs:
           protocol: ftp
           server-dir: /home/kdgunei/
           local-dir: frontend/dist/
+          
