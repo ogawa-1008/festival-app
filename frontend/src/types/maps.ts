@@ -23,6 +23,8 @@ import type { MonsterName } from "../data/monsterFields";
 // 校舎のデータに書く内容（号館とフォトスポットのモンスター）
 export type FieldInput = {
   building: number;
+  // 号館の前に付ける地名（例：心斎橋）。地名のない会場は書かない
+  place?: string;
   photoSpotMonster: MonsterName;
 };
 
