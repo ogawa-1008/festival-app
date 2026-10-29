@@ -110,10 +110,6 @@ function Result() {
         ========================= */}
 
                 <header className="result-header">
-                    <span className="result-header-subtitle">
-                        HUNTING BATTLE
-                    </span>
-
                     <h1>{outcome === "victory" ? "クエスト達成" : "調査結果"}</h1>
                 </header>
 
@@ -125,7 +121,7 @@ function Result() {
                 <section className="result-monster-area">
 
                     <div className="result-section-label">
-                        {outcome === "victory" ? "MONSTER DEFEATED" : "INVESTIGATION COMPLETE"}
+                        {outcome === "victory" ? "MISSION COMPLETE" : "MISSION FAILED"}
                     </div>
 
                     <div className="result-monster-stage">
