@@ -15,6 +15,10 @@ export type MapArea = {
     description: string;
     redemptionLocation: string;
     image?: string;
+    // この号館で交換できるか
+    // visited：スタンプを集めた号館なら交換できる（交換場所が決まっていない校舎）
+    // here：交換場所に決まっている号館 / none：交換場所ではない号館
+    redemptionSpot: "visited" | "here" | "none";
   };
 };
 

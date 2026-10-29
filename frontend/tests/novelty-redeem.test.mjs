@@ -4,6 +4,7 @@ import { getCampusQuests, getMapAreas } from "../src/data/maps.ts";
 import { getFieldProgress, getRedeemConditionText } from "../src/utils/fieldProgress.ts";
 import { fetchNoveltyStocks, redeemNovelty } from "../src/api/noveltyApi.ts";
 
+// 交換場所が決まっていない校舎（スタンプを集めた号館で交換する）
 const mapAreas = getMapAreas("tokyo");
 const quests = getCampusQuests("tokyo");
 const progressFor = (area, progress, receipts = []) => getFieldProgress(area, progress, receipts, mapAreas);
@@ -24,7 +25,8 @@ test("three different buildings grant one sticker; hunts and investigations each
   assert.equal(completed.rally.earned, 3);
   assert.equal(completed.redeemable, true);
   assert.equal(progressFor(mapAreas[2], third).redeemable, true, "a visited building can be chosen");
-  assert.equal(progressFor(mapAreas[3], third).redeemable, true, "every building hands out stickers");
+  assert.equal(progressFor(mapAreas[3], third).redeemable, false, "an unvisited building cannot be chosen");
+  assert.match(getRedeemConditionText(progressFor(mapAreas[3], third)), /この校舎のモンスター/);
 
   const receipts = [mapAreas[0].id];
   assert.equal(progressFor(mapAreas[0], third, receipts).noveltyObtained, true);
@@ -80,11 +82,12 @@ test("stock list is parsed per field", async () => {
   assert.deepEqual(await fetchNoveltyStocks("tokyo"), { ok: true, value: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] });
 });
 
-test("every campus lets you redeem at any building once three stamps are collected", () => {
+test("a campus with fixed redemption spots lets you redeem only there, even without visiting it", () => {
   const areas = getMapAreas("osaka");
   const osakaQuests = getCampusQuests("osaka");
   const three = osakaQuests.map((quest, index) => ({ ...quest, completed: index < 3 }));
   const redeemable = areas.filter((area) => getFieldProgress(area, three, [], areas).redeemable).map((area) => area.id);
-  assert.deepEqual(redeemable, [1, 2, 3, 5, 6]);
+  assert.deepEqual(redeemable, [5, 6], "buildings 5 and 6 are the spots; 1–3 were visited but are not spots");
+  assert.match(getRedeemConditionText(getFieldProgress(areas[0], three, [], areas)), /この号館では交換できません/);
   assert.ok(areas.every((area) => !getFieldProgress(area, three, [5], areas).redeemable), "only one sticker in total");
 });

@@ -16,7 +16,7 @@ const area = (id, questIds) => ({
   areaName: `field-${id}`,
   photoSpotMonster: "monster",
   questIds,
-  novelty: { name: "sticker", description: "", redemptionLocation: "" },
+  novelty: { name: "sticker", description: "", redemptionLocation: "", redemptionSpot: "visited" },
 });
 const mapAreas = [area(1, ["quest-a"]), area(2, ["quest-b"]), area(3, ["quest-c"]), area(4, [])];
 
