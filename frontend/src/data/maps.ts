@@ -1,8 +1,8 @@
-import { findCampus, getBuildingName, type CampusId } from "./campuses.ts";
+import { getBuildingName, type CampusId } from "./campuses.ts";
 import { nagoyaFields } from "./campuses/nagoya.ts";
 import { osakaFields } from "./campuses/osaka.ts";
 import { tokyoFields } from "./campuses/tokyo.ts";
-import { STICKER, STICKER_REDEMPTION_BUILDINGS } from "./sticker.ts";
+import { STICKER } from "./sticker.ts";
 import type { FieldDefinition, MapArea } from "../types/maps.ts";
 import type { Quest } from "../types/quest.ts";
 
@@ -12,24 +12,8 @@ const campusFields: Record<CampusId, FieldDefinition[]> = {
   nagoya: nagoyaFields,
 };
 
-// 交換場所の号館（決まっていない校舎・空のときは null）
-function getRedemptionBuildings(campusId: CampusId | null) {
-  const buildings = campusId ? STICKER_REDEMPTION_BUILDINGS[campusId] : undefined;
-  return buildings && buildings.length > 0 ? buildings : null;
-}
-
-// ステッカーを交換できる場所の説明（交換場所が決まっていない校舎は、スタンプを集めた号館）
-export function getStickerRedemptionText(campusId: CampusId | null) {
-  const buildings = getRedemptionBuildings(campusId);
-  return buildings
-    // 「心斎橋5、6号館」のように、号館の番号だけを並べる
-    ? `${findCampus(campusId)?.buildingPrefix ?? ""}${buildings.join("、")}号館のフォトスポット`
-    : "スタンプを集めた号館のフォトスポット";
-}
-
 function toMapArea(campusId: CampusId, field: FieldDefinition): MapArea {
   const buildingName = getBuildingName(campusId, field.building);
-  const redemptionBuildings = getRedemptionBuildings(campusId);
 
   return {
     id: field.building,
@@ -39,17 +23,11 @@ function toMapArea(campusId: CampusId, field: FieldDefinition): MapArea {
     photoSpotMonster: field.photoSpotMonster,
     questIds: [field.quest.id],
     novelty: {
-      // ステッカーは1種類（どの号館で交換しても同じ）
+      // ステッカーは1種類で、どの号館のフォトスポットでも交換できる
       name: STICKER.name,
       description: STICKER.description,
       image: STICKER.image,
-      // 交換場所が決まっている校舎は、どの号館でも決まった場所（どちらでもらっても同じ）を案内する
-      redemptionLocation: redemptionBuildings
-        ? getStickerRedemptionText(campusId)
-        : `${buildingName}のフォトスポット`,
-      redemptionSpot: !redemptionBuildings
-        ? "visited"
-        : redemptionBuildings.includes(field.building) ? "here" : "none",
+      redemptionLocation: `${buildingName}のフォトスポット`,
     },
   };
 }
