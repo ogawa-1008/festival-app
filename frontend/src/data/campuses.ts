@@ -13,6 +13,6 @@ export function findCampus(id: unknown) {
 }
 
 // 画面に出す校舎名（例：心斎橋1号館）。号館番号は会場のQRコードと同じ番号を使う
-export function getBuildingName(field: { building: number; place?: string }) {
-  return `${field.place ?? ""}${field.building}号館`;
+export function getBuildingName(field: { building: number; place: string }) {
+  return `${field.place}${field.building}号館`;
 }

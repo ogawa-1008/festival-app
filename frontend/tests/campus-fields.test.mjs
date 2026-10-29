@@ -80,7 +80,6 @@ const memoryStorage = (entries = {}) => {
 
 test("building names use each building's place name", () => {
   assert.equal(getBuildingName({ building: 2, place: "心斎橋" }), "心斎橋2号館");
-  assert.equal(getBuildingName({ building: 1 }), "1号館");
   assert.deepEqual(getMapAreas("tokyo").map((area) => area.buildingName),
     ["中目黒1号館", "中目黒3号館", "恵比寿4号館", "恵比寿5号館", "中目黒6号館", "五反田7号館", "五反田9号館"]);
   assert.deepEqual(getMapAreas("osaka").map((area) => area.buildingName),
