@@ -251,10 +251,6 @@ function Battle() {
         ========================= */}
 
                 <header className="battle-header">
-                    <span className="battle-subtitle">
-                        HUNTING BATTLE
-                    </span>
-
                     <h1>狩猟開始</h1>
                 </header>
 
