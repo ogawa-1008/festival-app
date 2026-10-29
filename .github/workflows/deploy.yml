@@ -5,30 +5,51 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+
 jobs:
   deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     steps:
+      # 1. GitHubリポジトリを取得
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Node.jsをセットアップ
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # 3. frontendの依存関係をインストール
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
+      # 4. Reactアプリをビルド
       - name: Build application
         working-directory: frontend
         run: npm run build
 
+      # 5. ビルド結果を確認
       - name: Check build output
-        run: ls -la frontend/dist/
+        run: |
+          if [ ! -d "frontend/dist" ]; then
+            echo "ERROR: frontend/dist directory was not found."
+            exit 1
+          fi
 
+          if [ -z "$(ls -A frontend/dist)" ]; then
+            echo "ERROR: frontend/dist is empty."
+            exit 1
+          fi
+
+          echo "Build completed successfully."
+          ls -la frontend/dist/
+
+      # 6. XserverへFTPでデプロイ
       - name: Deploy to Xserver
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
