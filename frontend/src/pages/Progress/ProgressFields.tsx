@@ -9,7 +9,7 @@ function ProgressFields() {
   return (
     <main className="progress-page">
       <div className="progress-content">
-        <ProgressSubHeader eyebrow="STAMP RALLY" title="スタンプを集める" />
+        <ProgressSubHeader eyebrow="STAMP" title="スタンプを集める" />
         <FieldCollection />
       </div>
 

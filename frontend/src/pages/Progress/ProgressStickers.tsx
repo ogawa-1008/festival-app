@@ -27,7 +27,7 @@ function ProgressStickers() {
   return (
     <main className="progress-page">
       <div className="progress-content">
-        <ProgressSubHeader eyebrow="FIELD REWARD" title="ステッカーをもらう" />
+        <ProgressSubHeader eyebrow="STICKER" title="ステッカーをもらう" />
 
         <section className="materials-area" aria-labelledby="sticker-stamp-title">
           <div className="decorative-title">
