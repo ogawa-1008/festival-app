@@ -4,7 +4,7 @@ import PatternBackground from "../../components/Festival/PatternBackground";
 import { canBeginBattle, useBattleSession } from "../../context/BattleSessionContext";
 import { isUntouchedSession } from "../../utils/battleSession";
 import { useGame } from "../../context/GameContext";
-import { getBattleMonsterImage, prepareBattle } from "../Battle/battleAssets";
+import { prepareBattle } from "../Battle/battleAssets";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { playSe } from "../../utils/sound";
 import "./QuestLoading.css";
@@ -22,7 +22,6 @@ export default function QuestLoading() {
   // （URLを直接開いただけでは遊べないように）
   const hasScanned = canBeginBattle(session, questId);
   const quest = quests.find((item) => item.id === questId);
-  const monsterImage = quest ? getBattleMonsterImage(quest) : undefined;
   const [preparation, setPreparation] = useState<{ questId: string | undefined; phase: Phase }>({ questId, phase: "preparing" });
   const phase = preparation.questId === questId ? preparation.phase : "preparing";
   const [attempt, setAttempt] = useState(0);
@@ -39,7 +38,7 @@ export default function QuestLoading() {
     let disposed = false;
     const timeout = setTimeout(() => controller.abort(new Error("Preparation timed out")), 15000);
 
-    void prepareBattle(controller.signal, monsterImage, quest.fieldImage).then(() => {
+    void prepareBattle(controller.signal, quest.battleImage, quest.fieldImage).then(() => {
       clearTimeout(timeout);
       if (disposed) return;
       // 準備ができたら確認画面にする（バトルへは「狩猟を始める」を押したときに進む）
@@ -55,7 +54,7 @@ export default function QuestLoading() {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [questId, quest, monsterImage, attempt, hasScanned]);
+  }, [questId, quest, attempt, hasScanned]);
 
   // 途中まで進めたバトルをQRの読み直しで開いた場合は「続きから」
   const isResume = hasScanned && !isUntouchedSession(session);
@@ -123,7 +122,7 @@ export default function QuestLoading() {
             <img src={`${artwork}compass.svg`} alt="" />
             <img className="departure-compass-ticks" src={`${artwork}compass-ticks.svg`} alt="" />
           </div>
-          <img className="departure-monster" src={monsterImage} alt="" />
+          <img className="departure-monster" src={quest?.battleImage} alt="" />
         </div>
 
         <section className="departure-quest" aria-label="読み取ったクエスト">

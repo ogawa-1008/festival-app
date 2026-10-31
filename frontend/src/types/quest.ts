@@ -11,11 +11,11 @@ export type Quest = {
 
   image: string;
 
-  // 出発前の画面とバトルに出す、透過した全身の絵（なければ image を出す）
-  battleImage?: string;
+  // 出発前の画面とバトルに出す、透過した全身の絵
+  battleImage: string;
 
   // バトルでモンスターの後ろに敷く、フィールドの画像
-  fieldImage?: string;
+  fieldImage: string;
 
   qrCode: string;
 

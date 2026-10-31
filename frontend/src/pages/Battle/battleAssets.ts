@@ -43,17 +43,11 @@ function decodeImage(src: string, signal: AbortSignal) {
   });
 }
 
-// バトルに出すモンスターの絵（全身の絵がなければアイコン）
-export function getBattleMonsterImage(quest: { image: string; battleImage?: string }) {
-  return quest.battleImage ?? quest.image;
-}
-
 // 手の画像とモンスターの絵を読み込んでおく。フィールドの背景も読んでおくが、
 // 飾りなので読み込めなくてもバトルは始められる（背景は黒になる）
-export async function prepareBattle(signal: AbortSignal, monsterImage?: string, fieldImage?: string) {
-  const images = monsterImage ? [...Object.values(battleAssets), monsterImage] : Object.values(battleAssets);
+export async function prepareBattle(signal: AbortSignal, monsterImage: string, fieldImage: string) {
   await Promise.all([
-    ...images.map((src) => decodeImage(src, signal)),
-    ...(fieldImage ? [decodeImage(fieldImage, signal).catch(() => {})] : []),
+    ...[...Object.values(battleAssets), monsterImage].map((src) => decodeImage(src, signal)),
+    decodeImage(fieldImage, signal).catch(() => {}),
   ]);
 }

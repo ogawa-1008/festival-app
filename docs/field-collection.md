@@ -21,4 +21,4 @@
 - 手元に Node.js がなくても、GitHub の Actions 画面で「Generate quest QR codes」を「Run workflow」で実行すると同じものが作られます（実行できるのは、リポジトリに書き込みの権限がある人だけです）。実行結果の画面の Artifacts から `quest-qr` の zip をダウンロードしてください（30日で消えます）。リポジトリは公開なので、この zip は GitHub にログインした人なら誰でもダウンロードできます。
 - `/q/〜` のURLを直接開けるよう、Xserver（Apache）用の `frontend/public/.htaccess` と、Vercel 用の `frontend/vercel.json` で、どのURLでも `index.html` を返す設定にしています。
 
-モンスターの画像は `frontend/src/data/monsterImages.ts` にまとめています。アイコン（クエストの一覧・スタンプ・リザルト）と、背景を透過した全身の絵（出発前の画面・バトル）の2種類で、`frontend/public/images/monsters/` にあります。実物ステッカーの画像は未提供のため、進捗のステッカー画面では共通のステッカーアイコンを使用します。
+モンスターの画像は、アイコン（クエストの一覧・スタンプ・リザルト）と、背景を透過した全身の絵（出発前の画面・バトル）の2種類で、`frontend/public/images/monsters/` にあります。ファイル名はフィールドと一緒に `frontend/src/data/monsterFields.ts` で決めています。バトルでは、モンスターの後ろにそのフィールドの画像を敷きます。実物ステッカーの画像は未提供のため、進捗のステッカー画面では共通のステッカーアイコンを使用します。

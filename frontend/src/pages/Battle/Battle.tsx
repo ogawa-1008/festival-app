@@ -4,7 +4,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { battleAssets, getBattleMonsterImage } from "./battleAssets";
+import { battleAssets } from "./battleAssets";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     type Hand,
@@ -279,10 +279,10 @@ function Battle() {
                     {/* 後ろにフィールドの画像を敷く（CSS の --battle-field-image） */}
                     <div
                         className="monster-image-frame"
-                        style={quest.fieldImage ? { "--battle-field-image": `url("${quest.fieldImage}")` } as CSSProperties : undefined}
+                        style={{ "--battle-field-image": `url("${quest.fieldImage}")` } as CSSProperties}
                     >
                         <img
-                            src={getBattleMonsterImage(quest)}
+                            src={quest.battleImage}
                             alt="モンスター"
                             className="monster-image"
                         />
