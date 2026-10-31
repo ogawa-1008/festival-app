@@ -16,9 +16,9 @@
 
 - スマホの標準カメラで読むと、ブラウザでアプリが開きます。エリアを選んでいればそのクエストの確認画面へ進み、選んでいなければアプリを開くだけ（エリアを選ぶ画面）です。ほかのエリアのQRは、ホームで理由を伝えて進みません。
 - アプリ内カメラでは、URL・文字列のどちらのQRも読み取れます。
-- QRコードは `frontend` で `npm run qr -- --base https://本番のドメイン` を実行すると、`frontend/quest-qr/` に作られます（1枚ずつのPNG・SVGと、A4で印刷する `quest-qr-print.html`）。本番のドメインが決まってから作ってください。
+- QRコードは `frontend` で `npm run qr -- --base https://vantan-monhan-festival.com` を実行すると、`frontend/quest-qr/` に作られます（1枚ずつのPNG・SVGと、A4で印刷する `quest-qr-print.html`）。本番のドメインが変わったら作り直してください。
 - QRの中身は決まった形の URL で、作り方は公開しているコードから分かります。QRを隠しても、URL を手で打てば会場に行かずにクエストを始められます（カンニングは防げません）。
-- 手元に Node.js がなくても、GitHub の Actions 画面で「Generate quest QR codes」を「Run workflow」で実行すると同じものが作られます。実行結果の画面の Artifacts から `quest-qr` の zip をダウンロードしてください（30日で消えます）。リポジトリは公開なので、この zip は GitHub にログインした人なら誰でもダウンロードできます。
+- 手元に Node.js がなくても、GitHub の Actions 画面で「Generate quest QR codes」を「Run workflow」で実行すると同じものが作られます（実行できるのは、リポジトリに書き込みの権限がある人だけです）。実行結果の画面の Artifacts から `quest-qr` の zip をダウンロードしてください（30日で消えます）。リポジトリは公開なので、この zip は GitHub にログインした人なら誰でもダウンロードできます。
 - `/q/〜` のURLを直接開けるよう、Xserver（Apache）用の `frontend/public/.htaccess` と、Vercel 用の `frontend/vercel.json` で、どのURLでも `index.html` を返す設定にしています。
 
 モンスター画像は現在ジンオウガのみ提供されています。他の対戦枠は共通のターゲットアイコンで表示します。実物ステッカーの画像は未提供のため、進捗のステッカー画面では共通のステッカーアイコンを使用します。

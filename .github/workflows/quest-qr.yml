@@ -23,13 +23,13 @@ jobs:
     steps:
       # 1. GitHubリポジトリを取得
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # 2. Node.jsをセットアップ
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -47,7 +47,7 @@ jobs:
 
       # 5. zipにまとめてダウンロードできるようにする
       - name: Upload QR codes
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quest-qr
           path: frontend/quest-qr/
