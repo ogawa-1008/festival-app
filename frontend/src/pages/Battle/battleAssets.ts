@@ -1,5 +1,4 @@
 export const battleAssets = {
-  monster: "/images/battle/D922CBBD-1F61-473A-8B25-F9649791B986.png",
   rock: "/images/battle/rock.jpeg",
   scissors: "/images/battle/scissors.jpeg",
   paper: "/images/battle/paper.jpeg",
@@ -44,10 +43,13 @@ function decodeImage(src: string, signal: AbortSignal) {
   });
 }
 
-export function getBattleMonsterImage(questImage: string) {
-  return questImage === "/images/quests/image.png" ? battleAssets.monster : questImage;
+// バトルに出すモンスターの絵（全身の絵がなければアイコン）
+export function getBattleMonsterImage(quest: { image: string; battleImage?: string }) {
+  return quest.battleImage ?? quest.image;
 }
 
-export async function prepareBattle(signal: AbortSignal, monsterImage: string = battleAssets.monster) {
-  await Promise.all(Object.values({ ...battleAssets, monster: monsterImage }).map((src) => decodeImage(src, signal)));
+// 手の画像と、クエストの画像（モンスター・フィールドの背景）を読み込んでおく
+export async function prepareBattle(signal: AbortSignal, questImages: (string | undefined)[] = []) {
+  const images = [...Object.values(battleAssets), ...questImages.filter((src) => src !== undefined)];
+  await Promise.all(images.map((src) => decodeImage(src, signal)));
 }

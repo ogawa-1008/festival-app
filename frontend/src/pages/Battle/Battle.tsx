@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type MouseEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
@@ -276,9 +276,13 @@ function Battle() {
                         MONSTER
                     </div>
 
-                    <div className="monster-image-frame">
+                    {/* 後ろにフィールドの画像を敷く（CSS の --battle-field-image） */}
+                    <div
+                        className="monster-image-frame"
+                        style={quest.fieldImage ? { "--battle-field-image": `url("${quest.fieldImage}")` } as CSSProperties : undefined}
+                    >
                         <img
-                            src={getBattleMonsterImage(quest.image)}
+                            src={getBattleMonsterImage(quest)}
                             alt="モンスター"
                             className="monster-image"
                         />

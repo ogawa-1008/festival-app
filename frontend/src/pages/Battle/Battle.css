@@ -230,12 +230,15 @@
 
   box-sizing: border-box;
 
+  /* フィールドの画像を敷き、ふちだけ暗くしてモンスターを目立たせる（画像がなければ今までの色だけ） */
   background:
     radial-gradient(
       ellipse at center,
-      rgba(105, 84, 55, 0.35),
-      rgba(0, 0, 0, 0.75) 72%
-    );
+      rgba(105, 84, 55, 0.2),
+      rgba(0, 0, 0, 0.15) 90%
+    ),
+    var(--battle-field-image, none) center / cover no-repeat,
+    #000;
 
   border:
     2px solid

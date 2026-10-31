@@ -11,6 +11,12 @@ export type Quest = {
 
   image: string;
 
+  // 出発前の画面とバトルに出す、透過した全身の絵（なければ image を出す）
+  battleImage?: string;
+
+  // バトルでモンスターの後ろに敷く、フィールドの画像
+  fieldImage?: string;
+
   qrCode: string;
 
   // 討伐時にもらえるHR EXP（調査＝失敗時は3割・切り上げ）

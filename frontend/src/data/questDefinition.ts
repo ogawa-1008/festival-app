@@ -6,8 +6,12 @@ export type QuestDefinition = {
   id: string;
   title: string;
   description?: string;
-  // モンスターの画像（public/images/quests/ に置く）
+  // モンスターのアイコン（クエストの一覧・スタンプ・リザルト）
   image: string;
+  // 出発前の画面とバトルに出す、透過した全身の絵（なければアイコンを出す）
+  battleImage?: string;
+  // バトルでモンスターの後ろに敷く、フィールドの画像
+  fieldImage?: string;
   // 会場に貼るQRコードの文字列。全校舎で重ならないようにする
   qrCode: string;
   monsterHp: number;

@@ -22,7 +22,7 @@ export default function QuestLoading() {
   // （URLを直接開いただけでは遊べないように）
   const hasScanned = canBeginBattle(session, questId);
   const quest = quests.find((item) => item.id === questId);
-  const monsterImage = quest ? getBattleMonsterImage(quest.image) : undefined;
+  const monsterImage = quest ? getBattleMonsterImage(quest) : undefined;
   const [preparation, setPreparation] = useState<{ questId: string | undefined; phase: Phase }>({ questId, phase: "preparing" });
   const phase = preparation.questId === questId ? preparation.phase : "preparing";
   const [attempt, setAttempt] = useState(0);
@@ -39,7 +39,7 @@ export default function QuestLoading() {
     let disposed = false;
     const timeout = setTimeout(() => controller.abort(new Error("Preparation timed out")), 15000);
 
-    void prepareBattle(controller.signal, monsterImage).then(() => {
+    void prepareBattle(controller.signal, [monsterImage, quest.fieldImage]).then(() => {
       clearTimeout(timeout);
       if (disposed) return;
       // 準備ができたら確認画面にする（バトルへは「狩猟を始める」を押したときに進む）
