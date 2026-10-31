@@ -49,7 +49,38 @@ jobs:
           echo "Build completed successfully."
           ls -la frontend/dist/
 
-      # 6. XserverへFTPでデプロイ
+      # 6. API（backend）用の PHP をセットアップ（Xserver と同じ 8.3）
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer
+
+      # 7. API の依存関係をインストール（本番で使うものだけ。vendor/ はリポジトリにないのでここで作る）
+      - name: Install API dependencies
+        working-directory: backend
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      # 8. API を XserverへFTPでデプロイ（ブラウザから見えない public_html の外に置く）
+      #    DB の接続情報（.env）はサーバーに手で置く。GitHub には載せない
+      - name: Deploy API to Xserver
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          server-dir: /vantan-monhan-festival.com/festival-api/
+          local-dir: backend/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .env
+            .env.example
+            README.md
+
+      # 9. アプリをXserverへFTPでデプロイ
       - name: Deploy to Xserver
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

@@ -1,11 +1,14 @@
 # Xserver（Apache）用の設定。ビルドすると dist/ にコピーされる。
 # このアプリは1枚のページ（index.html）の中で画面を切り替えるため、
 # /q/QUEST_OSAKA_1（会場のQRコード）や /map などのURLを直接開いても index.html を返す。
-# 実際にあるファイル（画像・JS など）と、API（/api/）はそのまま返す
+# 実際にあるファイル（画像・JS など）はそのまま返す。
+# API（/api/〜）は、すべて api/index.php（public_html の外にある API 本体への入り口）に渡す
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
   RewriteRule ^index\.html$ - [L]
+  RewriteRule ^api/index\.php$ - [L]
+  RewriteRule ^api/ api/index.php [L]
   RewriteCond %{REQUEST_URI} !^/api/
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
