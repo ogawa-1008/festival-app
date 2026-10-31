@@ -230,7 +230,7 @@
 
   box-sizing: border-box;
 
-  /* フィールドの画像を敷き、ふちだけ暗くしてモンスターを目立たせる（画像がなければ今までの色だけ） */
+  /* フィールドの画像をほぼそのままの明るさで敷き、ふちだけうっすら暗くする（画像がなければ黒） */
   background:
     radial-gradient(
       ellipse at center,

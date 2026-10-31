@@ -48,8 +48,12 @@ export function getBattleMonsterImage(quest: { image: string; battleImage?: stri
   return quest.battleImage ?? quest.image;
 }
 
-// 手の画像と、クエストの画像（モンスター・フィールドの背景）を読み込んでおく
-export async function prepareBattle(signal: AbortSignal, questImages: (string | undefined)[] = []) {
-  const images = [...Object.values(battleAssets), ...questImages.filter((src) => src !== undefined)];
-  await Promise.all(images.map((src) => decodeImage(src, signal)));
+// 手の画像とモンスターの絵を読み込んでおく。フィールドの背景も読んでおくが、
+// 飾りなので読み込めなくてもバトルは始められる（背景は黒になる）
+export async function prepareBattle(signal: AbortSignal, monsterImage?: string, fieldImage?: string) {
+  const images = monsterImage ? [...Object.values(battleAssets), monsterImage] : Object.values(battleAssets);
+  await Promise.all([
+    ...images.map((src) => decodeImage(src, signal)),
+    ...(fieldImage ? [decodeImage(fieldImage, signal).catch(() => {})] : []),
+  ]);
 }

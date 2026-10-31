@@ -39,7 +39,7 @@ export default function QuestLoading() {
     let disposed = false;
     const timeout = setTimeout(() => controller.abort(new Error("Preparation timed out")), 15000);
 
-    void prepareBattle(controller.signal, [monsterImage, quest.fieldImage]).then(() => {
+    void prepareBattle(controller.signal, monsterImage, quest.fieldImage).then(() => {
       clearTimeout(timeout);
       if (disposed) return;
       // 準備ができたら確認画面にする（バトルへは「狩猟を始める」を押したときに進む）
