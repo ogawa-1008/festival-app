@@ -1,0 +1,55 @@
+name: Generate quest QR codes
+
+# 会場に貼るクエストのQRコードを作る（Actions の画面から「Run workflow」で手動実行）
+# できたファイルは、実行結果の画面の Artifacts から zip でダウンロードする。
+# リポジトリは公開なので、この zip は GitHub にログインした人なら誰でもダウンロードできる。
+# QRの中身（/q/QUEST_会場_号館）はもともと公開のコードから分かるので、隠してもカンニングは防げない
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "QRに入れるアプリのURL（ドメインまで）"
+        required: true
+        default: "https://vantan-monhan-festival.com"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate QR codes
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. GitHubリポジトリを取得
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # 2. Node.jsをセットアップ
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # 3. frontendの依存関係をインストール
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # 4. QRコードを作る（PNG・SVG・印刷用HTML）
+      - name: Generate QR codes
+        working-directory: frontend
+        env:
+          QR_BASE_URL: ${{ inputs.base }}
+        run: npm run qr -- --base "$QR_BASE_URL"
+
+      # 5. zipにまとめてダウンロードできるようにする
+      - name: Upload QR codes
+        uses: actions/upload-artifact@v7
+        with:
+          name: quest-qr
+          path: frontend/quest-qr/
+          if-no-files-found: error
+          retention-days: 30
