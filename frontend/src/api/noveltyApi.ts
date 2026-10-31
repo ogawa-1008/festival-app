@@ -24,7 +24,7 @@ const toError = (status: number): NoveltyApiError =>
   status === 409 ? "out-of-stock" : status === 404 ? "not-found" : "server";
 
 async function request<T>(
-  path: string,
+  path: string, 
   init: RequestInit | undefined,
   pick: (body: unknown) => T | null,
 ): Promise<NoveltyApiResult<T>> {
