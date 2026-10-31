@@ -1,8 +1,8 @@
 export const battleAssets = {
   monster: "/images/battle/D922CBBD-1F61-473A-8B25-F9649791B986.png",
-  rock: "/images/battle/DDB43F54-277A-4F6D-A089-AE52BEB3477B_4_5005_c.jpeg",
-  scissors: "/images/battle/7B1F7267-94A8-4106-BCD7-7B355D18DDB7_4_5005_c.jpeg",
-  paper: "/images/battle/B842F13F-0F17-4A80-8342-6487B70C170D_4_5005_c.jpeg",
+  rock: "/images/battle/rock.jpeg",
+  scissors: "/images/battle/scissors.jpeg",
+  paper: "/images/battle/paper.jpeg",
 } as const;
 
 function decodeImage(src: string, signal: AbortSignal) {
