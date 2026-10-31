@@ -69,7 +69,7 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           server-dir: /vantan-monhan-festival.com/festival-api/
           local-dir: backend/
           exclude: |
@@ -87,6 +87,6 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           server-dir: /vantan-monhan-festival.com/public_html/
           local-dir: frontend/dist/
