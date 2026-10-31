@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { campuses, getBuildingName } from "../src/data/campuses.ts";
 import { allCampusQuests, getCampusQuests, getMapAreas } from "../src/data/maps.ts";
 import { quests } from "../src/data/quests.ts";
+import { WEAPONS } from "../src/data/weapons.ts";
 import {
   CAMPUS_STORAGE_KEY,
   clearLegacyBuildingSelection,
@@ -30,18 +32,30 @@ test("each campus has its own buildings and photo-spot stickers", () => {
 test("each monster lives in the same field on every campus, and no campus repeats a field", () => {
   const expected = {
     リオレウス: "古代樹の森",
-    ジンオウガ: "陸珊瑚の台地",
+    ジンオウガ: "水没林",
     タマミツネ: "緋の森",
-    アルシュベルド: "竜都の跡形",
+    アルシュベルド: "隔ての砂原",
     "メル・ゼナ": "城塞高地",
     マガイマガド: "大社跡",
-    ナルガクルガ: "闘技場",
+    ナルガクルガ: "導きの地",
   };
   for (const campus of campuses) {
     const areas = getMapAreas(campus.id);
     for (const area of areas) assert.equal(area.areaName, expected[area.photoSpotMonster], `${campus.id} ${area.photoSpotMonster}`);
     assert.equal(new Set(areas.map((area) => area.areaName)).size, areas.length, `${campus.id} has no duplicate fields`);
   }
+});
+
+test("every quest, field and weapon points to an image that exists in public/", () => {
+  const publicFile = (src) => new URL(`../public${src}`, import.meta.url);
+  for (const quest of quests) {
+    assert.ok(quest.battleImage && quest.fieldImage, `${quest.id} has battle and field images`);
+    for (const src of [quest.image, quest.battleImage, quest.fieldImage]) assert.ok(existsSync(publicFile(src)), `${quest.id}: ${src}`);
+  }
+  for (const campus of campuses) {
+    for (const area of getMapAreas(campus.id)) assert.ok(area.image && existsSync(publicFile(area.image)), `${campus.id} ${area.areaName}`);
+  }
+  for (const weapon of WEAPONS) assert.ok(existsSync(publicFile(weapon.image)), weapon.name);
 });
 
 test("quest IDs and QR codes never collide across campuses", () => {

@@ -110,7 +110,7 @@ function QuestCard({
 
         {quest.completed && (
           <img
-            src="/images/quests/stamp-image.png"
+            src="/images/quests/quest-clear.webp"
             alt="CLEAR"
             className="quest-clear-stamp"
           />

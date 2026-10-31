@@ -127,7 +127,7 @@ export function FieldRewards({
                   {(quest.completed || quest.investigated) && (
                     <img
                       className="field-stamp-clear"
-                      src="/images/quests/stamp-image.png"
+                      src="/images/quests/quest-clear.webp"
                       alt=""
                     />
                   )}

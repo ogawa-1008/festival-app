@@ -31,6 +31,6 @@ export type FieldInput = {
 // 1つの建物にフォトスポット1つ、対戦クエスト1つ。フィールド名と画像はモンスターから決まる
 export type FieldDefinition = FieldInput & {
   areaName: string;
-  image?: string;
+  image: string;
   quest: Quest;
 };

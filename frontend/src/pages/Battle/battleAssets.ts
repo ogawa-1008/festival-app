@@ -1,5 +1,4 @@
 export const battleAssets = {
-  monster: "/images/battle/D922CBBD-1F61-473A-8B25-F9649791B986.png",
   rock: "/images/battle/rock.jpeg",
   scissors: "/images/battle/scissors.jpeg",
   paper: "/images/battle/paper.jpeg",
@@ -44,10 +43,11 @@ function decodeImage(src: string, signal: AbortSignal) {
   });
 }
 
-export function getBattleMonsterImage(questImage: string) {
-  return questImage === "/images/quests/image.png" ? battleAssets.monster : questImage;
-}
-
-export async function prepareBattle(signal: AbortSignal, monsterImage: string = battleAssets.monster) {
-  await Promise.all(Object.values({ ...battleAssets, monster: monsterImage }).map((src) => decodeImage(src, signal)));
+// 手の画像とモンスターの絵を読み込んでおく。フィールドの背景も読んでおくが、
+// 飾りなので読み込めなくてもバトルは始められる（背景は黒になる）
+export async function prepareBattle(signal: AbortSignal, monsterImage: string, fieldImage: string) {
+  await Promise.all([
+    ...[...Object.values(battleAssets), monsterImage].map((src) => decodeImage(src, signal)),
+    decodeImage(fieldImage, signal).catch(() => {}),
+  ]);
 }

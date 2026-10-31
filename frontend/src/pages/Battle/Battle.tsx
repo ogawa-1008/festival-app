@@ -1,10 +1,10 @@
-import { Fragment, useEffect, useRef, useState, type MouseEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { battleAssets, getBattleMonsterImage } from "./battleAssets";
+import { battleAssets } from "./battleAssets";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import {
     type Hand,
@@ -276,9 +276,13 @@ function Battle() {
                         MONSTER
                     </div>
 
-                    <div className="monster-image-frame">
+                    {/* 後ろにフィールドの画像を敷く（CSS の --battle-field-image） */}
+                    <div
+                        className="monster-image-frame"
+                        style={{ "--battle-field-image": `url("${quest.fieldImage}")` } as CSSProperties}
+                    >
                         <img
-                            src={getBattleMonsterImage(quest.image)}
+                            src={quest.battleImage}
                             alt="モンスター"
                             className="monster-image"
                         />
