@@ -16,7 +16,7 @@ function ProgressWallpaper() {
   return (
     <main className="progress-page">
       <div className="progress-content">
-        <ProgressSubHeader eyebrow="HUNTER RANK REWARD" title="スマホ壁紙をもらう" />
+        <ProgressSubHeader eyebrow="WALLPAPER" title="スマホ壁紙をもらう" />
 
         <section className="materials-area" aria-labelledby="wallpaper-condition-title">
           <div className="decorative-title">
