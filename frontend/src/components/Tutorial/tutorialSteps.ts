@@ -69,7 +69,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       title: "クエストを確認", description: "QRコードを読み取れました。挑戦するクエストを確認して、「狩猟を始める」を押しましょう。準備が整うと押せるようになります。", side: "top",
     } },
     { id: "battle", path: `/battle/${questId}`, action: "battle-finished", element: '[data-tutorial="battle-hands"]', popover: {
-      title: "手を選んで狩猟しよう", description: `${JANKEN_RULE_TEXT}手を押して、モンスターの体力を0にしよう。練習では2回勝てばモンスターを倒せます。`, side: "top",
+      title: "手を選んで狩猟しよう", description: `${JANKEN_RULE_TEXT}手を押して、モンスターの体力を0にしよう。`, side: "top",
       popoverClass: "festival-tour festival-ui festival-tour--battle",
     } },
     { id: "reward", path: `/result/${questId}`, action: "reward-claimed", element: '[data-tutorial="claim-reward"]', popover: {
