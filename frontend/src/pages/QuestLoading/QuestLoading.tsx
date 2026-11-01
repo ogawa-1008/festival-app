@@ -98,7 +98,7 @@ export default function QuestLoading() {
       <div className="departure-content">
         <header className="departure-heading">
           <p>{ready ? "QUEST CONFIRM" : "QUEST DEPARTURE"}</p>
-          <h1 id="departure-title">{error ? "出発できませんでした" : ready ? "出発の確認" : "狩猟の準備中"}</h1>
+          <h1 id="departure-title">{error ? "出発できませんでした" : ready ? "クエストの確認" : "狩猟の準備中"}</h1>
           <p>
             {!quest || !hasScanned
               ? "QRコードを読み取り直してください"

@@ -93,7 +93,7 @@ function ProgressWeapons() {
 
                 {/* 持っているゼニー */}
                 <div className="material-owned">
-                  <span className="owned-icon">持っている</span>
+                  <span className="owned-icon">持っているゼニー</span>
                   <span className="owned-number">{formatZenny(zenny)}</span>
                 </div>
 

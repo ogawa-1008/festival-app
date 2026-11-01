@@ -16,6 +16,8 @@ export type BattleState = {
 
 export const hunterMaxHp = 100;
 export const turnFeedbackMs = 1500;
+// 操作の練習では「あいこ→負け→勝ち→勝ち」の4手で討伐できるよう、モンスターの体力を低くする
+export const practiceMonsterMaxHp = 60;
 // Festival pacing: roughly 4 / 5 / 6 winning hands per hunt, with enough
 // tolerance for losses that a short visit can still end in a successful hunt.
 export const battleBalances: Record<string, BattleBalance> = {

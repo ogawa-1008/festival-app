@@ -295,7 +295,7 @@ function Battle() {
                     </div>
 
                     <div className="monster-hp" data-tutorial="monster-hp">
-                        <span>MONSTER HP</span>
+                        <span>モンスターの体力</span>
 
                         <div className="hp-bar" role="meter" aria-label="モンスターの体力" aria-valuemin={0} aria-valuemax={session.monsterMaxHp} aria-valuenow={monsterHp}>
                             <div
@@ -350,7 +350,7 @@ function Battle() {
                 </section>
 
                 {/* =========================
-            PLAYER HP
+            PLAYER HEALTH
         ========================= */}
 
                 <section className="player-status">
@@ -370,7 +370,7 @@ function Battle() {
                         </div>
 
                         <span>
-                            HP {playerHp} / {session.playerMaxHp}
+                           体力 {playerHp} / {session.playerMaxHp}
                         </span>
                     </div>
 

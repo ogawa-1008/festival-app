@@ -53,7 +53,7 @@ export function useStartQuestFromQr() {
   // replace：今の画面を履歴に残さない。始めなかった（確認で「キャンセル」）ときは false
   const start = useCallback((quest: Quest, options: { replace?: boolean } = {}) => {
     // 交換済みの武器を反映した、このバトルのステータス
-    const stats = getBattleStats(quest, { weaponLevel: latest.current.weaponLevel });
+    const stats = getBattleStats(quest, { weaponLevel: latest.current.weaponLevel }, { practice: latest.current.practice });
     let result = startBattle(quest.id, stats);
 
     // 別タブのセッション・別クエストが戦闘中の場合は確認する

@@ -13,7 +13,7 @@ export const END_MESSAGES: Record<EndReason, string> = {
 
 // ダメージの数がないとき（あいこ・以前の形式のセッション）の文
 const ROUND_MESSAGES: Record<RoundResult, string> = {
-    draw: "HPは変わりません",
+    draw: "体力は変わりません",
     player: "モンスターにダメージ！",
     enemy: "ダメージを受けた！",
 };
