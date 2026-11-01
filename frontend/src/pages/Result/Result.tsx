@@ -136,7 +136,7 @@ function Result() {
 
                         {outcome === "victory" && (
                             <img
-                                src="/images/quests/stamp-image.png"
+                                src="/images/quests/quest-clear.webp"
                                 alt="QUEST CLEAR"
                                 className="result-clear-stamp"
                             />

@@ -13,16 +13,29 @@ require __DIR__ . '/../vendor/autoload.php';
 // .env（あれば）を読み込む。ローカル開発・本番（Xserver）ともここに DB 接続情報を置ける。
 Dotenv::createImmutable(__DIR__ . '/..')->safeLoad();
 
+// エラーの詳しい内容（SQL・ファイルの場所など）は開発用サーバー（composer start）でだけ見せる。
+// 本番（Xserver）では詳細を返さず、PHP のエラーログにだけ残す
+$isDevServer = PHP_SAPI === 'cli-server';
+
 $app = AppFactory::create();
 $app->addRoutingMiddleware();
-$app->addErrorMiddleware(true, true, true);
+$app->addErrorMiddleware($isDevServer, true, true);
 
 $dbConfig = require __DIR__ . '/../config/database.php';
-$pdo = new PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['password'], [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES => false,
-]);
+try {
+    $pdo = new PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['password'], [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
+} catch (PDOException $exception) {
+    // DB につながらない（.env がない・パスワード違いなど）。接続情報を画面に出さないよう、ここで止める
+    error_log('festival-api: DB connection failed: ' . $exception->getMessage());
+    http_response_code(503);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'database unavailable']);
+    exit;
+}
 
 $noveltyStock = new NoveltyStockRepository($pdo);
 

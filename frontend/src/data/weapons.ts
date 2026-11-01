@@ -9,16 +9,17 @@ export type Weapon = {
   upgradeCost: number;
 };
 
-// 正式な画像が届くまでの仮の画像
-const PLACEHOLDER_IMAGE = "/images/progress/C3B5F225-6372-4037-9418-BF36AB832A34_4_5005_c.jpeg";
+// 武器の画像（public/images/weapons/）。ボーンスラッシャーⅡ・Ⅲは、Ⅰと同じ画像を使う
+const BONE_SLASHER_IMAGE = "/images/weapons/bone-slasher.webp";
+const OO_AGITO_IMAGE = "/images/weapons/oo-agito.webp";
 
 // 強化の段階の順に並べる。0 番目はエリアを選んだときに全員に配る武器。
 // 保存データには何番目まで強化したか（weaponLevel）を記録するので、並びを変えないこと
 export const WEAPONS: Weapon[] = [
-  { name: "ボーンスラッシャー", image: PLACEHOLDER_IMAGE, attackBonus: 0, upgradeCost: 0 },
-  { name: "ボーンスラッシャーⅡ", image: PLACEHOLDER_IMAGE, attackBonus: 1, upgradeCost: 1000 },
-  { name: "ボーンスラッシャーⅢ", image: PLACEHOLDER_IMAGE, attackBonus: 2, upgradeCost: 2000 },
-  { name: "オオアギト", image: PLACEHOLDER_IMAGE, attackBonus: 4, upgradeCost: 3000 },
+  { name: "ボーンスラッシャー", image: BONE_SLASHER_IMAGE, attackBonus: 0, upgradeCost: 0 },
+  { name: "ボーンスラッシャーⅡ", image: BONE_SLASHER_IMAGE, attackBonus: 1, upgradeCost: 1000 },
+  { name: "ボーンスラッシャーⅢ", image: BONE_SLASHER_IMAGE, attackBonus: 2, upgradeCost: 2000 },
+  { name: "オオアギト", image: OO_AGITO_IMAGE, attackBonus: 4, upgradeCost: 3000 },
 ];
 
 // 最後の段階（これ以上強化できない）

@@ -74,7 +74,7 @@ function Progress() {
   return (
     <main className="progress-page">
       <div className="progress-content">
-        <PageTitle eyebrow="HUNTER PROGRESS" title="進捗" />
+        <PageTitle eyebrow="PROGRESS" title="進捗" />
 
         <nav className="progress-hub" aria-label="進捗の項目">
           {cards.map((card) => (

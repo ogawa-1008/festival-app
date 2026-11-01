@@ -14,7 +14,7 @@
 
 ## セットアップ
 
-PHP 8.1 以上と Composer が必要です。
+PHP 8.3 以上と Composer が必要です（本番の Xserver は 8.3）。本番へのデプロイは `docs/deploy.md` を見てください。
 
 ```bash
 cd backend
@@ -93,4 +93,4 @@ curl http://localhost:8095/health
 
 - 専用 UI（フィールドコンプリート → 交換画面）との連携
 - 交換の二重防止（端末ごとに一度きりなど）
-- Xserver へのデプロイ（PHP 8.1+ を選択、ドキュメントルートは `public/`、`vendor/` と `.env` を配置）
+- Xserver へのデプロイは `docs/deploy.md` にまとめた（GitHub Actions で `festival-api/` に置く）

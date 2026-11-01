@@ -37,7 +37,7 @@
 .departure-compass { position: absolute; top: -4px; left: 37px; width: 280px; height: 260px; }
 .departure-compass > img:first-child { inset: 0 auto auto 0; }
 .departure-compass-ticks { top: 19px; left: 19px; }
-.departure-monster { top: 42px; left: 33px; width: 288px; height: 168px; object-fit: cover; opacity: .82; }
+.departure-monster { top: 42px; left: 33px; width: 288px; height: 168px; object-fit: contain; opacity: .82; }
 .quest-loading--ready .departure-monster { opacity: 1; }
 .departure-quest { display: flex; flex-direction: column; gap: 5px; min-height: 70px; }
 .departure-quest p { font-size: 14px; }

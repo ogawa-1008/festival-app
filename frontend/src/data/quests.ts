@@ -2,6 +2,7 @@ import type { Quest } from "../types/quest";
 import { battleBalances } from "../game/battle.ts";
 import { allCampusQuests } from "./maps.ts";
 import { defineQuest } from "./questDefinition.ts";
+import { getMonsterQuestImages } from "./monsterFields.ts";
 
 // 操作の練習で使うクエスト。練習中だけ、選んでいる校舎の最初のフィールドに出る
 export const PRACTICE_QUEST_ID = "quest-001";
@@ -10,7 +11,7 @@ export const practiceQuest: Quest = defineQuest({
   id: PRACTICE_QUEST_ID,
   title: "ジンオウガを討伐せよ！",
   description: "森に現れたモンスターを討伐しよう！",
-  image: "/images/quests/image.png",
+  ...getMonsterQuestImages("ジンオウガ"),
   qrCode: "QUEST_001",
   monsterHp: battleBalances[PRACTICE_QUEST_ID].monsterMaxHp,
   monsterDamage: battleBalances[PRACTICE_QUEST_ID].monsterDamage,
