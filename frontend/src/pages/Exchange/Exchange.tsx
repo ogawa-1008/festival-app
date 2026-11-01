@@ -15,8 +15,11 @@ import "./Exchange.css";
 function Exchange() {
   const navigate = useNavigate();
   const { zenny, weaponLevel, requiresUpdate, upgradeWeapon } = useGame();
-  const { active: practice, step, advance } = useGameTutorial();
-  const [isConfirming, setIsConfirming] = useState(practice && step === "confirm");
+  const { active: practice, minimized, step, advance } = useGameTutorial();
+  const [isConfirming, setIsConfirming] = useState(false);
+  // 練習で「スライドして強化」のガイドを出すときは、確認ダイアログを開く
+  // （ガイドを閉じてダイアログをキャンセルしたあと、再開してもダイアログが出ないままにならないように）
+  if (practice && !minimized && step === "confirm" && !isConfirming) setIsConfirming(true);
   // 「強化完了」を見せている間（キャンセル不可）
   const [isFinishing, setIsFinishing] = useState(false);
   // この画面で強化したときの、強化前と強化後の武器（強化すると次の段階が変わるため、押したときの武器を覚えておく）
