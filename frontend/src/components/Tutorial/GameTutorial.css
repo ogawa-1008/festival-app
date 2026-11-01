@@ -25,6 +25,26 @@
   font-size: 14px;
   line-height: 1.7;
 }
+/* 説明文の中の小さなアイコン（画面下のナビ・QRコードなど）。文字の高さに合わせ、押す対象にはしない */
+.festival-tour .tutorial-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin: 0 .18em;
+  box-sizing: border-box;
+  border: 1px solid #a1875c;
+  border-radius: 50%;
+  background: #38241a;
+  color: #f7edd3;
+  vertical-align: -.36em;
+}
+.festival-tour .tutorial-inline-icon svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
 .festival-tour .driver-popover-close-btn { top: 2px; right: 2px; width: 44px; height: 44px; border-radius: 50%; color: #38241a; font-size: 30px; line-height: 1; }
 .festival-tour .driver-popover-close-btn:hover { color: #080606; background: rgb(140 113 76 / 16%); }
 .festival-tour .driver-popover-footer { gap: 12px; margin-top: 20px; }
