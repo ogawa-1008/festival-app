@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { practiceMonsterMaxHp } from '../src/game/battle.ts';
 import { quests } from '../src/data/quests.ts';
 import { getBattleStats } from '../src/utils/battleStats.ts';
 import { createSession, parseSession, playRound, TURN_COOLDOWN_MS } from '../src/utils/battleSession.ts';
@@ -49,18 +50,20 @@ test('legacy hunts retain fixed attacks while new hunts snapshot quest and weapo
   }
 });
 
-test('the final permitted hand prioritizes victory and defeat over timeout, and practice completes through the same session rules', () => {
+test('the final permitted hand prioritizes victory and defeat over timeout, and the guided practice hunt ends after two wins', () => {
   const last={...fresh(),turnsLeft:1,monsterHp:20};
   assert.equal(playRound(last,'rock',()=>.4,Date.now()).session.endReason,'victory');
   assert.equal(playRound({...last,playerHp:10},'rock',()=>.9,Date.now()).session.endReason,'defeated');
   assert.equal(playRound(last,'rock',()=>0,Date.now()).session.endReason,'timeout');
-  let state=fresh();
+  const practiceStats=getBattleStats(quests[0],{weaponLevel:0},{practice:true});
+  assert.equal(practiceStats.monsterMaxHp,practiceMonsterMaxHp);
+  let state=createSession(quests[0].id,practiceStats,'practice');
   const outcomes=[];
   while(state.endReason===null){
     const next=playRound(state,'rock',Math.random,state.nextTurnAt,true);
     state=next.session; outcomes.push(next.result);
   }
-  assert.deepEqual(outcomes,['draw','enemy','player','player','player','player']);
+  assert.deepEqual(outcomes,['draw','enemy','player','player']);
   assert.equal(state.playerHp,88);
   assert.equal(state.endReason,'victory');
   assert.equal(state.goldCrown,false);

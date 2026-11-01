@@ -40,6 +40,11 @@ test("a hunt gives full zenny and an investigation gives half", () => {
   assert.equal(getRewardZenny("victory"), REWARD_ZENNY.victory);
   assert.equal(getRewardZenny("failure"), REWARD_ZENNY.failure);
   assert.equal(formatZenny(1000), "1,000z");
+  // 練習は0zから始まり、討伐報酬でちょうど1回強化できる（強化後の所持ゼニーは0z）
+  assert.deepEqual(
+    upgradeWeapon({ weaponLevel: 0, zenny: getRewardZenny("victory") }),
+    { weaponLevel: 1, zenny: 0 },
+  );
 });
 
 test("broken or old save values fall back to the first weapon and 0z", () => {

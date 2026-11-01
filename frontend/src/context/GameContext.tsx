@@ -29,7 +29,7 @@ import {
 import { getCampusQuests, getMapAreas } from "../data/maps";
 import type { Quest } from "../types/quest";
 import { getFieldProgress, restoreFieldNoveltyIds } from "../utils/fieldProgress";
-import { formatZenny, getCurrentWeapon, getNextWeapon, getRewardZenny, normalizeWeaponLevel, normalizeZenny, upgradeWeapon } from "../utils/weaponUpgrade";
+import { formatZenny, getCurrentWeapon, getRewardZenny, normalizeWeaponLevel, normalizeZenny, upgradeWeapon } from "../utils/weaponUpgrade";
 
 export type Activity = {
   id: string;
@@ -140,10 +140,10 @@ function loadGameState(practiceCampus?: CampusId, campusOverride?: CampusId | nu
   }
 
   if (practiceCampus) {
-    // 練習の狩猟で討伐しても調査になっても、次の段階へ強化できるゼニーになるようにしておく
+    // 練習は0zから始め、討伐報酬でちょうど1回強化できるようにしておく（強化後は0zになる）
     const defaults = {
       ...createCampusState(practiceCampus, true),
-      zenny: Math.max(0, (getNextWeapon(0)?.upgradeCost ?? 0) - getRewardZenny("failure")),
+      zenny: 0,
     };
 
     try {

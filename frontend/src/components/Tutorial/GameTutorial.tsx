@@ -65,13 +65,13 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
         disableActiveInteraction: false, stagePadding: 8, stageRadius: 6,
         popoverClass: "festival-tour festival-ui", popoverOffset: 16,
         showProgress: true, progressText: "操作の練習 {{current}} / {{total}}", showButtons: ["close"],
-        closeBtnLabel: "遊び方ガイドを最小化する",
+        closeBtnLabel: "遊び方ガイドを閉じる",
         onNextClick: (_element, _step, { index }) => {
           if (index === 0) advance("begin");
           else if (index === steps.length - 1) finish(true);
         },
         onPrevClick: () => {},
-        // ×は終了ではなく最小化。あとから続きを再開できるようにする
+        // ×は終了ではなく、いったん閉じる（最小化）。あとから続きを再開できるようにする
         onCloseClick: () => minimize(),
         onDestroyed: (_element, _step, { reason }) => {
           if (!disposed && reason !== "api") finish();
@@ -83,14 +83,7 @@ function TutorialOverlay({ stepId, steps, advance, finish, minimize }: {
           popover.wrapper.tabIndex = -1;
           popover.title.setAttribute("role", "heading");
           popover.title.setAttribute("aria-level", "2");
-          popover.closeButton.title = "最小化";
-          // 最小化とは別に、ガイド自体を終了するボタンを用意する
-          const endButton = document.createElement("button");
-          endButton.type = "button";
-          endButton.className = "tutorial-end-button";
-          endButton.textContent = "チュートリアルを終了する";
-          endButton.addEventListener("click", () => finish());
-          popover.footer.appendChild(endButton);
+          popover.closeButton.title = "閉じる";
           // 説明文以外（見出し・ボタン・余白）の高さを CSS に渡し、ポップが画面に収まる分だけ説明文を表示する
           // （それ以上は説明文の中でスクロールする。GameTutorial.css）
           const chrome = popover.wrapper.offsetHeight - popover.description.offsetHeight;

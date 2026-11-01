@@ -94,10 +94,9 @@
 .festival-tour--battle .driver-popover-title { font-size: 18px; }
 .festival-tour--battle .driver-popover-description { margin-top: 6px !important; line-height: 1.5; }
 .festival-tour--battle .driver-popover-arrow { display: none; }
-/* 練習のバトルでは「次へ」などのボタンを使わないので、進み具合と「終了する」を1行に並べて背を低くする */
+/* 練習のバトルでは「次へ」などのボタンを使わないので、進み具合だけを1行にして背を低くする */
 .festival-tour.festival-tour--battle .driver-popover-navigation-btns { display: none !important; }
-.festival-tour.festival-tour--battle .driver-popover-footer { margin-top: 8px; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 0; }
-.festival-tour.festival-tour--battle .tutorial-end-button { flex: 0 0 auto; margin: 0 0 0 auto; min-height: 44px; }
+.festival-tour.festival-tour--battle .driver-popover-footer { margin-top: 8px; align-items: center; }
 
 /* 暗い背景（driver.js の SVG）は指を受け止めず、下の画面に通す。
    受け止めると画面全体に固定された背景の上で指を動かすことになり、ページをスクロールできない。
@@ -121,26 +120,6 @@
   0%, 100% { outline-color: rgb(207 236 66 / 45%); outline-offset: 3px; }
   50% { outline-color: var(--color-accent); outline-offset: 8px; }
 }
-
-/* ポップアップの下に、最小化とは別の「終了する」ボタンを置く */
-.festival-tour .driver-popover-footer { flex-wrap: wrap; }
-.festival-tour .tutorial-end-button {
-  order: 3;
-  flex: 0 0 100%;
-  min-height: 40px;
-  margin: 2px 0 0;
-  padding: 8px 4px;
-  border: 0;
-  background: none;
-  color: #565353;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  cursor: pointer;
-}
-.festival-tour .tutorial-end-button:hover { color: #080606; }
 
 /* ガイドを閉じたあとに出る、再開・終了の帯 */
 .tutorial-minimized {

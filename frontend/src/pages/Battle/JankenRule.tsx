@@ -106,13 +106,13 @@ function JankenRule({ maxTurns }: JankenRuleProps) {
                         </div>
                         <div>
                             <dt className="janken-rule-result-draw">{ROUND_NAMES.draw}</dt>
-                            <dd>どちらのHPも変わらない（1手に数える）</dd>
+                            <dd>どちらの体力も変わらない（1手に数える）</dd>
                         </div>
                     </dl>
 
                     <p className="janken-rule-goal">
-                        {`${maxTurns}手以内にモンスターのHPを0にすると討伐成功です。`
-                            + "あなたのHPが0になるか、手が残っていないと討伐失敗ですが、"
+                        {`${maxTurns}手以内にモンスターの体力を0にすると討伐成功です。`
+                            + "あなたの体力が0になるか、手が残っていないと討伐失敗ですが、"
                             + "「調査」として報酬の一部を受け取れます。"}
                     </p>
 

@@ -19,7 +19,7 @@ test("before the first hand shows the start message, and an older session resume
 test("during the battle the damage of the last hand is the main text", () => {
   assert.equal(getBattleMessage(session({ lastRound: round("player", 30) })).text, "モンスターに30ダメージ！");
   assert.equal(getBattleMessage(session({ lastRound: round("enemy", 12) })).text, "12ダメージを受けた！");
-  assert.equal(getBattleMessage(session({ lastRound: round("draw") })).text, "HPは変わりません");
+  assert.equal(getBattleMessage(session({ lastRound: round("draw") })).text, "体力は変わりません");
   // 以前の形式のセッション（ダメージの記録なし）
   assert.equal(getBattleMessage(session({ lastRound: round("player") })).text, "モンスターにダメージ！");
 });
