@@ -1,18 +1,13 @@
-// ノベルティ（フィールドのステッカー）の在庫 API
+// ノベルティ（ステッカー）の在庫 API。在庫はエリア（大阪・東京・名古屋）ごとで、号館では分けない
 // 接続先は VITE_API_BASE_URL。未設定なら同じドメインの /api を使う（開発中は Vite の proxy で転送する）
 // ※ 別のドメインを指定する場合は、API 側に CORS の設定が必要（今の API には無い）
 
 const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
-export type NoveltyStock = {
-  fieldId: number;
-  remaining: number;
-};
-
 // 失敗の理由。画面ではこれで案内を出し分ける
 export type NoveltyApiError =
   | "out-of-stock" // 在庫切れ（409）
-  | "not-found" // 校舎・フィールドが登録されていない（404）
+  | "not-found" // エリアが登録されていない（404）
   | "network" // 通信できなかった
   | "server"; // そのほかのサーバーのエラー
 
@@ -50,35 +45,22 @@ async function request<T>(
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-const toStock = (value: unknown): NoveltyStock | null =>
-  isRecord(value) &&
-  typeof value.fieldId === "number" &&
-  typeof value.remaining === "number"
-    ? { fieldId: value.fieldId, remaining: value.remaining }
+// レスポンスから残り数（0 以上の整数）を取り出す
+const toRemaining = (value: unknown): number | null =>
+  isRecord(value) && Number.isInteger(value.remaining) && (value.remaining as number) >= 0
+    ? (value.remaining as number)
     : null;
 
-// 校舎のフィールドごとの残り数
-export function fetchNoveltyStocks(campusId: string) {
-  return request(
-    `/api/campuses/${encodeURIComponent(campusId)}/novelties`,
-    undefined,
-    (body) => {
-      if (!isRecord(body) || !Array.isArray(body.novelties)) return null;
-
-      const stocks = body.novelties.map(toStock);
-
-      return stocks.every((stock) => stock !== null)
-        ? (stocks as NoveltyStock[])
-        : null;
-    },
-  );
+// エリアの残り数
+export function fetchNoveltyStock(campusId: string) {
+  return request(`/api/campuses/${encodeURIComponent(campusId)}/novelty`, undefined, toRemaining);
 }
 
-// 在庫を1つ減らして交換する。成功したら交換後の残り数を返す
-export function redeemNovelty(campusId: string, fieldId: number) {
+// エリアの在庫を1つ減らして交換する。成功したら交換後の残り数を返す
+export function redeemNovelty(campusId: string) {
   return request(
-    `/api/campuses/${encodeURIComponent(campusId)}/novelties/${fieldId}/redeem`,
+    `/api/campuses/${encodeURIComponent(campusId)}/novelty/redeem`,
     { method: "POST" },
-    toStock,
+    toRemaining,
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
@@ -6,7 +6,7 @@ import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
 import {
-  fetchNoveltyStocks,
+  fetchNoveltyStock,
   redeemNovelty,
   type NoveltyApiError,
 } from "../../api/noveltyApi";
@@ -15,8 +15,8 @@ import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgr
 import "./NoveltyRedeem.css";
 
 const ERROR_MESSAGES: Record<NoveltyApiError, string> = {
-  "out-of-stock": "このステッカーは在庫がなくなりました。近くのスタッフに声をかけてください。",
-  "not-found": "この校舎ではこのステッカーを交換できません。近くのスタッフに声をかけてください。",
+  "out-of-stock": "このエリアのステッカーは在庫がなくなりました。近くのスタッフに声をかけてください。",
+  "not-found": "このエリアではステッカーを交換できません。近くのスタッフに声をかけてください。",
   network: "通信できませんでした。電波のよい場所で、もう一度お試しください。交換できたか分からないときは、近くのスタッフに声をかけてください。",
   server: "交換できませんでした。少し待ってから、もう一度お試しください。",
 };
@@ -52,27 +52,30 @@ function NoveltyRedeem() {
 
   // 残り数を取得し直す回数（在庫が補充されたか確認するため）
   const [stockCheck, setStockCheck] = useState(0);
+  // 残り数の取得の番号。最後に出した取得の結果だけを表示する
+  // （画面を離れたとき・条件が変わったときも番号を進め、前に出した取得の結果は捨てる）
+  const latestRequest = useRef(0);
+  // 交換の結果で分かった残り数を表示する。番号を進めて、それより前に出した取得が遅れて届いても
+  // 交換後の残り数を古い値で上書きしないようにする
+  const showRedeemedRemaining = (value: number) => {
+    latestRequest.current += 1;
+    setRemaining(value);
+  };
 
-  // 交換前に残り数を表示する（取得できなくても交換はできる）
+  // 交換前にエリアの残り数を表示する（取得できなくても交換はできる）
   useEffect(() => {
-    if (!area || !campusId || !canRedeem) return;
+    if (!campusId || !canRedeem) return;
 
-    let cancelled = false;
+    const request = ++latestRequest.current;
 
-    void fetchNoveltyStocks(campusId).then((result) => {
-      if (cancelled) return;
-
-      setRemaining(
-        result.ok
-          ? result.value.find((stock) => stock.fieldId === area.id)?.remaining ?? null
-          : null,
-      );
+    void fetchNoveltyStock(campusId).then((result) => {
+      if (request === latestRequest.current) setRemaining(result.ok ? result.value : null);
     });
 
     return () => {
-      cancelled = true;
+      latestRequest.current += 1;
     };
-  }, [area, campusId, canRedeem, stockCheck]);
+  }, [campusId, canRedeem, stockCheck]);
 
   if (!area || !progress) {
     return (
@@ -87,24 +90,24 @@ function NoveltyRedeem() {
     );
   }
 
-  // スワイプで確定したら API で在庫を減らし、成功したときだけ獲得済みとして記録する
+  // スワイプで確定したら API でエリアの在庫を減らし、成功したときだけ獲得済みとして記録する
   const handleConfirm = () => {
     if (!campusId || !canRedeem || isRedeeming) return false;
 
     setIsRedeeming(true);
     setError(null);
 
-    void redeemNovelty(campusId, area.id).then((result) => {
+    void redeemNovelty(campusId).then((result) => {
       setIsRedeeming(false);
 
       if (result.ok) {
-        setRemaining(result.value.remaining);
+        showRedeemedRemaining(result.value);
         if (!claimFieldNovelty(area.id)) setUnrecorded(true);
         return;
       }
 
       setError(result.error);
-      if (result.error === "out-of-stock") setRemaining(0);
+      if (result.error === "out-of-stock") showRedeemedRemaining(0);
       setAttempt((value) => value + 1);
     });
 
@@ -112,7 +115,7 @@ function NoveltyRedeem() {
   };
 
   const outOfStock = remaining === 0 || error === "out-of-stock";
-  // 何度試しても成功しない状態（在庫切れ・この校舎で交換できない）
+  // 何度試しても成功しない状態（在庫切れ・このエリアで交換できない）
   const cannotRetry = outOfStock || error === "not-found";
 
   return (
@@ -152,7 +155,7 @@ function NoveltyRedeem() {
                 ? "残り数を確認しています…"
                 : remaining === null
                   ? "残り数を確認できませんでした"
-                  : `残り ${remaining} 枚`}
+                  : `エリアの残り ${remaining} 枚`}
             </p>
 
             <p className="novelty-guide">

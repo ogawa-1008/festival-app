@@ -2,7 +2,7 @@ import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { getCampusQuests, getMapAreas } from "../src/data/maps.ts";
 import { getFieldProgress, getRedeemConditionText } from "../src/utils/fieldProgress.ts";
-import { fetchNoveltyStocks, redeemNovelty } from "../src/api/noveltyApi.ts";
+import { fetchNoveltyStock, redeemNovelty } from "../src/api/noveltyApi.ts";
 
 const mapAreas = getMapAreas("tokyo");
 const quests = getCampusQuests("tokyo");
@@ -53,31 +53,40 @@ afterEach(() => {
 });
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-test("redeem calls the API and returns the remaining stock", async () => {
+test("redeem calls the area's API and returns the remaining stock", async () => {
   let called;
   mockFetch((url, init) => {
     called = { url, method: init?.method };
-    return json(200, { campus: "osaka", fieldId: 1, remaining: 499 });
+    return json(200, { campus: "osaka", remaining: 999 });
   });
-  const result = await redeemNovelty("osaka", 1);
-  assert.deepEqual(result, { ok: true, value: { fieldId: 1, remaining: 499 } });
-  assert.deepEqual(called, { url: "/api/campuses/osaka/novelties/1/redeem", method: "POST" });
+  const result = await redeemNovelty("osaka");
+  assert.deepEqual(result, { ok: true, value: 999 });
+  assert.deepEqual(called, { url: "/api/campuses/osaka/novelty/redeem", method: "POST" });
 });
 
 test("redeem maps 409, 404, other errors and network failures", async () => {
   for (const [status, error] of [[409, "out-of-stock"], [404, "not-found"], [500, "server"]]) {
     mockFetch(() => json(status, { error: "x" }));
-    assert.deepEqual(await redeemNovelty("osaka", 1), { ok: false, error });
+    assert.deepEqual(await redeemNovelty("osaka"), { ok: false, error });
   }
   mockFetch(() => { throw new TypeError("Failed to fetch"); });
-  assert.deepEqual(await redeemNovelty("osaka", 1), { ok: false, error: "network" });
+  assert.deepEqual(await redeemNovelty("osaka"), { ok: false, error: "network" });
   mockFetch(() => json(200, { unexpected: true }));
-  assert.deepEqual(await redeemNovelty("osaka", 1), { ok: false, error: "server" });
+  assert.deepEqual(await redeemNovelty("osaka"), { ok: false, error: "server" });
 });
 
-test("stock list is parsed per field", async () => {
-  mockFetch(() => json(200, { campus: "tokyo", novelties: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] }));
-  assert.deepEqual(await fetchNoveltyStocks("tokyo"), { ok: true, value: [{ fieldId: 1, remaining: 3 }, { fieldId: 2, remaining: 0 }] });
+test("stock is one number per area", async () => {
+  let calledUrl;
+  mockFetch((url) => {
+    calledUrl = url;
+    return json(200, { campus: "tokyo", remaining: 3 });
+  });
+  assert.deepEqual(await fetchNoveltyStock("tokyo"), { ok: true, value: 3 });
+  assert.equal(calledUrl, "/api/campuses/tokyo/novelty");
+  for (const remaining of ["3", -1, 1.5, null]) {
+    mockFetch(() => json(200, { campus: "tokyo", remaining }));
+    assert.deepEqual(await fetchNoveltyStock("tokyo"), { ok: false, error: "server" }, `rejects ${remaining}`);
+  }
 });
 
 test("every campus lets you redeem at any building once three stamps are collected", () => {

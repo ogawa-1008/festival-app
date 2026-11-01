@@ -23,7 +23,7 @@ Actions は API（festival-api）を先に置いてから、アプリ（public_h
 
 1. **PHP のバージョン**：サーバーパネルの「PHP Ver.切替」で、`vantan-monhan-festival.com` が PHP 8.3 以上になっているか確認する（API は 8.3 以上が必要。今は 8.3.36）。
 2. **DB**：サーバーパネルで MySQL（MariaDB）の DB とユーザーを作り、ユーザーに DB へのアクセス権を付ける。
-3. **テーブルと初期在庫**：phpMyAdmin で DB を選び、「SQL」タブで `backend/database/schema.sql` の中身を実行する（号館ごとに在庫 500。何度実行しても今の残数は変わらない）。
+3. **テーブルと初期在庫**：phpMyAdmin で DB を選び、「SQL」タブで `backend/database/schema.sql` の中身を実行する（エリアごとに在庫 1000。何度実行しても今の残数は変わらない）。
 4. **.env**：最初のデプロイで `festival-api/` ができたら、WebFTP でその中に `.env` を置く。
 
    ```
@@ -36,9 +36,20 @@ Actions は API（festival-api）を先に置いてから、アプリ（public_h
 
 ## 動いているかの確認
 
-- `https://vantan-monhan-festival.com/api/campuses/tokyo/novelties` を開いて、号館ごとの在庫（`remaining`）が JSON で出れば OK。
+- `https://vantan-monhan-festival.com/api/campuses/tokyo/novelty` を開いて、エリアの在庫（`remaining`）が JSON で出れば OK。
 - `{"error":"database unavailable"}` が出るときは、DB につながっていない（`.env` がない・場所が違う・DB 名やパスワードが違う）。詳しい原因はサーバーパネルの PHP のエラーログに出る。
 - Xserver の「404 File Not Found」が出るときは、`.htaccess` か `api/index.php` が置かれていない。
+
+## 在庫をエリアごとに切り替える（号館ごとの在庫を使っていた DB）
+
+前は `novelty_stock` テーブルに号館ごとの在庫を持っていました。今はエリア（大阪・東京・名古屋）ごとに `campus_novelty_stock` テーブルで持ちます。前のテーブルの残数は引き継がず、エリアごとに 1000 から始めます。
+
+1. **PR をマージする前に**、phpMyAdmin で DB を選び、「SQL」タブで `backend/database/schema.sql` の中身を実行する。新しいテーブルができて、各エリアに 1000 が入る。前のテーブルはそのまま残るので、今動いている API には影響しない。
+2. PR をマージして、Actions のデプロイが終わるのを待つ。
+3. `https://vantan-monhan-festival.com/api/campuses/tokyo/novelty` を開いて、`{"campus":"tokyo","remaining":1000}` が出れば切り替え完了。
+4. 前のテーブルを消す（もう使わない）：「SQL」タブで `DROP TABLE IF EXISTS novelty_stock;` を実行する。
+
+1 をせずにマージすると、新しいテーブルがないので API がエラー（500）を返す。交換画面の残り数は「残り数を確認できませんでした」になり、スライドしても「少し待ってから、もう一度お試しください」と出て交換できない（そのときは 1 を実行すれば直る）。
 
 ## GitHub の Secrets
 

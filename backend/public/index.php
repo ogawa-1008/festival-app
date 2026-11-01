@@ -50,32 +50,33 @@ $app->get('/health', static function (Request $request, Response $response) use 
     return $json($response, ['status' => 'ok']);
 });
 
-// ノベルティ（フィールド配布ステッカー）の在庫: 校舎ごとのフィールド別残数
-$app->get('/api/campuses/{campusId}/novelties', static function (Request $request, Response $response, array $args) use ($json, $noveltyStock): Response {
-    $campusStock = $noveltyStock->forCampus($args['campusId']);
+// ノベルティ（ステッカー）の在庫: エリア（大阪・東京・名古屋）ごとの残数
+$app->get('/api/campuses/{campusId}/novelty', static function (Request $request, Response $response, array $args) use ($json, $noveltyStock): Response {
+    $campusId = $args['campusId'];
+    $remaining = $noveltyStock->remaining($campusId);
 
-    if ($campusStock === null) {
-        return $json($response, ['error' => 'unknown campus', 'campus' => $args['campusId']], 404);
+    if ($remaining === null) {
+        return $json($response, ['error' => 'unknown campus', 'campus' => $campusId], 404);
     }
 
-    return $json($response, $campusStock);
+    return $json($response, ['campus' => $campusId, 'remaining' => $remaining]);
 });
 
-// 交換: 残数を1減らす。呼ばれた分だけ減算する（二重防止・交換条件チェックは呼び出し側の責務）
-$app->post('/api/campuses/{campusId}/novelties/{fieldId:[0-9]+}/redeem', static function (Request $request, Response $response, array $args) use ($json, $noveltyStock): Response {
+// 交換: エリアの残数を1減らす。どの号館で交換しても同じ在庫から減らす
+// 呼ばれた分だけ減算する（二重防止・交換条件チェックは呼び出し側の責務）
+$app->post('/api/campuses/{campusId}/novelty/redeem', static function (Request $request, Response $response, array $args) use ($json, $noveltyStock): Response {
     $campusId = $args['campusId'];
-    $fieldId = (int) $args['fieldId'];
-    $result = $noveltyStock->redeem($campusId, $fieldId);
+    $result = $noveltyStock->redeem($campusId);
 
     if ($result['ok'] === false) {
         if ($result['reason'] === 'not_found') {
-            return $json($response, ['error' => 'unknown campus or field', 'campus' => $campusId, 'fieldId' => $fieldId], 404);
+            return $json($response, ['error' => 'unknown campus', 'campus' => $campusId], 404);
         }
 
-        return $json($response, ['error' => 'out of stock', 'campus' => $campusId, 'fieldId' => $fieldId], 409);
+        return $json($response, ['error' => 'out of stock', 'campus' => $campusId], 409);
     }
 
-    return $json($response, ['campus' => $campusId, 'fieldId' => $fieldId, 'remaining' => $result['remaining']]);
+    return $json($response, ['campus' => $campusId, 'remaining' => $result['remaining']]);
 });
 
 $app->run();

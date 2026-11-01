@@ -7,7 +7,7 @@
 - `public/index.php` … エントリポイント（Web サーバーのドキュメントルートには `public/` を指定してください）
 - `src/` … アプリケーションコード（名前空間 `App\`）
 - `config/` … 設定（`database.php` は DB 接続設定）
-- `database/schema.sql` … テーブル定義と初期データ（在庫 500）
+- `database/schema.sql` … テーブル定義と初期データ（エリアごとに在庫 1000）
 - `.env.example` … DB 接続情報のテンプレート（コピーして `.env` を作る。`.env` は git 管理外）
 - `composer.json` … PHP の依存定義（Slim Framework 4 + PSR-7 実装 + phpdotenv）
 - `vendor/` … Composer が生成（git 管理外）
@@ -45,7 +45,7 @@ docker exec -i festival-mariadb mariadb -ufestival -pfestival festival < databas
 残数をリセットしたいとき（開発用）:
 
 ```bash
-docker exec festival-mariadb mariadb -ufestival -pfestival festival -e "UPDATE novelty_stock SET remaining = 500;"
+docker exec festival-mariadb mariadb -ufestival -pfestival festival -e "UPDATE campus_novelty_stock SET remaining = 1000;"
 ```
 
 接続情報は `config/database.php` の既定値（上記 Docker 用）を使うか、`backend/.env` に書けば上書きできます。本番（Xserver）では `.env` に本番 DB の情報を入れます。
@@ -67,27 +67,31 @@ curl http://localhost:8095/health
 ## API
 
 - `GET /health` … 死活確認
-- `GET /api/campuses/{campusId}/novelties` … 校舎ごとのステッカー別残数
-- `POST /api/campuses/{campusId}/novelties/{fieldId}/redeem` … 交換（残数を1減らす）
+- `GET /api/campuses/{campusId}/novelty` … エリアのステッカーの残数
+- `POST /api/campuses/{campusId}/novelty/redeem` … 交換（エリアの残数を1減らす）
 
-`campusId` は `osaka` / `tokyo` / `nagoya`。
+`campusId` はエリアの ID（`osaka` / `tokyo` / `nagoya`）。在庫はエリアごとに 1 つで、号館ごとには分けません。どの号館のフォトスポットで交換しても、そのエリアの在庫から減らします（討伐した号館と交換する号館がちがっても、配った枚数と在庫がずれないように）。
 
 ```json
-{ "campus": "osaka", "novelties": [ { "fieldId": 1, "remaining": 500 }, ... ] }
+{ "campus": "osaka", "remaining": 1000 }
 ```
 
 交換が成功すると 200 で新しい残数を返します:
 
 ```json
-{ "campus": "osaka", "fieldId": 1, "remaining": 499 }
+{ "campus": "osaka", "remaining": 999 }
 ```
 
-- 未知の校舎・フィールド … 404
+- 未知のエリア … 404
 - 在庫 0 のとき … 409（在庫はマイナスになりません）
 
-※ 交換の二重防止や交換条件（コンプリート判定）はまだ API 側では見ていません（呼ばれた分だけ減ります）。専用 UI の実装時に合わせて設計します。
+※ 交換の二重防止や交換条件（スタンプ3つ）はまだ API 側では見ていません（呼ばれた分だけ減ります）。条件はフロント側で確認しています。
 
-在庫の保存先は MariaDB の `novelty_stock` テーブル（校舎 × フィールドごとに 1 行）。ステッカーの名前・画像はフロント側（`frontend/src/data/maps.ts`）のデータを使う前提で、API は残数だけを返します。
+在庫の保存先は MariaDB の `campus_novelty_stock` テーブル（エリアごとに 1 行）。ステッカーの名前・画像はフロント側のデータを使う前提で、API は残数だけを返します。
+
+### 号館ごとの在庫（前のテーブル）からの切り替え
+
+前は `novelty_stock` テーブルに号館ごとの在庫を持っていました。本番の DB を切り替える手順は `docs/deploy.md` の「在庫をエリアごとに切り替える」を見てください。
 
 ## 今後の予定
 
