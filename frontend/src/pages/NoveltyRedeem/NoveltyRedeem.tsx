@@ -61,6 +61,11 @@ function NoveltyRedeem() {
     latestRequest.current += 1;
     setRemaining(value);
   };
+  // 残り数を取り直す（取り直している間は「確認しています…」にする）
+  const recheckStock = () => {
+    setRemaining(undefined);
+    setStockCheck((value) => value + 1);
+  };
 
   // 交換前にエリアの残り数を表示する（取得できなくても交換はできる）
   useEffect(() => {
@@ -108,6 +113,9 @@ function NoveltyRedeem() {
 
       setError(result.error);
       if (result.error === "out-of-stock") showRedeemedRemaining(0);
+      // 通信・サーバーのエラーのときは、残り数を取り直す（在庫はエリアの号館すべてで減るため、
+      // 表示が古いままだと、やり直したときに在庫切れだったと分かることになる）
+      else if (result.error === "network" || result.error === "server") recheckStock();
       setAttempt((value) => value + 1);
     });
 
@@ -164,7 +172,9 @@ function NoveltyRedeem() {
 
             {(error || outOfStock) && (
               <p className="novelty-error" role="alert">
-                {ERROR_MESSAGES[error ?? "out-of-stock"]}
+                {/* 在庫切れが分かったら、ほかのエラーより在庫切れの案内を出す（やり直しても交換できないため）。
+                    通信のエラーのあと自分の交換で最後の1枚が減っていた場合も、この案内でスタッフに声をかけてもらう */}
+                {ERROR_MESSAGES[outOfStock ? "out-of-stock" : error ?? "out-of-stock"]}
               </p>
             )}
 
@@ -174,8 +184,7 @@ function NoveltyRedeem() {
                 className="novelty-back"
                 onClick={() => {
                   setError(null);
-                  setRemaining(undefined);
-                  setStockCheck((value) => value + 1);
+                  recheckStock();
                 }}
               >
                 残り数を確認し直す

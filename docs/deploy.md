@@ -44,7 +44,18 @@ Actions は API（festival-api）を先に置いてから、アプリ（public_h
 
 前は `novelty_stock` テーブルに号館ごとの在庫を持っていました。今はエリア（大阪・東京・名古屋）ごとに `campus_novelty_stock` テーブルで持ちます。前のテーブルの残数は引き継がず、エリアごとに 1000 から始めます。
 
-1. **PR をマージする前に**、phpMyAdmin で DB を選び、「SQL」タブで `backend/database/schema.sql` の中身を実行する。新しいテーブルができて、各エリアに 1000 が入る。前のテーブルはそのまま残るので、今動いている API には影響しない。
+1. **PR をマージする前に**、phpMyAdmin で DB を選び、「SQL」タブで次の SQL を実行する（新しい `backend/database/schema.sql` と同じ中身。マージ前の main にある schema.sql は前のテーブル用なので使わない）。新しいテーブルができて、各エリアに 1000 が入る。前のテーブルはそのまま残るので、今動いている API には影響しない。
+
+   ```sql
+   CREATE TABLE IF NOT EXISTS campus_novelty_stock (
+       campus_id VARCHAR(20) NOT NULL,
+       remaining INT NOT NULL DEFAULT 0,
+       PRIMARY KEY (campus_id)
+   ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+   INSERT IGNORE INTO campus_novelty_stock (campus_id, remaining) VALUES
+       ('osaka', 1000), ('tokyo', 1000), ('nagoya', 1000);
+   ```
 2. PR をマージして、Actions のデプロイが終わるのを待つ。
 3. `https://vantan-monhan-festival.com/api/campuses/tokyo/novelty` を開いて、`{"campus":"tokyo","remaining":1000}` が出れば切り替え完了。
 4. 前のテーブルを消す（もう使わない）：「SQL」タブで `DROP TABLE IF EXISTS novelty_stock;` を実行する。
