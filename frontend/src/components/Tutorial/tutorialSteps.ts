@@ -54,13 +54,13 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       showButtons: ["next", "close"], nextBtnText: "練習を始める",
     } },
     { id: "map", path: "/", action: "nav-map", element: '[data-tutorial="nav-map"]', popover: {
-      title: "会場を確認しよう", description: `まずは画面下の${mapIcon}現在地のマーク（マップ）を押して、モンスターがいるフィールドを確認しましょう。`, side: "top",
+      title: "会場を確認しよう", description: `まずは${mapIcon}マップを押して、モンスターがいるフィールドを確認しましょう。`, side: "top",
     } },
     { id: "field", path: "/map", action: "field-open", element: '[data-tutorial="map-field"]', popover: {
       title: "フィールドを開く", description: "このフィールドを押してみましょう。場所やモンスターの情報が開きます。", side: "top",
     } },
     { id: "map-home", path: "/map", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
-      title: "クエストへ向かおう", description: `フィールドの情報を確認できました。画面下の${homeIcon}家のマーク（ホーム）を押してクエストを選びましょう。`, side: "top",
+      title: "クエストへ向かおう", description: `フィールドの情報を確認できました。${homeIcon}ホームを押してクエストを選びましょう。`, side: "top",
     } },
     { id: "quest", path: "/", action: "quest-open", element: `[data-tutorial-quest="${questId}"]`, popover: {
       title: "クエストを選ぶ", description: `このクエストを押してください。${qrIcon}QRコードの読み取り画面へ進みます。`, side: "top",
@@ -85,7 +85,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       title: "報酬を受け取りました", description: `「ホームへ戻る」を押してください。もらった${zennyIcon}ゼニーで${weaponIcon}武器を強化してみましょう。`, side: "top",
     } },
     { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', popover: {
-      title: "進捗を確認", description: `画面下の${progressIcon}折れ線グラフのマーク（進捗）を押すと、${weaponIcon}武器の強化やもらえる報酬を確認できます。`, side: "top",
+      title: "進捗を確認", description: `${progressIcon}進捗を押すと、${weaponIcon}武器の強化やもらえる報酬を確認できます。`, side: "top",
     } },
     { id: "progress-hub", path: "/progress", action: "weapons-open", element: '[data-tutorial="progress-weapons"]', popover: {
       title: "「武器を強化する」を開く", description: `進捗では、武器・ステッカー・スマホ壁紙・スタンプの集まり具合を確認できます。${weaponIcon}「武器を強化する」を押しましょう。`, side: "bottom",
@@ -103,7 +103,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       title: "武器を強化しました", description: `${weaponIcon}武器を強化すると攻撃力が上がり、モンスターに与えるダメージが増えます。確認できたら「武器詳細へ戻る」を押しましょう。`, side: "top",
     } },
     { id: "finish-home", path: "/progress/weapons", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
-      title: "ホームへ戻ろう", description: `画面下の${homeIcon}家のマーク（ホーム）を押して、練習を終えましょう。ここまでが狩猟から武器の強化までの流れです。`, side: "top",
+      title: "ホームへ戻ろう", description: `${homeIcon}ホームを押して、練習を終えましょう。ここまでが狩猟から武器の強化までの流れです。`, side: "top",
     } },
     { id: "complete", path: "/", popover: {
       title: "いざ、本番の狩猟へ", description: `操作の練習は完了です！ 会場の${qrIcon}QRコードを探して、クエストに挑戦しましょう。<br><br>メニューの「遊び方ガイド」からいつでも練習し直せます。`,
