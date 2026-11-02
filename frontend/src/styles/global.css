@@ -182,6 +182,14 @@ button {
   font: inherit;
 }
 
+/* IP の画像を、ドラッグ・長押し・範囲選択で保存できないようにする（右クリックと Firefox のドラッグは utils/protectImages.ts で止める） */
+img {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* キーボード操作でフォーカスしたときだけ枠を出す（タップでは出ない）
    部品ごとにフォーカスの見た目を作る場合も、この太さ・色に合わせる */
 :focus-visible {
