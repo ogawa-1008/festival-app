@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import PatternBackground from "../../components/Festival/PatternBackground";
+import "../../components/Festival/FestivalDesign.css";
 import { canBeginBattle, useBattleSession } from "../../context/BattleSessionContext";
 import { isUntouchedSession } from "../../utils/battleSession";
 import { useGame } from "../../context/GameContext";
@@ -90,7 +90,6 @@ export default function QuestLoading() {
 
   return (
     <main className={`quest-loading festival-ui${ready ? " quest-loading--ready" : ""}${error ? " quest-loading--error" : ""}`} aria-labelledby="departure-title">
-      <PatternBackground loading />
       <div className="departure-rim" aria-hidden="true" />
       <div className="departure-ornament" aria-hidden="true" />
 

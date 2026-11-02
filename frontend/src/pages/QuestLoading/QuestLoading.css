@@ -3,7 +3,8 @@
   isolation: isolate;
   min-height: max(100dvh, 874px);
   padding: 136px 24px 82px;
-  background: var(--festival-primary);
+  /* ホーム・コレクション・交換画面と同じ茶色のグラデーション */
+  background: radial-gradient(ellipse at center top, #55452f 0%, #352c21 42%, #211d18 100%);
 }
 .departure-rim {
   position: absolute;
