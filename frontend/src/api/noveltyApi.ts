@@ -1,8 +1,5 @@
 // ノベルティ（ステッカー）の在庫 API。在庫はエリア（大阪・東京・名古屋）ごとで、号館では分けない
-// 接続先は VITE_API_BASE_URL。未設定なら同じドメインの /api を使う（開発中は Vite の proxy で転送する）
-// ※ 別のドメインを指定する場合は、API 側に CORS の設定が必要（今の API には無い）
-
-const API_BASE_URL = (import.meta.env?.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+import { API_BASE_URL } from "./apiBase.ts";
 
 // 失敗の理由。画面ではこれで案内を出し分ける
 export type NoveltyApiError =

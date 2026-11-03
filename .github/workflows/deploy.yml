@@ -62,7 +62,8 @@ jobs:
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
       # 8. API を XserverへFTPでデプロイ（ブラウザから見えない public_html の外に置く）
-      #    DB の接続情報（.env）はサーバーに手で置く。GitHub には載せない
+      #    DB の接続情報（.env）と壁紙の画像（storage/wallpapers/）はサーバーに手で置く。GitHub には載せない
+      #    storage/ はフォルダごと対象から外す（デプロイの記録に入ると、手元から消えたときにサーバーの画像ごと消されるため）
       - name: Deploy API to Xserver
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -79,6 +80,7 @@ jobs:
             .env
             .env.example
             README.md
+            storage/**
 
       # 9. アプリをXserverへFTPでデプロイ
       - name: Deploy to Xserver

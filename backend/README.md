@@ -11,6 +11,7 @@
 - `.env.example` … DB 接続情報のテンプレート（コピーして `.env` を作る。`.env` は git 管理外）
 - `composer.json` … PHP の依存定義（Slim Framework 4 + PSR-7 実装 + phpdotenv）
 - `vendor/` … Composer が生成（git 管理外）
+- `storage/wallpapers/` … スマホ壁紙の画像（git 管理外。サーバーへ手で置く）
 
 ## セットアップ
 
@@ -69,6 +70,10 @@ curl http://localhost:8095/health
 - `GET /health` … 死活確認
 - `GET /api/campuses/{campusId}/novelty` … エリアのステッカーの残数
 - `POST /api/campuses/{campusId}/novelty/redeem` … 交換（エリアの残数を1減らす）
+- `GET /api/wallpapers/{番号}` … スマホ壁紙の原寸（JPEG）。番号は 1〜5、画像がなければ 404
+- `GET /api/wallpapers/{番号}/preview` … スマホ壁紙の一覧のカードに敷く画像（webp、幅 720）
+
+壁紙の画像は git に入れず、`storage/wallpapers/` に手で置きます（`docs/deploy.md` の「スマホ壁紙の画像」）。
 
 `campusId` はエリアの ID（`osaka` / `tokyo` / `nagoya`）。在庫はエリアごとに 1 つで、号館ごとには分けません。どの号館のフォトスポットで交換しても、そのエリアの在庫から減らします（討伐した号館と交換する号館がちがっても、配った枚数と在庫がずれないように）。
 

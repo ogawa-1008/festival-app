@@ -970,3 +970,365 @@
 
   font-size: var(--font-size-sm);
 }
+
+
+/* ========================================
+   スマホ壁紙：一覧と、壁紙ごとの画面
+======================================== */
+
+.wallpaper-notice {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+
+  border: 1px solid var(--color-gold);
+
+  background: rgba(12, 14, 12, 0.85);
+
+  color: var(--color-text-highlight);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.wallpaper-lead {
+  margin: 0 0 var(--space-3);
+}
+
+/* 壁紙の画像。読み込むまでは暗い枠を、壁紙と同じ縦横比で出しておく */
+.wallpaper-image {
+  position: relative;
+
+  display: block;
+
+  aspect-ratio: 1402 / 2917;
+
+  background: linear-gradient(160deg, #2a2219, #15110d);
+
+  overflow: hidden;
+}
+
+.wallpaper-image img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.wallpaper-image.is-loading img {
+  opacity: 0;
+}
+
+.wallpaper-image-error {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  padding: var(--space-2);
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+/* 一覧：カードを縦に1列に並べる */
+.wallpaper-list {
+  display: grid;
+  gap: var(--space-3);
+
+  margin: 0 0 var(--space-5);
+  padding: 0;
+
+  list-style: none;
+}
+
+/* カード：上に壁紙の一部分、下に番号と「開く」の帯 */
+.wallpaper-card {
+  display: block;
+
+  overflow: hidden;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+
+  background: linear-gradient(180deg, #2a2016, #15110d);
+
+  color: var(--color-text);
+
+  text-decoration: none;
+
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(244, 213, 139, 0.12);
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wallpaper-card:active {
+  transform: scale(0.98);
+}
+
+/* 壁紙は縦長なので、絵のある下のほうを切り抜いて敷く（文字は重ねない） */
+.wallpaper-card-art {
+  position: relative;
+
+  display: block;
+
+  height: 120px;
+
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.wallpaper-card-art .wallpaper-image {
+  position: absolute;
+  inset: 0;
+
+  aspect-ratio: auto;
+}
+
+.wallpaper-card-art .wallpaper-image img {
+  object-position: center 72%;
+}
+
+.wallpaper-card-art .wallpaper-image-error {
+  font-size: var(--font-size-sm);
+}
+
+.wallpaper-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+
+  padding: var(--space-2) var(--space-4);
+}
+
+.wallpaper-card-title {
+  color: var(--color-gold);
+
+  /* 見出し（No.1）と同じ明朝体。Georgia は数字の高さがそろわず、下に寄って見えるため使わない */
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-2xl);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
+
+.wallpaper-card-open {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-md);
+  font-weight: bold;
+}
+
+.wallpaper-card-open .wallpaper-chevron {
+  width: 16px;
+  height: 16px;
+
+  color: var(--color-gold);
+}
+
+/* 壁紙ごとの画面 */
+.wallpaper-detail-title {
+  margin: var(--space-2) 0 var(--space-3);
+
+  color: var(--color-gold);
+
+  /* Georgia は数字の高さがそろわないため、明朝体にする */
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-3xl);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.wallpaper-chevron {
+  display: block;
+}
+
+/* 前・次の矢印で画像を挟む */
+.wallpaper-detail {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.wallpaper-detail-frame {
+  justify-self: center;
+
+  /* 下のボタンまで1画面に収まる大きさにする（壁紙は縦長） */
+  width: min(100%, max(150px, calc((100dvh - 400px) * 1402 / 2917)));
+
+  padding: 6px;
+
+  border: 1px solid var(--color-border-strong);
+  border-radius: 14px;
+
+  background: linear-gradient(180deg, #3a2c1d, #1c150e);
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(244, 213, 139, 0.15);
+}
+
+.wallpaper-detail-frame .wallpaper-image {
+  border-radius: 9px;
+}
+
+.wallpaper-step {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-circle);
+
+  background: var(--color-bg-panel);
+
+  color: var(--color-gold);
+
+  text-decoration: none;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wallpaper-step:active {
+  transform: scale(0.94);
+}
+
+.wallpaper-step.is-empty {
+  visibility: hidden;
+}
+
+/* ダウンロードのボタンと説明 */
+.wallpaper-download {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+.wallpaper-download-button {
+  min-width: min(100%, 240px);
+  min-height: 52px;
+
+  padding: 0 var(--space-5);
+
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  background: var(--color-accent);
+
+  color: var(--color-text-on-accent);
+
+  font-family: inherit;
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wallpaper-download-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.wallpaper-download-button:disabled {
+  background: var(--color-bg-raised);
+
+  color: var(--color-text-subtle);
+
+  box-shadow: none;
+
+  cursor: default;
+}
+
+.wallpaper-download-note {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.wallpaper-download-note.is-error {
+  color: var(--color-danger-text);
+}
+
+/* ホーム画面に設定する方法（折りたたみ） */
+.wallpaper-howto-list {
+  display: grid;
+  gap: var(--space-2);
+
+  margin-bottom: var(--space-5);
+}
+
+.wallpaper-howto summary {
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+
+  list-style: none;
+
+  padding: 0 var(--space-3);
+
+  border: 1px solid var(--color-border-muted);
+  border-radius: 6px;
+
+  background: var(--color-bg-raised);
+
+  color: var(--color-text-highlight);
+
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.wallpaper-howto[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+.wallpaper-howto summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 開いているか閉じているかを、右端の ＋ / − で示す */
+.wallpaper-howto summary::after {
+  content: "＋";
+
+  color: var(--color-gold);
+
+  font-size: var(--font-size-lg);
+}
+
+.wallpaper-howto[open] summary::after {
+  content: "−";
+}
+
+.wallpaper-howto small {
+  display: block;
+
+  margin-top: var(--space-1);
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-xs);
+}

@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\NoveltyStockRepository;
+use App\WallpaperStore;
 use Dotenv\Dotenv;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use Slim\Psr7\Stream;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -22,22 +24,32 @@ $app->addRoutingMiddleware();
 $app->addErrorMiddleware($isDevServer, true, true);
 
 $dbConfig = require __DIR__ . '/../config/database.php';
-try {
-    $pdo = new PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['password'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-} catch (PDOException $exception) {
-    // DB につながらない（.env がない・パスワード違いなど）。接続情報を画面に出さないよう、ここで止める
-    error_log('festival-api: DB connection failed: ' . $exception->getMessage());
-    http_response_code(503);
-    header('Content-Type: application/json');
-    echo json_encode(['error' => 'database unavailable']);
-    exit;
-}
 
-$noveltyStock = new NoveltyStockRepository($pdo);
+// DB には、ステッカーの在庫の API が呼ばれたときだけつなぐ。
+// （壁紙の画像は DB を使わない。画像を送る間も DB の接続を持ち続けると、
+//   当日に同時接続の上限へ近づき、ステッカーの交換が詰まるおそれがあるため。DB が止まっても壁紙は返せる）
+// つながらない（.env がない・パスワード違いなど）ときは null。接続情報は画面に出さず、エラーログにだけ残す
+$noveltyStockInstance = null;
+$noveltyStock = static function () use ($dbConfig, &$noveltyStockInstance): ?NoveltyStockRepository {
+    if ($noveltyStockInstance !== null) {
+        return $noveltyStockInstance;
+    }
+
+    try {
+        $pdo = new PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+    } catch (PDOException $exception) {
+        error_log('festival-api: DB connection failed: ' . $exception->getMessage());
+
+        return null;
+    }
+
+    return $noveltyStockInstance = new NoveltyStockRepository($pdo);
+};
+$wallpapers = new WallpaperStore(__DIR__ . '/../storage/wallpapers');
 
 // レスポンスを JSON で返すための小道具
 $json = static function (Response $response, array $payload, int $status = 200): Response {
@@ -52,8 +64,13 @@ $app->get('/health', static function (Request $request, Response $response) use 
 
 // ノベルティ（ステッカー）の在庫: エリア（大阪・東京・名古屋）ごとの残数
 $app->get('/api/campuses/{campusId}/novelty', static function (Request $request, Response $response, array $args) use ($json, $noveltyStock): Response {
+    $stock = $noveltyStock();
+    if ($stock === null) {
+        return $json($response, ['error' => 'database unavailable'], 503);
+    }
+
     $campusId = $args['campusId'];
-    $remaining = $noveltyStock->remaining($campusId);
+    $remaining = $stock->remaining($campusId);
 
     if ($remaining === null) {
         return $json($response, ['error' => 'unknown campus', 'campus' => $campusId], 404);
@@ -65,8 +82,13 @@ $app->get('/api/campuses/{campusId}/novelty', static function (Request $request,
 // 交換: エリアの残数を1減らす。どの号館で交換しても同じ在庫から減らす
 // 呼ばれた分だけ減算する（二重防止・交換条件チェックは呼び出し側の責務）
 $app->post('/api/campuses/{campusId}/novelty/redeem', static function (Request $request, Response $response, array $args) use ($json, $noveltyStock): Response {
+    $stock = $noveltyStock();
+    if ($stock === null) {
+        return $json($response, ['error' => 'database unavailable'], 503);
+    }
+
     $campusId = $args['campusId'];
-    $result = $noveltyStock->redeem($campusId);
+    $result = $stock->redeem($campusId);
 
     if ($result['ok'] === false) {
         if ($result['reason'] === 'not_found') {
@@ -77,6 +99,33 @@ $app->post('/api/campuses/{campusId}/novelty/redeem', static function (Request $
     }
 
     return $json($response, ['campus' => $campusId, 'remaining' => $result['remaining']]);
+});
+
+// スマホ壁紙の画像（原寸・一覧のカードに敷く画像）。画像は公開フォルダに置かず、ここから返す
+// ログインがないので、受け取れるランクかどうかは画面の側で確かめる
+$sendWallpaper = static function (Response $response, int $id, bool $preview) use ($json, $wallpapers): Response {
+    $file = $wallpapers->find($id, $preview);
+
+    $handle = $file === null ? false : fopen($file['path'], 'rb');
+    if ($file === null || $handle === false) {
+        return $json($response, ['error' => 'unknown wallpaper'], 404);
+    }
+
+    return $response
+        ->withBody(new Stream($handle))
+        ->withHeader('Content-Type', $file['contentType'])
+        ->withHeader('Content-Length', (string) filesize($file['path']))
+        ->withHeader('Content-Disposition', 'inline; filename="' . $file['filename'] . '"')
+        ->withHeader('Cache-Control', 'private, max-age=86400')
+        ->withHeader('X-Content-Type-Options', 'nosniff');
+};
+
+$app->map(['GET', 'HEAD'], '/api/wallpapers/{id:[0-9]+}', static function (Request $request, Response $response, array $args) use ($sendWallpaper): Response {
+    return $sendWallpaper($response, (int) $args['id'], false);
+});
+
+$app->map(['GET', 'HEAD'], '/api/wallpapers/{id:[0-9]+}/preview', static function (Request $request, Response $response, array $args) use ($sendWallpaper): Response {
+    return $sendWallpaper($response, (int) $args['id'], true);
 });
 
 $app->run();

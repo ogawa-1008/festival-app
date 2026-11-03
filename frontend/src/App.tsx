@@ -18,6 +18,7 @@ import Progress from "./pages/Progress/Progress";
 import ProgressWeapons from "./pages/Progress/ProgressWeapons";
 import ProgressStickers from "./pages/Progress/ProgressStickers";
 import ProgressWallpaper from "./pages/Progress/ProgressWallpaper";
+import ProgressWallpaperDetail from "./pages/Progress/ProgressWallpaperDetail";
 import ProgressFields from "./pages/Progress/ProgressFields";
 import QRScanner from "./pages/QRScanner/QRScanner.tsx";
 import Battle from "./pages/Battle/Battle.tsx";
@@ -118,6 +119,7 @@ function App() {
                 <Route path="/progress/weapons" element={<ProgressWeapons />} />
                 <Route path="/progress/stickers" element={<ProgressStickers />} />
                 <Route path="/progress/wallpaper" element={<ProgressWallpaper />} />
+                <Route path="/progress/wallpaper/:wallpaperId" element={<ProgressWallpaperDetail />} />
                 <Route path="/progress/fields" element={<ProgressFields />} />
                 <Route path="/stamps" element={<StampsRedirect />} />
                 <Route path="/history" element={<Collection view="history" />} />

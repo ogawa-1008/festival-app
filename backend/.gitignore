@@ -1,2 +1,6 @@
 /vendor/
 /.env
+# スマホ壁紙の画像（IP の素材）。リポジトリが公開なので入れない。サーバーへ手で置く（docs/deploy.md）
+# .gitkeep は、手元に storage/wallpapers/ を残すためのもの（消さない）
+/storage/wallpapers/*
+!/storage/wallpapers/.gitkeep
