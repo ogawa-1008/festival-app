@@ -13,6 +13,7 @@ FTP アカウントで見たときのパスです（`/` がサーバーのホー
 │   └── api/index.php     … API の入り口。下の festival-api を読み込むだけ
 └── festival-api/         … API 本体（backend）。ブラウザからは直接見えない
     ├── .env              … DB の接続情報（手で置く。GitHub には載せない）
+    ├── storage/wallpapers/ … スマホ壁紙の画像（手で置く。GitHub には載せない）
     ├── public/index.php
     └── vendor/ …
 ```
@@ -33,12 +34,33 @@ Actions は API（festival-api）を先に置いてから、アプリ（public_h
    ```
 
    Mac では「.」で始まる名前のファイルが見えなくなるので、`env.txt` で作ってアップロードし、WebFTP で `.env` に名前を変えると楽です。デプロイしても `.env` は消えたり上書きされたりしません。
+5. **スマホ壁紙の画像**：`festival-api/` の中に `storage/wallpapers/` を作り、壁紙の画像10枚を置く（下の「スマホ壁紙の画像」）。
 
 ## 動いているかの確認
 
 - `https://vantan-monhan-festival.com/api/campuses/tokyo/novelty` を開いて、エリアの在庫（`remaining`）が JSON で出れば OK。
 - `{"error":"database unavailable"}` が出るときは、DB につながっていない（`.env` がない・場所が違う・DB 名やパスワードが違う）。詳しい原因はサーバーパネルの PHP のエラーログに出る。
 - Xserver の「404 File Not Found」が出るときは、`.htaccess` か `api/index.php` が置かれていない。
+- `https://vantan-monhan-festival.com/api/wallpapers/1/preview` を開いて、壁紙の一覧用の画像が出れば OK。`{"error":"unknown wallpaper"}` が出るときは、画像が置かれていない（場所・ファイル名が違う）。
+
+## スマホ壁紙の画像
+
+壁紙は IP の素材で、リポジトリが公開のため GitHub には入れません。公開フォルダ（public_html）にも置かず、API（`GET /api/wallpapers/{番号}`）から返します。
+
+- 置き場所：`/vantan-monhan-festival.com/festival-api/storage/wallpapers/`
+- ファイル（番号は 1〜5）
+  - `wallpaper-<番号>.jpg` … 保存用の原寸（1402×2917）
+  - `wallpaper-<番号>-preview.webp` … 一覧のカードに敷く画像（幅 720。カードの幅いっぱいに出すため）
+- 元の画像（`スタンプラリー用/壁紙/作品0<番号>｜両ロゴ版.png`）からの作り方（Mac）：
+
+  ```bash
+  sips -s format jpeg -s formatOptions 88 "作品01｜両ロゴ版.png" --out wallpaper-1.jpg
+  cwebp -q 80 -resize 720 0 "作品01｜両ロゴ版.png" -o wallpaper-1-preview.webp
+  ```
+
+- ローカルで動かすときも、同じ名前で `backend/storage/wallpapers/` に置く（git には入らない）。
+- デプロイしても、この画像は消えたり上書きされたりしません（Actions の対象から外している）。
+- ログインがないため、受け取れるランクかどうかは画面の側でだけ確かめています。API の URL を知っていれば、ランクに関係なく画像を開けます。
 
 ## 在庫をエリアごとに切り替える（号館ごとの在庫を使っていた DB）
 

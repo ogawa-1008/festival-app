@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\NoveltyStockRepository;
+use App\WallpaperStore;
 use Dotenv\Dotenv;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use Slim\Psr7\Stream;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -38,6 +40,7 @@ try {
 }
 
 $noveltyStock = new NoveltyStockRepository($pdo);
+$wallpapers = new WallpaperStore(__DIR__ . '/../storage/wallpapers');
 
 // レスポンスを JSON で返すための小道具
 $json = static function (Response $response, array $payload, int $status = 200): Response {
@@ -77,6 +80,33 @@ $app->post('/api/campuses/{campusId}/novelty/redeem', static function (Request $
     }
 
     return $json($response, ['campus' => $campusId, 'remaining' => $result['remaining']]);
+});
+
+// スマホ壁紙の画像（原寸・一覧のカードに敷く画像）。画像は公開フォルダに置かず、ここから返す
+// ログインがないので、受け取れるランクかどうかは画面の側で確かめる
+$sendWallpaper = static function (Response $response, int $id, bool $preview) use ($json, $wallpapers): Response {
+    $file = $wallpapers->find($id, $preview);
+
+    $handle = $file === null ? false : fopen($file['path'], 'rb');
+    if ($file === null || $handle === false) {
+        return $json($response, ['error' => 'unknown wallpaper'], 404);
+    }
+
+    return $response
+        ->withBody(new Stream($handle))
+        ->withHeader('Content-Type', $file['contentType'])
+        ->withHeader('Content-Length', (string) filesize($file['path']))
+        ->withHeader('Content-Disposition', 'inline; filename="' . $file['filename'] . '"')
+        ->withHeader('Cache-Control', 'private, max-age=86400')
+        ->withHeader('X-Content-Type-Options', 'nosniff');
+};
+
+$app->get('/api/wallpapers/{id:[0-9]+}', static function (Request $request, Response $response, array $args) use ($sendWallpaper): Response {
+    return $sendWallpaper($response, (int) $args['id'], false);
+});
+
+$app->get('/api/wallpapers/{id:[0-9]+}/preview', static function (Request $request, Response $response, array $args) use ($sendWallpaper): Response {
+    return $sendWallpaper($response, (int) $args['id'], true);
 });
 
 $app->run();

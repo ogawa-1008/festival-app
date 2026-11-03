@@ -190,6 +190,12 @@ img {
   -webkit-user-select: none;
 }
 
+/* 保存してもらう画像（スマホ壁紙の原寸）だけは、長押し・右クリックで保存できるようにする */
+img[data-allow-save] {
+  -webkit-user-drag: auto;
+  -webkit-touch-callout: default;
+}
+
 /* キーボード操作でフォーカスしたときだけ枠を出す（タップでは出ない）
    部品ごとにフォーカスの見た目を作る場合も、この太さ・色に合わせる */
 :focus-visible {
