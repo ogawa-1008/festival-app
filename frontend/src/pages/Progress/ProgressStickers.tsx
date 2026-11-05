@@ -20,8 +20,6 @@ function ProgressStickers() {
   const state = getStampRallyState(rally);
   const reached = rally.remaining === 0;
   const percent = Math.round((Math.min(rally.earned, rally.required) / rally.required) * 100);
-  // 交換した校舎（交換済みの確認に使う）
-  const redeemedArea = mapAreas.find((area) => obtainedFieldNoveltyIds.includes(area.id));
   const stateLabel = state === "redeemed"
     ? "✓ 交換済み"
     : state === "redeemable"
@@ -105,10 +103,7 @@ function ProgressStickers() {
               <span className="sticker-status-icon" aria-hidden="true">✓</span>
               <div>
                 <strong>ステッカー交換済み</strong>
-                <p>
-                  {redeemedArea ? `交換場所：${redeemedArea.buildingName}のフォトスポット。` : ""}
-                  ステッカーは受け取り済みです。追加の交換はできません。
-                </p>
+                <p>ステッカーは受け取り済みです。追加の交換はできません。</p>
               </div>
             </div>
           ) : (

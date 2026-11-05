@@ -13,7 +13,6 @@ export type MapArea = {
   novelty: {
     name: string;
     description: string;
-    redemptionLocation: string;
     image?: string;
   };
 };

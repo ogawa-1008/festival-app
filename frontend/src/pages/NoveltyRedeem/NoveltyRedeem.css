@@ -67,22 +67,13 @@
   object-fit: contain;
 }
 
-.novelty-description,
-.novelty-location {
+.novelty-description {
   margin: var(--space-3) 0 0;
 
   color: var(--color-text-warm);
 
   font-size: var(--font-size-base);
   line-height: 1.6;
-}
-
-.novelty-location {
-  margin-top: var(--space-1);
-
-  color: var(--color-text-muted);
-
-  font-size: var(--font-size-sm);
 }
 
 .novelty-stock {

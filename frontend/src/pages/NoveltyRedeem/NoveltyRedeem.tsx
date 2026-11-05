@@ -137,7 +137,6 @@ function NoveltyRedeem() {
         </div>
 
         <p className="novelty-description">{area.novelty.description}</p>
-        <p className="novelty-location">交換場所：{area.novelty.redemptionLocation}</p>
 
         {progress.rally.redeemed || unrecorded ? (
           <div className="novelty-done" role="status">

@@ -27,7 +27,6 @@ function toMapArea(field: FieldDefinition): MapArea {
       name: STICKER.name,
       description: STICKER.description,
       image: STICKER.image,
-      redemptionLocation: `${buildingName}のフォトスポット`,
     },
   };
 }

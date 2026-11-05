@@ -395,8 +395,8 @@ export function GameProvider({ children, practiceCampus }: { children: ReactNode
               id: `${Date.now()}-novelty-${fieldId}`,
               type: "exchange",
               title: `${area.novelty.name}を交換`,
-              // どの号館で交換したかを残す（交換場所の案内は複数の号館をまとめた文のことがある）
-              detail: `交換場所：${area.buildingName}のフォトスポット`,
+              // どの号館で交換したかはアプリでは分からない（交換画面はいつも先頭の号館で開く）ので、場所は書かない
+              detail: "3校舎のスタンプと交換",
               createdAt: new Date().toISOString(),
             },
             ...current.activities,
