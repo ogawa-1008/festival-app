@@ -4,7 +4,7 @@ import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
 import { STICKER } from "../../data/sticker";
-import { getFieldProgress, getStampRallyProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getStampRallyProgress, getStampRallyState } from "../../utils/fieldProgress";
 import ProgressActionButton from "./ProgressActionButton";
 import ProgressSubHeader from "./ProgressSubHeader";
 
@@ -17,8 +17,16 @@ function ProgressStickers() {
   const { active: practice } = useGameTutorial();
 
   const rally = getStampRallyProgress(mapAreas, quests, obtainedFieldNoveltyIds);
+  const state = getStampRallyState(rally);
   const reached = rally.remaining === 0;
   const percent = Math.round((Math.min(rally.earned, rally.required) / rally.required) * 100);
+  // 交換した校舎（交換済みの確認に使う）
+  const redeemedArea = mapAreas.find((area) => obtainedFieldNoveltyIds.includes(area.id));
+  const stateLabel = state === "redeemed"
+    ? "✓ 交換済み"
+    : state === "redeemable"
+      ? practice ? "練習中" : "交換できます"
+      : "集めています";
   // 今交換できるフォトスポット。どこでもらっても同じなので、ボタンは1つにして最初の場所の交換画面を開く
   const spot = mapAreas.find((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas).redeemable);
 
@@ -43,8 +51,20 @@ function ProgressStickers() {
               </div>
 
               <div className="material-main">
-                <h3>{STICKER.name}</h3>
+                <div className="sticker-title-row">
+                  <h3>{STICKER.name}</h3>
+                  <span className={`sticker-state-chip sticker-state-chip--${state}${practice && state === "redeemable" ? " is-practice" : ""}`}>
+                    {stateLabel}
+                  </span>
+                </div>
                 <p className="progress-reward-sub">スタンプ {rally.required} つで1枚</p>
+                <div className="sticker-stamp-slots" aria-hidden="true">
+                  {Array.from({ length: rally.required }, (_, index) => (
+                    <span key={index} className={index < Math.min(rally.earned, rally.required) ? "is-earned" : ""}>
+                      {index < Math.min(rally.earned, rally.required) ? "✓" : index + 1}
+                    </span>
+                  ))}
+                </div>
                 {/* 表示だけのバー（ブラウザ標準の progress は押せる部品のように見えるため使わない） */}
                 <div
                   className="wallpaper-progress"
@@ -68,15 +88,34 @@ function ProgressStickers() {
             </div>
           </div>
 
-          <p className="progress-reward-note">
-            {rally.redeemed
-              ? "ステッカーは1枚もらいました。"
-              : reached
-                ? practice
-                  ? `スタンプが${rally.required}つ集まりました！（練習中はステッカーと交換できません）`
-                  : `スタンプが${rally.required}つ集まりました！ どの号館のフォトスポットでも、ステッカーと引き換えできます。`
-                : `あと ${rally.remaining} 校舎のスタンプで、どの号館のフォトスポットでもステッカーと引き換えできます`}
-          </p>
+          {state === "redeemable" ? (
+            <div className="sticker-status sticker-status--ready" role="status">
+              <span className="sticker-status-icon" aria-hidden="true">✓</span>
+              <div>
+                <strong>スタンプ3つ達成！</strong>
+                <p>
+                  {practice
+                    ? "練習中はステッカーと交換できません。"
+                    : "ステッカー1枚と交換できます。下のボタンから交換してください。"}
+                </p>
+              </div>
+            </div>
+          ) : state === "redeemed" ? (
+            <div className="sticker-status sticker-status--done" role="status">
+              <span className="sticker-status-icon" aria-hidden="true">✓</span>
+              <div>
+                <strong>ステッカー交換済み</strong>
+                <p>
+                  {redeemedArea ? `交換場所：${redeemedArea.buildingName}のフォトスポット。` : ""}
+                  ステッカーは受け取り済みです。追加の交換はできません。
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="progress-reward-note">
+              あと {rally.remaining} 校舎のスタンプで、どの号館のフォトスポットでもステッカーと引き換えできます
+            </p>
+          )}
         </section>
 
         {!reached && !rally.redeemed && (
@@ -100,13 +139,13 @@ function ProgressStickers() {
 
         {/* まだ足りないときは、スタンプを集めるための次の行動へ案内する */}
         {rally.redeemed ? (
-          <ProgressActionButton label="✓ もらいました" disabled />
+          <ProgressActionButton label="✓ ステッカー交換済み" disabled />
         ) : !reached ? (
           <ProgressActionButton label="マップでモンスターを探す" to="/map" />
         ) : practice ? (
-          <ProgressActionButton label="練習中はもらえません" disabled />
+          <ProgressActionButton label="練習中は交換できません" disabled />
         ) : spot ? (
-          <ProgressActionButton label="ステッカーをもらう" to={`/novelty/${spot.id}`} />
+          <ProgressActionButton label="ステッカーと交換する" to={`/novelty/${spot.id}`} />
         ) : (
           <ProgressActionButton label="交換できる場所が見つかりません" disabled />
         )}

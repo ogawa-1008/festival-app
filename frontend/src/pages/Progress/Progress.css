@@ -144,6 +144,69 @@
   text-align: center;
 }
 
+/* 攻撃力と、強化で上がった分の矢印 */
+.weapon-attack {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+
+  margin: var(--space-1) 0 0;
+}
+
+.weapon-attack-label {
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-base);
+}
+
+.weapon-attack-value {
+  color: var(--color-text);
+
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.weapon-attack.is-upgraded .weapon-attack-value {
+  color: var(--color-gold);
+
+  text-shadow: 0 0 10px rgba(244, 213, 139, 0.45);
+}
+
+.weapon-attack-up {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  padding: 2px var(--space-2);
+
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+
+  background: rgba(207, 236, 66, 0.12);
+
+  color: var(--color-accent);
+
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  line-height: 1.4;
+
+  animation: weapon-attack-up-pop 0.45s ease-out both;
+}
+
+@keyframes weapon-attack-up-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 
 /* ========================================
    武器画像
@@ -191,6 +254,13 @@
     drop-shadow(
       0 8px 10px rgba(0, 0, 0, 0.8)
     );
+}
+
+/* 強化済みの武器は、画像の周りを金色に光らせる */
+.weapon-image-area--upgraded .weapon-image {
+  filter:
+    drop-shadow(0 8px 10px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 14px rgba(244, 213, 139, 0.4));
 }
 
 
@@ -471,6 +541,20 @@
 
   font-size: var(--font-size-sm);
   font-weight: normal;
+}
+
+/* 次の段階で攻撃力が上がることを示す矢印 */
+.material-up {
+  display: inline-flex;
+  align-items: center;
+
+  margin-left: var(--space-1);
+
+  color: var(--color-accent);
+
+  font-size: var(--font-size-md);
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 
@@ -820,6 +904,147 @@
   color: var(--color-text-subtle);
 
   font-size: var(--font-size-xs);
+}
+
+/* ステッカーの名前と、交換できるかどうかの状態 */
+.sticker-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.sticker-title-row h3 {
+  min-width: 0;
+}
+
+.sticker-state-chip {
+  flex-shrink: 0;
+
+  padding: 2px var(--space-2);
+
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-2xs);
+  font-weight: bold;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.sticker-state-chip--redeemable,
+.sticker-state-chip--redeemed {
+  border-color: var(--color-accent);
+
+  color: var(--color-accent);
+}
+
+.sticker-state-chip.is-practice {
+  border-color: var(--color-border-muted);
+
+  color: var(--color-text-muted);
+}
+
+/* 集めたスタンプの3つの枠 */
+.sticker-stamp-slots {
+  display: flex;
+  gap: var(--space-1);
+
+  margin-top: var(--space-2);
+}
+
+.sticker-stamp-slots > span {
+  display: grid;
+  place-items: center;
+
+  width: 24px;
+  height: 24px;
+
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-circle);
+
+  color: var(--color-text-subtle);
+
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+}
+
+.sticker-stamp-slots > span.is-earned {
+  border-style: solid;
+  border-color: var(--color-accent);
+
+  background: rgba(207, 236, 66, 0.15);
+
+  color: var(--color-accent);
+}
+
+/* 交換できる・交換済みを目立たせる案内 */
+.sticker-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-sm);
+
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.sticker-status-icon {
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid currentColor;
+  border-radius: var(--radius-circle);
+
+  color: var(--color-accent);
+
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.sticker-status strong {
+  display: block;
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-lg);
+}
+
+.sticker-status p {
+  margin: var(--space-1) 0 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+
+.sticker-status--ready {
+  border-color: var(--color-accent);
+
+  background: rgba(56, 78, 24, 0.32);
+}
+
+.sticker-status--ready strong {
+  color: var(--color-accent);
+}
+
+.sticker-status--done {
+  border-color: var(--color-border);
+}
+
+.sticker-status--done strong {
+  color: var(--color-gold);
 }
 
 .progress-reward-state {

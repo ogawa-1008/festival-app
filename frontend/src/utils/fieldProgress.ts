@@ -3,6 +3,14 @@ import type { Quest } from "../types/quest.ts";
 
 export const REQUIRED_STAMPS = 3;
 
+// スタンプを集めている途中・交換できる・交換済みのどれか（画面の表示を分けるのに使う）
+export type StampRallyState = "collecting" | "redeemable" | "redeemed";
+
+export function getStampRallyState(rally: { remaining: number; redeemed: boolean }): StampRallyState {
+  if (rally.redeemed) return "redeemed";
+  return rally.remaining === 0 ? "redeemable" : "collecting";
+}
+
 // 選択中の会場の建物だけを数える。再戦・練習・別会場の記録は加算しない。
 export function getStampRallyProgress(areas: MapArea[], quests: Quest[], obtainedNoveltyIds: number[]) {
   const visited = new Set<number>();

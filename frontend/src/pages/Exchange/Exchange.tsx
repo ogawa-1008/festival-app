@@ -34,9 +34,9 @@ function Exchange() {
   const next = getNextWeapon(weaponLevel);
   const canUpgrade = canUpgradeWeapon({ weaponLevel, zenny });
 
-  // 「攻撃力 10 → 11（+1）」のように、強化前と強化後の攻撃力を並べる
+  // 「攻撃力 10 → 11 (+1)」のように、強化前と強化後の攻撃力を並べる
   const attackChange = (from: Weapon, to: Weapon) =>
-    `${getWeaponAttack(from)} → ${getWeaponAttack(to)}（+${to.attackBonus - from.attackBonus}）`;
+    `${getWeaponAttack(from)} → ${getWeaponAttack(to)} (+${to.attackBonus - from.attackBonus})`;
 
   // 確認ダイアログ・強化完了で見せる武器（強化した直後は、強化した武器のまま見せる）
   const shown = upgraded ?? (next ? { from: current, to: next } : null);
@@ -64,17 +64,24 @@ function Exchange() {
       <section className="exchange-card">
         <span className="exchange-eyebrow">WEAPON UPGRADE</span>
         <h1>{shown?.to.name ?? current.name}</h1>
-        <img
-          src={shown?.to.image ?? current.image}
-          alt={shown?.to.name ?? current.name}
-          className="exchange-image"
-        />
+        <div className={`exchange-image-frame${upgraded && !isConfirming ? " is-powered" : ""}`}>
+          <img
+            src={shown?.to.image ?? current.image}
+            alt={shown?.to.name ?? current.name}
+            className="exchange-image"
+          />
+          {upgraded && !isConfirming && (
+            <span className="exchange-attack-up" role="status">
+              <span aria-hidden="true">↑</span> 攻撃力 +{upgraded.to.attackBonus - upgraded.from.attackBonus}
+            </span>
+          )}
+        </div>
 
         {upgraded && !isConfirming ? (
           <div className="exchange-complete">
             <h2>{practice ? "強化の練習ができました" : "強化しました"}</h2>
             <p>
-              {upgraded.to.name}に強化しました。攻撃力が {attackChange(upgraded.from, upgraded.to)} に上がり、モンスターに与えるダメージが増えます。
+              {upgraded.to.name}に強化しました。攻撃力 {attackChange(upgraded.from, upgraded.to)}。モンスターに与えるダメージが増えます。
               {practice && "（練習用の画面です。本番の武器・ゼニーには影響しません）"}
             </p>
             {/* 次の段階があれば、この画面のまま次の強化を確認できる */}
@@ -92,7 +99,7 @@ function Exchange() {
         ) : (
           <>
             <p className="exchange-effect">
-              強化すると攻撃力が {attackChange(current, next)} に上がります
+              攻撃力 {attackChange(current, next)}
             </p>
             <div className="exchange-materials">
               <p>
@@ -132,8 +139,10 @@ function Exchange() {
             <h2 id="exchange-title">
               {isFinishing ? "武器を強化しました" : "武器を強化しますか？"}
             </h2>
-            <p>{formatZenny(shown.to.upgradeCost)}を使って、{shown.from.name}を{shown.to.name}に強化します。</p>
-            <p className="exchange-modal-attack">攻撃力 {attackChange(shown.from, shown.to)}</p>
+            <p>{formatZenny(shown.to.upgradeCost)}を使って、{shown.from.name}を{shown.to.name}に{isFinishing ? "強化しました" : "強化します"}。</p>
+            <p className="exchange-modal-attack">
+              攻撃力 {attackChange(shown.from, shown.to)}
+            </p>
             <div className="exchange-modal-actions">
               <div data-tutorial="exchange-confirm">
               <SwipeToConfirm

@@ -692,6 +692,138 @@
 
 
 /* =========================================================
+   スタンプ3つ達成のモーダル
+========================================================= */
+
+.result-stamp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+
+  display: grid;
+  place-items: center;
+
+  padding: 20px;
+
+  background: var(--color-overlay);
+}
+
+.result-stamp-modal-card {
+  width: min(100%, 340px);
+
+  padding: 22px 18px;
+
+  box-sizing: border-box;
+
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(42, 36, 23, 0.99),
+      rgba(20, 18, 13, 0.99)
+    );
+
+  text-align: center;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+}
+
+.result-stamp-modal-art {
+  display: block;
+
+  width: 150px;
+  height: auto;
+
+  margin: 0 auto 4px;
+
+  transform: rotate(-8deg);
+
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.55));
+}
+
+.result-stamp-modal-eyebrow {
+  display: block;
+
+  color: var(--color-text-subtle);
+
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+
+  letter-spacing: 3px;
+}
+
+.result-stamp-modal-card h2 {
+  margin: var(--space-2) 0 0;
+
+  color: var(--color-accent);
+
+  font-family: var(--font-mincho);
+  font-size: 26px;
+  font-weight: 900;
+
+  letter-spacing: 1px;
+
+  text-shadow: 0 2px 3px #000;
+}
+
+.result-stamp-modal-card p {
+  margin: var(--space-3) 0 0;
+
+  color: var(--color-text);
+
+  font-size: var(--font-size-base);
+  line-height: 1.8;
+}
+
+.result-stamp-modal-primary {
+  width: 100%;
+  min-height: 48px;
+
+  margin-top: var(--space-4);
+
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+
+  background: rgba(207, 236, 66, 0.14);
+
+  color: var(--color-accent);
+
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.result-stamp-modal-close {
+  width: 100%;
+  min-height: 44px;
+
+  margin-top: var(--space-2);
+
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+
+  color: var(--color-text-warm);
+
+  font-size: var(--font-size-base);
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.result-stamp-modal-primary:active,
+.result-stamp-modal-close:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================================================
    ERROR
 ========================================================= */
 
