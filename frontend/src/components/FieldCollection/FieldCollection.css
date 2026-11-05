@@ -70,6 +70,86 @@
   gap: var(--space-2);
   margin-top: var(--space-4);
 }
+/* 交換できる・交換済みの状態 */
+.field-summary-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.22);
+}
+.field-summary-status-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-circle);
+  color: var(--color-text-warm);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+.field-summary-status-text {
+  flex: 1;
+  min-width: 0;
+}
+.field-summary-status-text strong {
+  display: block;
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-md);
+  line-height: 1.4;
+}
+.field-summary-status-text small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+.field-summary-status--redeemable {
+  border-color: var(--color-accent);
+  background: rgba(56, 78, 24, 0.32);
+  animation: field-ready-pulse 2s ease-in-out infinite;
+}
+.field-summary-status--redeemable .field-summary-status-icon,
+.field-summary-status--redeemed .field-summary-status-icon {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.field-summary-status--redeemable strong {
+  color: var(--color-accent);
+}
+.field-summary-status--redeemed {
+  border-color: var(--color-border-muted);
+}
+.field-summary-cta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: rgba(207, 236, 66, 0.12);
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.field-summary-cta:active {
+  transform: scale(0.97);
+}
+@keyframes field-ready-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(207, 236, 66, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(207, 236, 66, 0.14); }
+}
 .field-slot {
   display: grid;
   justify-items: center;
@@ -132,7 +212,11 @@
   scroll-margin-top: var(--space-4);
   container-type: inline-size;
 }
+.field-collection-card--complete {
+  border-color: var(--color-border-muted);
+}
 .field-collection-cover {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   align-content: space-between;
@@ -140,6 +224,19 @@
   padding: var(--space-4);
   background-position: center;
   background-size: cover;
+}
+.field-cover-complete {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-accent);
+  background: rgba(12, 14, 12, 0.85);
+  color: var(--color-accent);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+  white-space: nowrap;
 }
 .field-cover-number,
 .field-cover-building {
@@ -187,12 +284,17 @@
   gap: var(--space-3);
 }
 .field-stamp {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding-block: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(37, 32, 25, 0.9), rgba(18, 16, 13, 0.9));
   text-align: center;
+  overflow: hidden;
 }
 .field-stamp-seal {
   position: relative;
@@ -205,6 +307,7 @@
   border: 2px dashed var(--color-border-subtle);
   border-radius: var(--radius-circle);
   background: var(--color-bg-panel);
+  transition: filter 0.3s ease, opacity 0.3s ease;
 }
 .field-stamp-seal > img {
   width: 100%;
@@ -213,25 +316,55 @@
   filter: grayscale(1);
   opacity: 0.4;
 }
+.field-stamp--earned {
+  border-color: var(--color-border-muted);
+}
 .field-stamp--earned .field-stamp-seal {
   border-style: double;
   border-width: 4px;
-  border-color: var(--color-gold);
+  border-color: var(--color-border-muted);
 }
+/* 獲得済みは手配書全体をグレーにして、大きなクリアスタンプを重ねる */
 .field-stamp--earned .field-stamp-seal > img {
-  filter: none;
-  opacity: 1;
+  filter: grayscale(1);
+  opacity: 0.3;
 }
-.field-stamp-seal > img.field-stamp-clear {
+.field-stamp--earned .field-stamp-copy > strong {
+  color: var(--color-text-muted);
+}
+.field-stamp--earned .field-stamp-copy p {
+  filter: grayscale(1);
+  opacity: 0.45;
+}.field-stamp-mark {
   position: absolute;
-  width: 66px;
-  height: 36px;
-  right: -8px;
-  bottom: 0;
-  transform: rotate(-12deg);
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: min(82%, 250px);
+  height: auto;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  opacity: 0.5;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.65));
+}
+.field-stamp-ribbon {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 3;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-accent);
+  background: rgba(12, 14, 12, 0.9);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+  white-space: nowrap;
 }
 .field-stamp-copy {
+  position: relative;
+  z-index: 2;
   min-width: 0;
+  transition: filter 0.3s ease, opacity 0.3s ease;
 }
 .field-stamp-copy > strong {
   display: block;

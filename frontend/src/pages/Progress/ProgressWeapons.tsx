@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import BottomNavigation from "../../components/Navigation/BottomNavigation";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
-import { MAX_WEAPON_LEVEL } from "../../data/weapons";
+import { MAX_WEAPON_LEVEL, WEAPONS } from "../../data/weapons";
 import { canUpgradeWeapon, formatZenny, getCurrentWeapon, getNextWeapon, getRewardZenny } from "../../utils/weaponUpgrade";
 import { getWeaponAttack } from "../../utils/playerStats";
 import ProgressActionButton from "./ProgressActionButton";
@@ -20,6 +20,9 @@ function ProgressWeapons() {
   const weapon = getCurrentWeapon(weaponLevel);
   const next = getNextWeapon(weaponLevel);
   const canUpgrade = canUpgradeWeapon({ weaponLevel, zenny });
+  // 1つ前の段階と比べて、どれだけ攻撃力が上がったか（初期の武器は表示しない）
+  const previousWeapon = weaponLevel > 0 ? WEAPONS[weaponLevel - 1] : null;
+  const attackUp = previousWeapon ? getWeaponAttack(weapon) - getWeaponAttack(previousWeapon) : 0;
 
   const handleUpgrade = () => {
     if (active) advance("craft-open");
@@ -40,7 +43,7 @@ function ProgressWeapons() {
             <h2>{weapon.name}</h2>
           </div>
 
-          <div className="weapon-image-area">
+          <div className={`weapon-image-area${weaponLevel > 0 ? " weapon-image-area--upgraded" : ""}`}>
             <img
               src={weapon.image}
               alt={weapon.name}
@@ -49,7 +52,18 @@ function ProgressWeapons() {
           </div>
 
           <p className="weapon-stage">
-            強化 {weaponLevel} / {MAX_WEAPON_LEVEL} 段階・攻撃力 {getWeaponAttack(weapon)}
+            強化 {weaponLevel} / {MAX_WEAPON_LEVEL} 段階
+          </p>
+
+          <p className={`weapon-attack${attackUp > 0 ? " is-upgraded" : ""}`}>
+            <span className="weapon-attack-label">攻撃力</span>
+            <strong className="weapon-attack-value">{getWeaponAttack(weapon)}</strong>
+            {attackUp > 0 && (
+              <span className="weapon-attack-up" aria-label={`前の武器より攻撃力が${attackUp}上がっています`}>
+                <span aria-hidden="true">↑</span>
+                <span aria-hidden="true">+{attackUp}</span>
+              </span>
+            )}
           </p>
         </section>
 
@@ -82,7 +96,10 @@ function ProgressWeapons() {
 
                   <div className="material-required">
                     <span className="material-x">攻撃力</span>
-                    <span>{getWeaponAttack(weapon)} → {getWeaponAttack(next)}（+{next.attackBonus - weapon.attackBonus}）</span>
+                    <span>
+                      {getWeaponAttack(weapon)} → {getWeaponAttack(next)}
+                      <span className="material-up">(+{next.attackBonus - weapon.attackBonus})</span>
+                    </span>
                   </div>
 
                   <div className="material-required">

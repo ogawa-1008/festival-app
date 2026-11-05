@@ -28,8 +28,15 @@
 }
 
 .qr-back-button {
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
   width: 44px;
   height: 44px;
+
+  padding: 0;
 
   border: 1px solid #555;
   border-radius: var(--radius-circle);
@@ -37,7 +44,22 @@
   background: #222;
   color: #fff;
 
-  font-size: var(--font-size-2xl);
+  line-height: 1;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.qr-back-button svg {
+  display: block;
+
+  width: 22px;
+  height: 22px;
+}
+
+.qr-back-button:active {
+  background: #333;
 }
 
 /* 説明 */

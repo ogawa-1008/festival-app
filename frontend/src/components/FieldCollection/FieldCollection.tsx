@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
 import type { MapArea } from "../../types/maps";
-import { getFieldProgress } from "../../utils/fieldProgress";
+import { getFieldProgress, getStampRallyProgress, getStampRallyState } from "../../utils/fieldProgress";
 import "./FieldCollection.css";
 
 type FieldProgress = ReturnType<typeof getFieldProgress>;
@@ -35,6 +35,8 @@ export function FieldCollectionSummary({
   const fields = mapAreas.map((area) => getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas));
   const total = fields.reduce((sum, field) => sum + field.total, 0);
   const earned = fields.reduce((sum, field) => sum + field.earned, 0);
+  const rally = getStampRallyProgress(mapAreas, quests, obtainedFieldNoveltyIds);
+  const state = getStampRallyState(rally);
 
   return (
     <section className="field-summary" aria-label={heading}>
@@ -73,7 +75,32 @@ export function FieldCollectionSummary({
           </div>
         ))}
       </div>
-      <p className="field-novelty-note">1校舎につきスタンプ1つ。異なる3校舎で討伐・調査を終えると、ステッカー1枚と交換できます。</p>
+      <div className={`field-summary-status field-summary-status--${state}`} role="status">
+        <span className="field-summary-status-icon" aria-hidden="true">
+          {state === "redeemed" ? "✓" : state === "redeemable" ? "!" : "◇"}
+        </span>
+        <span className="field-summary-status-text">
+          <strong>
+            {state === "redeemed"
+              ? "ステッカー交換済み"
+              : state === "redeemable"
+                ? "スタンプ3つ達成！"
+                : `あと ${rally.remaining} 校舎で交換できます`}
+          </strong>
+          <small>
+            {state === "redeemed"
+              ? "このステッカーは受け取り済みです。追加の交換はできません。"
+              : state === "redeemable"
+                ? "ステッカー1枚と交換できます。"
+                : "1校舎につきスタンプ1つ。異なる校舎で討伐・調査を終えると増えます。"}
+          </small>
+        </span>
+        {state === "redeemable" && (
+          <Link className="field-summary-cta" to="/progress/stickers">
+            交換する
+          </Link>
+        )}
+      </div>
       {showLink && (
         <Link className="field-collection-link" to="/progress/fields">
           スタンプを見る <span aria-hidden="true">›</span>
@@ -87,8 +114,14 @@ export function FieldStatus({ progress }: { progress: FieldProgress }) {
   return (
     <span className="field-status">
       <span className={progress.complete ? "field-status-earned" : ""}>
-        <span aria-hidden="true">{progress.complete ? "✓" : "◇"}</span> スタンプ{" "}
-        {progress.available ? `${progress.earned}/${progress.total}` : "準備中"}
+        {progress.complete ? (
+          <span aria-hidden="true">✓</span>
+        ) : (
+          <span aria-hidden="true">◇</span>
+        )}{" "}
+        {progress.complete
+          ? "スタンプ獲得済み"
+          : `スタンプ ${progress.available ? `${progress.earned}/${progress.total}` : "準備中"}`}
       </span>
     </span>
   );
@@ -117,38 +150,44 @@ export function FieldRewards({
         </div>
         {progress.quests.length > 0 ? (
           <div className="field-stamp-list">
-            {progress.quests.map((quest) => (
-              <div
-                key={quest.id}
-                className={`field-stamp ${quest.completed || quest.investigated ? "field-stamp--earned" : ""}`}
-              >
-                <div className="field-stamp-seal" aria-hidden="true">
-                  <img src={quest.image} alt="" />
-                  {(quest.completed || quest.investigated) && (
-                    <img
-                      className="field-stamp-clear"
-                      src="/images/quests/quest-clear.webp"
-                      alt=""
-                    />
+            {progress.quests.map((quest) => {
+              const earned = quest.completed || quest.investigated;
+
+              return (
+                <div
+                  key={quest.id}
+                  className={`field-stamp${earned ? " field-stamp--earned" : ""}`}
+                >
+                  <div className="field-stamp-seal" aria-hidden="true">
+                    <img src={quest.image} alt="" />
+                  </div>
+                  <div className="field-stamp-copy">
+                    <strong>{quest.title}</strong>
+                    {!earned && (
+                      <span className="field-state-label">未獲得</span>
+                    )}
+                    <p>
+                      {earned
+                        ? "この校舎のスタンプを獲得しました。再戦してもスタンプは増えません。"
+                        : "この校舎のモンスターを討伐または調査し、報酬を受け取ると獲得できます。"}
+                    </p>
+                  </div>
+                  {earned && (
+                    <>
+                      <img
+                        className="field-stamp-mark"
+                        src="/images/quests/quest-clear.webp"
+                        alt=""
+                        aria-hidden="true"
+                      />
+                      <span className="field-stamp-ribbon" aria-hidden="true">
+                        {quest.goldCrown ? "♛ 金冠スタンプ" : "✓ 獲得済み"}
+                      </span>
+                    </>
                   )}
                 </div>
-                <div className="field-stamp-copy">
-                  <strong>{quest.title}</strong>
-                  <span className="field-state-label">
-                    {quest.completed || quest.investigated
-                      ? quest.goldCrown
-                        ? "♛ 金冠スタンプ獲得"
-                        : quest.completed ? "✓ 討伐スタンプ獲得済み" : "✓ 調査スタンプ獲得済み"
-                      : "未獲得"}
-                  </span>
-                  <p>
-                    {quest.completed || quest.investigated
-                      ? "この校舎のスタンプを獲得しました。再戦してもスタンプは増えません。"
-                      : "この校舎のモンスターを討伐または調査し、報酬を受け取ると獲得できます。"}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="field-pending">
@@ -175,33 +214,37 @@ export default function FieldCollection() {
     <>
       <FieldCollectionSummary showLink={false} heading="スタンプの獲得状況" />
       <div className="field-collection-list">
-        {mapAreas.map((area) => (
-          <article
-            key={area.id}
-            id={`field-${area.id}`}
-            className="field-collection-card"
-            aria-labelledby={`field-title-${area.id}`}
-          >
-            <header
-              className="field-collection-cover"
-              style={{
-                backgroundImage: area.image
-                  ? `linear-gradient(0deg, var(--color-bg-deep), transparent), url("${area.image}")`
-                  : "linear-gradient(0deg, var(--color-bg-deep), var(--color-bg-raised))",
-              }}
+        {mapAreas.map((area) => {
+          const progress = getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas);
+
+          return (
+            <article
+              key={area.id}
+              id={`field-${area.id}`}
+              className={`field-collection-card${progress.complete ? " field-collection-card--complete" : ""}`}
+              aria-labelledby={`field-title-${area.id}`}
             >
-              <span className="field-cover-number">
-                FIELD {String(area.id).padStart(2, "0")}
-              </span>
-              <span className="field-cover-building">{area.buildingName}</span>
-              <h2 id={`field-title-${area.id}`}>{area.areaName}</h2>
-            </header>
-            <FieldRewards
-              area={area}
-              progress={getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas)}
-            />
-          </article>
-        ))}
+              <header
+                className="field-collection-cover"
+                style={{
+                  backgroundImage: area.image
+                    ? `linear-gradient(0deg, var(--color-bg-deep), transparent), url("${area.image}")`
+                    : "linear-gradient(0deg, var(--color-bg-deep), var(--color-bg-raised))",
+                }}
+              >
+                <span className="field-cover-number">
+                  FIELD {String(area.id).padStart(2, "0")}
+                </span>
+                <span className="field-cover-building">{area.buildingName}</span>
+                <h2 id={`field-title-${area.id}`}>{area.areaName}</h2>
+                {progress.complete && (
+                  <span className="field-cover-complete">✓ スタンプ獲得</span>
+                )}
+              </header>
+              <FieldRewards area={area} progress={progress} />
+            </article>
+          );
+        })}
       </div>
     </>
   );

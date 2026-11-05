@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { practiceQuest } from "../src/data/quests.ts";
 import {
   getFieldProgress,
+  getStampRallyState,
   restoreFieldNoveltyIds,
 } from "../src/utils/fieldProgress.ts";
 import { loadSavedGame, saveGame } from "../src/utils/gameStorage.ts";
@@ -77,4 +78,15 @@ test("novelty receipts survive saving; older saves default to unclaimed and inva
     rankProgressVersion: RANK_PROGRESS_VERSION,
   });
   assert.deepEqual(loadSavedGame(storage, initial).obtainedFieldNoveltyIds, []);
+});
+
+test("stamp rally state distinguishes collecting, exchangeable, and exchanged", () => {
+  assert.equal(getStampRallyState({ remaining: 2, redeemed: false }), "collecting");
+  assert.equal(getStampRallyState({ remaining: 0, redeemed: false }), "redeemable");
+  assert.equal(getStampRallyState({ remaining: 0, redeemed: true }), "redeemed");
+  assert.equal(
+    getStampRallyState({ remaining: 1, redeemed: true }),
+    "redeemed",
+    "once redeemed, more stamps never bring the rally back to exchangeable",
+  );
 });

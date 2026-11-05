@@ -1,12 +1,14 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useBattleSession } from "../../context/BattleSessionContext";
 import { useGame } from "../../context/GameContext";
+import { useMapAreas } from "../../context/useMapAreas";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useSessionScreen } from "../../context/useSessionScreen";
 import { getBattleRankReward, getRankProgress } from "../../utils/hunterRank";
 import { getRewardExp } from "../../utils/questReward";
+import { getStampRallyProgress, getStampRallyState } from "../../utils/fieldProgress";
 import { formatZenny, getRewardZenny } from "../../utils/weaponUpgrade";
 
 import { useExpRewardAnimation } from "./useExpRewardAnimation";
@@ -23,10 +25,25 @@ function Result() {
     const notice =
         (location.state as { notice?: string } | null)?.notice ?? null;
 
-    const { quests, rankExp, requiresUpdate, canUpdateGame, resolveBattle } = useGame();
+    const { quests, rankExp, requiresUpdate, canUpdateGame, resolveBattle, obtainedFieldNoveltyIds } = useGame();
     const { session, claimReward } = useBattleSession();
     const screenStatus = useSessionScreen(questId);
+    const mapAreas = useMapAreas();
     const [receipt, setReceipt] = useState<{ fromExp: number; gainedExp: number } | null>(null);
+    // 3つ目のスタンプを受け取ったときだけ出す案内
+    const [showStampModal, setShowStampModal] = useState(false);
+
+    // モーダルは Esc キーでも閉じられるようにする
+    useEffect(() => {
+        if (!showStampModal) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setShowStampModal(false);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [showStampModal]);
     const { frame, animateReward } = useExpRewardAnimation();
     const expPanel = useRef<HTMLDivElement>(null);
 
@@ -88,10 +105,35 @@ function Result() {
         : progress.isMax ? "ハンターランクの上限に到達"
         : displayedExp > 0 ? `${displayedExp} EXPを獲得しました` : "受取済みの報酬です";
 
+    const handleGoHome = () => {
+        if (practice) advance("result-home");
+        navigate("/", { replace: practice });
+    };
+
     const handleClaimReward = () => {
         if (!canUpdateGame()) return;
         // 受け取り済みなら false（再読み込み・戻る操作での二重受け取りを防ぐ）
         if (!claimReward()) return;
+
+        // この報酬で3つ目のスタンプになるかを、受け取る前の状態から確かめる
+        const currentRally = getStampRallyProgress(mapAreas, quests, obtainedFieldNoveltyIds);
+        const nextQuests = quests.map((item) =>
+            item.id === quest.id
+                ? {
+                    ...item,
+                    completed: item.completed || outcome === "victory",
+                    investigated: item.investigated || outcome !== "victory",
+                }
+                : item,
+        );
+        const nextRally = getStampRallyProgress(mapAreas, nextQuests, obtainedFieldNoveltyIds);
+        if (
+            !practice
+            && getStampRallyState(currentRally) === "collecting"
+            && getStampRallyState(nextRally) === "redeemable"
+        ) {
+            setShowStampModal(true);
+        }
 
         setReceipt({ fromExp: rankExp, gainedExp: rewardExp });
         animateReward(rankExp, rewardExp);
@@ -252,30 +294,58 @@ function Result() {
                 <button
                     type="button"
                     className="result-claim-button"
-                    data-tutorial="claim-reward"
-                    onClick={handleClaimReward}
-                    disabled={claimed || requiresUpdate}
+                    data-tutorial={claimed ? "result-home" : "claim-reward"}
+                    onClick={claimed ? handleGoHome : handleClaimReward}
+                    disabled={!claimed && requiresUpdate}
                 >
                     {claimed
-                        ? "報酬を受け取りました"
+                        ? "ホームに戻る"
                         : outcome === "victory" ? "報酬を受け取る" : "落とし物を受け取る"}
                 </button>
 
-                {claimed && (
-                    <button
-                        type="button"
-                        className="result-claim-button"
-                        data-tutorial="result-home"
-                        onClick={() => {
-                            if (practice) advance("result-home");
-                            navigate("/", { replace: practice });
-                        }}
-                    >
-                        ホームへ戻る
-                    </button>
-                )}
-
             </div>
+
+            {showStampModal && (
+                <div
+                    className="result-stamp-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="result-stamp-modal-title"
+                    onClick={(event) => {
+                        if (event.target === event.currentTarget) setShowStampModal(false);
+                    }}
+                >
+                    <div className="result-stamp-modal-card">
+                        <img
+                            className="result-stamp-modal-art"
+                            src="/images/quests/quest-clear.webp"
+                            alt=""
+                            aria-hidden="true"
+                        />
+                        <span className="result-stamp-modal-eyebrow">STAMP RALLY</span>
+                        <h2 id="result-stamp-modal-title">スタンプ3つ達成！</h2>
+                        <p>
+                            異なる3校舎のスタンプがそろいました。
+                            <br />
+                            ステッカー1枚と交換できます。
+                        </p>
+                        <button
+                            type="button"
+                            className="result-stamp-modal-primary"
+                            onClick={() => navigate("/progress/stickers", { replace: practice })}
+                        >
+                            交換画面へ
+                        </button>
+                        <button
+                            type="button"
+                            className="result-stamp-modal-close"
+                            onClick={() => setShowStampModal(false)}
+                        >
+                            閉じる
+                        </button>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

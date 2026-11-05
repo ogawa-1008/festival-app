@@ -2,7 +2,13 @@
 .exchange-card { width: min(100%, 390px); padding: 22px 18px; border: 2px solid var(--color-border); background: linear-gradient(180deg, rgba(35,30,23,.98), rgba(15,13,10,.98)); text-align: center; box-shadow: 0 8px 22px rgba(0,0,0,.55); }
 .exchange-eyebrow { color: var(--color-text-subtle); font-weight: bold; font-size: var(--font-size-xs); font-family: var(--font-display); line-height: normal; letter-spacing: 3px; }
 .exchange-card h1 { margin: 8px 0 12px; font-size: 23px; letter-spacing: 2px; }
-.exchange-image { width: 200px; height: 200px; object-fit: contain; border: 1px solid var(--color-border-muted); background: #090806; }
+.exchange-image-frame { position: relative; display: grid; place-items: center; width: 200px; height: 200px; margin: 0 auto; overflow: hidden; border: 1px solid var(--color-border-muted); background: #090806; }
+.exchange-image { width: 100%; height: 100%; object-fit: contain; }
+/* 強化した瞬間に画像の上を光が横切る */
+.exchange-image-frame.is-powered::after { content: ""; position: absolute; inset: -30%; background: linear-gradient(110deg, transparent 40%, rgba(255, 247, 214, 0.75) 50%, transparent 60%); transform: translateX(-130%) rotate(8deg); animation: exchange-shine 1.1s ease-out 0.15s both; pointer-events: none; }
+@keyframes exchange-shine { from { transform: translateX(-130%) rotate(8deg); } to { transform: translateX(130%) rotate(8deg); } }
+.exchange-attack-up { position: absolute; left: 50%; bottom: 10px; display: inline-flex; align-items: center; gap: 2px; padding: 3px var(--space-2); border: 1px solid var(--color-accent); border-radius: var(--radius-pill); background: rgba(12, 14, 12, 0.9); color: var(--color-accent); font-size: var(--font-size-sm); font-weight: bold; white-space: nowrap; transform: translateX(-50%); animation: exchange-attack-pop 0.5s ease-out 0.2s both; }
+@keyframes exchange-attack-pop { from { opacity: 0; transform: translate(-50%, 6px) scale(0.9); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
 .exchange-effect { margin: 14px 0 0; color: var(--color-accent); font-size: var(--font-size-md); font-weight: bold; }
 .exchange-materials { margin: 18px 0; text-align: left; border-top: 1px solid var(--color-border-muted); }
 .exchange-materials p { display: flex; justify-content: space-between; gap: 8px; margin: 0; padding: 10px 0; border-bottom: 1px solid #514632; font-size: var(--font-size-base); }
