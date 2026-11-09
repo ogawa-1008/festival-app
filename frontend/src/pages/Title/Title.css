@@ -1,0 +1,496 @@
+/* =========================================================
+   タイトル画面（初めて開いたときだけ出す）
+
+   流れ
+   - intro: 暗転から背景・モンスター・ロゴの順に現れる（タップで飛ばせる）
+   - ready: 「TAP TO START」が点滅して待つ
+   - leaving: タップで光が広がり、エリア選択へ進む
+
+   一度だけ再生する登場の動き（.title-intro-*）と、ずっと続く動き（揺れ・点滅など）は
+   別の要素に付けている。ready になったら登場の動きだけ止めて、最後の状態で表示する
+========================================================= */
+
+.title-screen {
+  --title-ember: #ffb35c;
+  --title-glow: rgb(255 170 80 / 55%);
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  width: 100%;
+  height: 100dvh;
+
+  background: #000;
+  color: var(--color-text);
+  font-family: var(--font-serif);
+}
+
+/* ---------- 背景 ---------- */
+
+.title-bg {
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+
+  background: url("/images/fields/citadel.webp") 58% center / cover no-repeat;
+  /* 紫の空を、アプリの色（茶・金）に寄せて暗くする */
+  filter: sepia(0.55) saturate(1.3) hue-rotate(-18deg) brightness(0.55) contrast(1.15);
+
+  animation:
+    title-bg-in 1.6s ease-out both,
+    title-bg-drift 22s ease-in-out 1.6s infinite alternate;
+}
+
+/* 奥から差す光の筋 */
+.title-rays {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  z-index: 1;
+
+  width: 180vmax;
+  height: 180vmax;
+  margin: -90vmax 0 0 -90vmax;
+
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgb(255 196 120 / 0%) 0deg 9deg,
+    rgb(255 196 120 / 9%) 11deg 13deg,
+    rgb(255 196 120 / 0%) 15deg 24deg
+  );
+  mask-image: radial-gradient(circle, #000 0%, transparent 48%);
+  mix-blend-mode: screen;
+
+  animation:
+    title-fade-in 2s ease-out 0.6s both,
+    title-spin 60s linear infinite;
+}
+
+.title-monster {
+  position: absolute;
+  top: 1%;
+  right: -22%;
+  z-index: 2;
+
+  width: 118%;
+
+  animation: title-monster-in 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both;
+}
+
+.title-monster img {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  filter: brightness(0.62) contrast(1.1) drop-shadow(0 0 28px rgb(255 120 40 / 35%));
+
+  animation: title-float 6s ease-in-out infinite;
+}
+
+/* 下と上を暗くして、文字を読みやすくする */
+.title-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 45%, transparent 30%, rgb(0 0 0 / 75%) 100%),
+    linear-gradient(to bottom, rgb(0 0 0 / 55%) 0%, transparent 22%, transparent 48%, rgb(10 6 2 / 92%) 85%);
+  pointer-events: none;
+}
+
+/* ---------- 火の粉 ---------- */
+
+.title-embers {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.title-embers span {
+  position: absolute;
+  bottom: -10px;
+  left: var(--left);
+
+  width: var(--size);
+  height: var(--size);
+  border-radius: var(--radius-circle);
+
+  background: var(--title-ember);
+  box-shadow: 0 0 6px 2px var(--title-glow);
+  opacity: 0;
+
+  animation: title-ember var(--duration) linear var(--delay) infinite;
+}
+
+/* ---------- 四隅の飾り ---------- */
+
+.title-frame {
+  position: absolute;
+  inset: 14px;
+  z-index: 5;
+  pointer-events: none;
+
+  animation: title-fade-in 1s ease-out 1.6s both;
+}
+
+.title-corner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 0 solid var(--color-border-strong);
+}
+
+.title-corner::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--color-gold);
+  transform: rotate(45deg);
+}
+
+.title-corner--tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+.title-corner--tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+.title-corner--bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+.title-corner--br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+.title-corner--tl::after { top: -4px; left: -4px; }
+.title-corner--tr::after { top: -4px; right: -4px; }
+.title-corner--bl::after { bottom: -4px; left: -4px; }
+.title-corner--br::after { bottom: -4px; right: -4px; }
+
+/* ---------- ロゴと見出し ---------- */
+
+.title-center {
+  position: absolute;
+  top: 55%;
+  left: 0;
+  right: 0;
+  z-index: 6;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--app-gutter);
+
+  text-align: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.title-kicker {
+  margin: 0 0 var(--space-3);
+
+  color: var(--color-text-warm);
+  font-family: var(--font-display);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.42em;
+  text-shadow: 0 1px 4px #000;
+
+  animation: title-rise 0.9s ease-out 1s both;
+}
+
+.title-logo {
+  position: relative;
+  overflow: hidden;
+
+  width: min(340px, 88%);
+
+  animation: title-logo-in 1s cubic-bezier(0.16, 1, 0.3, 1) 1.15s both;
+}
+
+.title-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 90%)) drop-shadow(0 0 18px rgb(255 170 80 / 30%));
+}
+
+/* ロゴの上を横切る光（ロゴの形で切り抜く） */
+.title-logo-shine {
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgb(255 248 220 / 85%) 50%,
+    transparent 65%
+  ) -200% 0 / 250% 100% no-repeat;
+  mask: url("/images/logo/collaboration-logo.webp") center / 100% 100% no-repeat;
+  mix-blend-mode: overlay;
+
+  animation: title-shine 5s ease-in-out 2.1s infinite;
+}
+
+.title-catch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 0;
+
+  color: var(--color-text-highlight);
+  font-family: var(--font-mincho);
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  /* 最後の字のあとの字間を打ち消して、中央に揃える */
+  text-indent: 0.5em;
+  text-shadow: 0 0 14px rgb(255 170 80 / 70%), 0 2px 4px #000;
+
+  animation: title-catch-in 1.1s ease-out 1.7s both;
+}
+
+.title-catch-line {
+  display: block;
+  width: 36px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-gold));
+}
+
+.title-catch-line:last-child {
+  background: linear-gradient(to left, transparent, var(--color-gold));
+}
+
+.title-sub {
+  margin: var(--space-2) 0 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  letter-spacing: 0.12em;
+  text-shadow: 0 1px 3px #000;
+
+  animation: title-rise 0.9s ease-out 2s both;
+}
+
+/* ---------- タップして始める（画面全体を押せる） ---------- */
+
+.title-start {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  padding: 0 0 calc(92px + env(safe-area-inset-bottom));
+
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title-start:focus-visible {
+  outline-offset: -8px;
+}
+
+.title-start-label,
+.title-start-ja {
+  animation: title-fade-in 0.8s ease-out 2.4s both;
+}
+
+.title-start-label {
+  position: relative;
+  padding: var(--space-2) var(--space-6);
+
+  color: var(--color-gold);
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-shadow: 0 0 12px rgb(255 190 90 / 80%);
+
+  background: linear-gradient(to right, transparent, rgb(0 0 0 / 55%) 20%, rgb(0 0 0 / 55%) 80%, transparent);
+}
+
+/* 上下の金の細線 */
+.title-start-label::before,
+.title-start-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-border-strong), transparent);
+}
+
+.title-start-label::before { top: 0; }
+.title-start-label::after { bottom: 0; }
+
+.title-start-ja {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.3em;
+}
+
+/* タップしたときに広がる光 */
+.title-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+
+  background: radial-gradient(circle at 50% 70%, #fff6dc 0%, #ffcf7a 30%, rgb(255 140 40 / 0%) 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.title-flash::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: #211d18;
+  opacity: 0;
+}
+
+.title-screen--leaving .title-flash::after {
+  animation: title-settle 0.9s ease-in both;
+}
+
+/* ---------- 状態ごとの見た目 ---------- */
+
+/* 演出が終わった（または飛ばした）ら、登場の動きをやめて最後の状態で表示する */
+.title-screen--ready :is(.title-bg, .title-rays, .title-monster, .title-frame, .title-kicker, .title-logo, .title-catch, .title-sub, .title-start-label, .title-start-ja),
+.title-screen--leaving :is(.title-rays, .title-monster, .title-frame, .title-kicker, .title-logo, .title-catch, .title-sub, .title-start-ja) {
+  animation-delay: 0s;
+  animation-duration: 0s;
+}
+
+/* 背景のゆっくりした動きは続ける */
+.title-screen--ready .title-bg {
+  animation: title-bg-drift 22s ease-in-out infinite alternate;
+}
+
+/* 待っている間は「TAP TO START」を点滅させる */
+.title-screen--ready .title-start-label {
+  animation: title-blink 1.8s ease-in-out infinite;
+}
+
+.title-screen--leaving .title-start-label {
+  animation: title-blink-fast 0.12s steps(2) 4;
+}
+
+.title-screen--leaving .title-bg {
+  animation: title-zoom-out 0.9s ease-in both;
+}
+
+.title-screen--leaving .title-center {
+  animation: title-push 0.9s ease-in both;
+}
+
+.title-screen--leaving .title-flash {
+  animation: title-flash 0.9s ease-in both;
+}
+
+/* ---------- キーフレーム ---------- */
+
+@keyframes title-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes title-bg-in {
+  from { opacity: 0; transform: scale(1.18); }
+  to { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes title-bg-drift {
+  from { transform: scale(1.06) translate(0, 0); }
+  to { transform: scale(1.12) translate(-2%, 1%); }
+}
+
+@keyframes title-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes title-monster-in {
+  from { opacity: 0; transform: translate(18%, -12%) scale(1.25); filter: blur(10px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@keyframes title-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-1deg); }
+}
+
+@keyframes title-ember {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  10% { opacity: 1; }
+  80% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(var(--drift), -100dvh) scale(0.4); }
+}
+
+@keyframes title-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes title-logo-in {
+  0% { opacity: 0; transform: scale(1.6); filter: blur(12px) brightness(3); }
+  60% { opacity: 1; filter: blur(0) brightness(1.6); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes title-shine {
+  0% { background-position: -200% 0; }
+  30%, 100% { background-position: 200% 0; }
+}
+
+@keyframes title-catch-in {
+  from { opacity: 0; letter-spacing: 1.2em; filter: blur(6px); }
+  to { opacity: 1; letter-spacing: 0.5em; filter: none; }
+}
+
+@keyframes title-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes title-blink-fast {
+  from { opacity: 1; }
+  to { opacity: 0.2; }
+}
+
+@keyframes title-zoom-out {
+  from { transform: scale(1.08); }
+  to { transform: scale(1.3); filter: brightness(1.4); }
+}
+
+@keyframes title-push {
+  from { transform: translateY(-50%) scale(1); opacity: 1; }
+  to { transform: translateY(-50%) scale(1.15); opacity: 0; }
+}
+
+@keyframes title-flash {
+  0% { opacity: 0; transform: scale(0.6); }
+  45% { opacity: 0.9; }
+  100% { opacity: 1; transform: scale(2.2); }
+}
+
+/* 光のあとは、次の画面（エリア選択）の暗い茶色に落ち着かせる */
+@keyframes title-settle {
+  0%, 55% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 動きを減らす設定の端末では、動きをすべて止めて最後の状態で表示する */
+@media (prefers-reduced-motion: reduce) {
+  .title-screen *,
+  .title-screen *::before,
+  .title-screen *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .title-rays,
+  .title-embers {
+    display: none;
+  }
+}
