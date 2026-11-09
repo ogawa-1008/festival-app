@@ -76,34 +76,11 @@
   line-height: 1.6;
 }
 
-.novelty-stock {
-  margin: var(--space-4) 0 0;
-
-  color: var(--color-accent);
-
-  font-size: var(--font-size-md);
-  font-weight: bold;
-}
-
 .novelty-guide,
 .novelty-note {
   margin: var(--space-3) 0;
 
   color: var(--color-text-muted);
-
-  font-size: var(--font-size-base);
-  line-height: 1.6;
-}
-
-.novelty-error {
-  margin: 0 0 var(--space-3);
-  padding: var(--space-3);
-
-  border-radius: var(--radius-md);
-
-  background: #3a1515;
-
-  color: var(--color-danger-text);
 
   font-size: var(--font-size-base);
   line-height: 1.6;

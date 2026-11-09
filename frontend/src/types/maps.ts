@@ -1,7 +1,7 @@
 import type { Quest } from "./quest";
 
 export type MapArea = {
-  // 号館の番号（ステッカー在庫 API の fieldId と同じ）
+  // 号館の番号（交換画面の URL /novelty/:fieldId と同じ）
   id: number;
   buildingName: string;
   areaName: string;
