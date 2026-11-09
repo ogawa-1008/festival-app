@@ -10,7 +10,6 @@ import {
 
 import Home from "./pages/Home/Home";
 import CampusSelection from "./pages/CampusSelection/CampusSelection";
-import Title from "./pages/Title/Title";
 import QuestLoading from "./pages/QuestLoading/QuestLoading";
 import QrEntry from "./pages/QrEntry/QrEntry";
 import GameTutorial from "./components/Tutorial/GameTutorial";
@@ -55,8 +54,7 @@ function StampsRedirect() {
 }
 function HomeEntry() {
   const { campusId } = useGame();
-  // まだエリアを選んでいない（初めて開いた）ときは、タイトル画面から始める
-  return campusId ? <Home /> : <Navigate to="/title" replace />;
+  return campusId ? <Home /> : <Navigate to="/start" replace />;
 }
 
 // エリアを選んでいる間は、どの画面でもBGMを流す（開き直したときは、最初のタップで流れ始める）
@@ -84,7 +82,6 @@ function App() {
             <GameTutorial>
               <Routes>
                 <Route path="/" element={<HomeEntry />} />
-                <Route path="/title" element={<Title />} />
                 <Route path="/start" element={<CampusSelection />} />
                 {/* 以前あった校舎（建物）選択の画面。エリアの全建物を遊べるようにしたので、ホームへ転送する */}
                 <Route path="/start/buildings" element={<Navigate to="/" replace />} />
