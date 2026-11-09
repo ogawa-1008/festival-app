@@ -1,28 +1,12 @@
-import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import SwipeToConfirm from "../../components/SwipeToConfirm/SwipeToConfirm";
 import { useGameTutorial } from "../../components/Tutorial/useGameTutorial";
 import { useGame } from "../../context/GameContext";
 import { useMapAreas } from "../../context/useMapAreas";
-import {
-  fetchNoveltyStock,
-  redeemNovelty,
-  type NoveltyApiError,
-} from "../../api/noveltyApi";
 import { getFieldProgress, getRedeemConditionText } from "../../utils/fieldProgress";
 
 import "./NoveltyRedeem.css";
-
-const ERROR_MESSAGES: Record<NoveltyApiError, string> = {
-  "out-of-stock": "このエリアのステッカーは在庫がなくなりました。近くのスタッフに声をかけてください。",
-  "not-found": "このエリアではステッカーを交換できません。近くのスタッフに声をかけてください。",
-  network: "通信できませんでした。電波のよい場所で、もう一度お試しください。交換できたか分からないときは、近くのスタッフに声をかけてください。",
-  server: "交換できませんでした。少し待ってから、もう一度お試しください。",
-};
-
-// 在庫の残り数（読み込み中は undefined、取得できなかったら null）
-type Remaining = number | null | undefined;
 
 // フィールドのステッカーをフォトスポットで交換する画面
 function NoveltyRedeem() {
@@ -37,50 +21,9 @@ function NoveltyRedeem() {
   const area = mapAreas.find((item) => String(item.id) === fieldIdParam);
   const progress = area ? getFieldProgress(area, quests, obtainedFieldNoveltyIds, mapAreas) : null;
 
-  const [remaining, setRemaining] = useState<Remaining>(undefined);
-  const [error, setError] = useState<NoveltyApiError | null>(null);
-  // スワイプ後、API の結果を待っている間
-  const [isRedeeming, setIsRedeeming] = useState(false);
-  // スワイプ部品は1回確定すると戻らないため、失敗したら作り直す
-  const [attempt, setAttempt] = useState(0);
-  // 交換は成功したが、この端末に記録できなかった（新しいバージョンのデータがあるなど）
-  const [unrecorded, setUnrecorded] = useState(false);
-
   const canRedeem = Boolean(
     area && campusId && progress?.redeemable && !progress.noveltyObtained && !practice,
   );
-
-  // 残り数を取得し直す回数（在庫が補充されたか確認するため）
-  const [stockCheck, setStockCheck] = useState(0);
-  // 残り数の取得の番号。最後に出した取得の結果だけを表示する
-  // （画面を離れたとき・条件が変わったときも番号を進め、前に出した取得の結果は捨てる）
-  const latestRequest = useRef(0);
-  // 交換の結果で分かった残り数を表示する。番号を進めて、それより前に出した取得が遅れて届いても
-  // 交換後の残り数を古い値で上書きしないようにする
-  const showRedeemedRemaining = (value: number) => {
-    latestRequest.current += 1;
-    setRemaining(value);
-  };
-  // 残り数を取り直す（取り直している間は「確認しています…」にする）
-  const recheckStock = () => {
-    setRemaining(undefined);
-    setStockCheck((value) => value + 1);
-  };
-
-  // 交換前にエリアの残り数を表示する（取得できなくても交換はできる）
-  useEffect(() => {
-    if (!campusId || !canRedeem) return;
-
-    const request = ++latestRequest.current;
-
-    void fetchNoveltyStock(campusId).then((result) => {
-      if (request === latestRequest.current) setRemaining(result.ok ? result.value : null);
-    });
-
-    return () => {
-      latestRequest.current += 1;
-    };
-  }, [campusId, canRedeem, stockCheck]);
 
   if (!area || !progress) {
     return (
@@ -95,36 +38,9 @@ function NoveltyRedeem() {
     );
   }
 
-  // スワイプで確定したら API でエリアの在庫を減らし、成功したときだけ獲得済みとして記録する
-  const handleConfirm = () => {
-    if (!campusId || !canRedeem || isRedeeming) return false;
-
-    setIsRedeeming(true);
-    setError(null);
-
-    void redeemNovelty(campusId).then((result) => {
-      setIsRedeeming(false);
-
-      if (result.ok) {
-        showRedeemedRemaining(result.value);
-        if (!claimFieldNovelty(area.id)) setUnrecorded(true);
-        return;
-      }
-
-      setError(result.error);
-      if (result.error === "out-of-stock") showRedeemedRemaining(0);
-      // 通信・サーバーのエラーのときは、残り数を取り直す（在庫はエリアの号館すべてで減るため、
-      // 表示が古いままだと、やり直したときに在庫切れだったと分かることになる）
-      else if (result.error === "network" || result.error === "server") recheckStock();
-      setAttempt((value) => value + 1);
-    });
-
-    return true;
-  };
-
-  const outOfStock = remaining === 0 || error === "out-of-stock";
-  // 何度試しても成功しない状態（在庫切れ・このエリアで交換できない）
-  const cannotRetry = outOfStock || error === "not-found";
+  // スワイプで確定したら、この端末に交換済みとして記録する
+  // （ステッカーはアナログのスタンプラリーでも配るため、在庫はアプリでは数えない）
+  const handleConfirm = () => canRedeem && claimFieldNovelty(area.id);
 
   return (
     <main className="novelty-page">
@@ -138,14 +54,10 @@ function NoveltyRedeem() {
 
         <p className="novelty-description">{area.novelty.description}</p>
 
-        {progress.rally.redeemed || unrecorded ? (
+        {progress.rally.redeemed ? (
           <div className="novelty-done" role="status">
             <h2>交換済みです</h2>
-            <p>
-              {unrecorded
-                ? "交換は完了しました。スタッフにこの画面を見せて、ステッカーを受け取ってください。（この端末には記録できなかったため、あとで開き直すと未交換と表示されます。もう一度交換しないでください）"
-                : "ステッカーは1枚受け取り済みです。ほかの校舎でも追加の交換はできません。"}
-            </p>
+            <p>ステッカーは1枚受け取り済みです。ほかの校舎でも追加の交換はできません。</p>
           </div>
         ) : practice ? (
           <p className="novelty-note">練習中はステッカーを交換できません。</p>
@@ -157,48 +69,15 @@ function NoveltyRedeem() {
           <p className="novelty-note">エリアを選んでから交換してください。</p>
         ) : (
           <>
-            <p className="novelty-stock">
-              {remaining === undefined
-                ? "残り数を確認しています…"
-                : remaining === null
-                  ? "残り数を確認できませんでした"
-                  : `エリアの残り ${remaining} 枚`}
-            </p>
-
             <p className="novelty-guide">
               フォトスポットのスタッフの前で、つまみを右端までスライドしてください。
             </p>
 
-            {(error || outOfStock) && (
-              <p className="novelty-error" role="alert">
-                {/* 在庫切れが分かったら、ほかのエラーより在庫切れの案内を出す（やり直しても交換できないため）。
-                    通信のエラーのあと自分の交換で最後の1枚が減っていた場合も、この案内でスタッフに声をかけてもらう */}
-                {ERROR_MESSAGES[outOfStock ? "out-of-stock" : error ?? "out-of-stock"]}
-              </p>
-            )}
-
-            {outOfStock && (
-              <button
-                type="button"
-                className="novelty-back"
-                onClick={() => {
-                  setError(null);
-                  recheckStock();
-                }}
-              >
-                残り数を確認し直す
-              </button>
-            )}
-
-            {!cannotRetry && (
-              <SwipeToConfirm
-                key={attempt}
-                label={isRedeeming ? "交換しています…" : "右にスライドして交換"}
-                confirmedLabel="交換しています…"
-                disabled={isRedeeming}
-                onConfirm={handleConfirm}
-              />
-            )}
+            <SwipeToConfirm
+              label="右にスライドして交換"
+              confirmedLabel="交換しました"
+              onConfirm={handleConfirm}
+            />
           </>
         )}
 

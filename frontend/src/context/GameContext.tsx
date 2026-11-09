@@ -68,7 +68,7 @@ type GameContextType = GameState & {
   ) => void;
   // 武器を次の段階へ強化する。強化できなかったら false
   upgradeWeapon: () => boolean;
-  // ステッカーの交換が成功したことを記録する（在庫の減算は API で行う）
+  // ステッカーを交換したことを記録する（在庫はアプリでは数えない）
   // 記録できなかったら false（新しいバージョンのデータがある場合など）
   claimFieldNovelty: (fieldId: number) => boolean;
 };
