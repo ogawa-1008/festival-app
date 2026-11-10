@@ -5,7 +5,13 @@ on:
     branches:
       - main
 
+  # 手で実行するときは「dry_run」にチェックすると、サーバーにつながるかと何を置くかだけを確かめる（ファイルは変えない）
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "サーバーを変えずに、つながるかと置くファイルだけ確かめる"
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -61,7 +67,49 @@ jobs:
         working-directory: backend
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-      # 8. API を XserverへFTPでデプロイ（ブラウザから見えない public_html の外に置く）
+      # 8. Tailscale につなぐ
+      #    Xserver の FTP は、踏み台サーバー（sarashiya）の IP からしか受け付けない。
+      #    sessapps の headscale に参加して、踏み台経由（サブネットルート）で Xserver に届くようにする。
+      #    TS_AUTHKEY は headscale の管理者が発行した、何度も使えて終わったら消える（reusable・ephemeral）キー
+      - name: Connect to Tailscale
+        # キーを渡すので、中身が勝手に変わらないようコミットで固定する
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          authkey: ${{ secrets.TS_AUTHKEY }}
+          args: --login-server=https://headscale.sessapps.com --accept-routes
+          hostname: github-actions-deploy
+
+      # 9. FTP で一覧を取れるか確かめる
+      #    踏み台を通っていないと、ログインできても一覧が空になる（IP 制限）。
+      #    そのまま進むと、何も置けないか、失敗が分かりにくくなるため、ここで止める
+      - name: Check FTP access
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          # パスワードをコマンドの引数に出さないよう、netrc に書いて curl に渡す
+          netrc="$RUNNER_TEMP/ftp-netrc"
+          ( umask 077; printf 'machine %s login %s password %s\n' "$FTP_HOST" "$FTP_USERNAME" "$FTP_PASSWORD" > "$netrc" )
+
+          # サブネットルートが届くまで少しかかることがあるので、何回か試す
+          for attempt in 1 2 3 4 5; do
+            if listing=$(curl --silent --show-error --ssl-reqd --list-only --max-time 30 \
+                --netrc-file "$netrc" "ftp://$FTP_HOST/vantan-monhan-festival.com/" | tr -d '\r') \
+              && grep -qx "public_html" <<<"$listing" && grep -qx "festival-api" <<<"$listing"; then
+              rm -f "$netrc"
+              echo "FTP: public_html と festival-api が見えました"
+              exit 0
+            fi
+            echo "FTP の一覧を取れませんでした（$attempt 回目）"
+            if [ "$attempt" -lt 5 ]; then sleep 10; fi
+          done
+
+          rm -f "$netrc"
+          echo "::error::Xserver の FTP で一覧を取れません。Tailscale の接続（TS_AUTHKEY・サブネットルート）か、FTP のユーザー名・パスワードを確かめてください"
+          exit 1
+
+      # 10. API を XserverへFTPでデプロイ（ブラウザから見えない public_html の外に置く）
       #    DB の接続情報（.env）と壁紙の画像（storage/wallpapers/）はサーバーに手で置く。GitHub には載せない
       #    storage/ はフォルダごと対象から外す（デプロイの記録に入ると、手元から消えたときにサーバーの画像ごと消されるため）
       - name: Deploy API to Xserver
@@ -71,6 +119,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
+          dry-run: ${{ inputs.dry_run == true }}
           server-dir: /vantan-monhan-festival.com/festival-api/
           local-dir: backend/
           exclude: |
@@ -82,7 +131,7 @@ jobs:
             README.md
             storage/**
 
-      # 9. アプリをXserverへFTPでデプロイ
+      # 11. アプリをXserverへFTPでデプロイ
       - name: Deploy to Xserver
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -90,5 +139,6 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
+          dry-run: ${{ inputs.dry_run == true }}
           server-dir: /vantan-monhan-festival.com/public_html/
           local-dir: frontend/dist/
