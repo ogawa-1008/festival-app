@@ -2,6 +2,10 @@
 
 main に push（PR をマージ）すると、GitHub Actions（`.github/workflows/deploy.yml`）が自動でサーバーに置きます。Actions 画面の「Run workflow」で手動でも実行できます。
 
+Xserver の FTP は、踏み台サーバー（sarashiya）の IP からしか受け付けません。Actions は、最初に Tailscale で sessapps の headscale（`https://headscale.sessapps.com`）に参加し、踏み台経由で FTP につなぎます。つないだあと、FTP で `public_html` と `festival-api` が見えるかを確かめ、見えなければそこで止まります。
+
+「Run workflow」で `dry_run` にチェックすると、つながるかと、どのファイルを置く・消すかだけを確かめます（サーバーのファイルは変えません）。
+
 ## サーバーの置き場所
 
 FTP アカウントで見たときのパスです（`/` がサーバーのホーム）。
@@ -73,8 +77,9 @@ DROP TABLE IF EXISTS novelty_stock;
 
 | 名前 | 中身 |
 |---|---|
-| `FTP_HOST` | FTP のホスト名 |
-| `FTP_USERNAME` | FTP アカウント |
+| `FTP_HOST` | FTP のホスト名（`sv17277.xserver.jp`） |
+| `FTP_USERNAME` | FTP アカウント（メールの形。例 `○○@vantan-monhan-festival.com`） |
 | `FTP_PASSWORD` | FTP のパスワード |
+| `TS_AUTHKEY` | headscale の接続キー。headscale の管理者に、何度も使えて終わったら消える（reusable・ephemeral）キーを発行してもらう。期限が切れたら発行し直して入れ替える |
 
 DB のパスワードは Secrets にも入れず、サーバーの `.env` にだけ置きます（リポジトリは公開のため）。
