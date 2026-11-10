@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\VisitRepository;
 use App\WallpaperStore;
 use Dotenv\Dotenv;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -11,8 +12,7 @@ use Slim\Psr7\Stream;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// .env（あれば）を読み込む。ローカル開発・本番（Xserver）ともここに DB 接続情報を置ける
-// （今の API は DB を使わない。アクセスの集計などで DB を使うときのために残している）。
+// .env（あれば）を読み込む。ローカル開発・本番（Xserver）ともここに DB 接続情報を置ける。
 Dotenv::createImmutable(__DIR__ . '/..')->safeLoad();
 
 // エラーの詳しい内容（SQL・ファイルの場所など）は開発用サーバー（composer start）でだけ見せる。
@@ -23,6 +23,25 @@ $app = AppFactory::create();
 $app->addRoutingMiddleware();
 $app->addErrorMiddleware($isDevServer, true, true);
 
+$dbConfig = require __DIR__ . '/../config/database.php';
+
+// DB には、来場者数の API が呼ばれたときだけつなぐ。
+// （壁紙の画像は DB を使わない。DB が止まっても壁紙は返せるように）
+// つながらない（.env がない・パスワード違いなど）ときは null。接続情報は画面に出さず、エラーログにだけ残す
+$connectDb = static function () use ($dbConfig): ?PDO {
+    try {
+        return new PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['password'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            // DB が応答しないときに長く待たない（待っている間、壁紙の API まで遅くならないように）
+            PDO::ATTR_TIMEOUT => 3,
+        ]);
+    } catch (PDOException $exception) {
+        error_log('festival-api: DB connection failed: ' . $exception->getMessage());
+
+        return null;
+    }
+};
 $wallpapers = new WallpaperStore(__DIR__ . '/../storage/wallpapers');
 
 // レスポンスを JSON で返すための小道具
@@ -34,6 +53,33 @@ $json = static function (Response $response, array $payload, int $status = 200):
 
 $app->get('/health', static function (Request $request, Response $response) use ($json): Response {
     return $json($response, ['status' => 'ok']);
+});
+
+// 来場者数（UU）: アプリを開いた端末のランダムな ID を、日本時間の日付ごとに1回だけ記録する
+// ログインがないので、ID は画面の側で作る（名前・IP などは受け取らない・残さない）
+$app->post('/api/visits', static function (Request $request, Response $response) use ($json, $connectDb): Response {
+    $body = json_decode((string) $request->getBody(), true);
+    $visitorId = is_array($body) ? ($body['visitorId'] ?? null) : null;
+
+    if (!VisitRepository::isValidVisitorId($visitorId)) {
+        return $json($response, ['error' => 'invalid visitorId'], 400);
+    }
+
+    $pdo = $connectDb();
+    if ($pdo === null) {
+        return $json($response, ['error' => 'database unavailable'], 503);
+    }
+
+    try {
+        (new VisitRepository($pdo))->record($visitorId);
+    } catch (PDOException $exception) {
+        // テーブルがない（schema.sql をまだ流していない）ときなど。画面の側は、次に開いたときに送り直す
+        error_log('festival-api: recording a visit failed: ' . $exception->getMessage());
+
+        return $json($response, ['error' => 'database unavailable'], 503);
+    }
+
+    return $response->withStatus(204);
 });
 
 // スマホ壁紙の画像（原寸・一覧のカードに敷く画像）。画像は公開フォルダに置かず、ここから返す

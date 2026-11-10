@@ -16,7 +16,7 @@ FTP アカウントで見たときのパスです（`/` がサーバーのホー
 │   ├── .htaccess         … 画面の URL は index.html へ、/api/〜 は api/index.php へ渡す
 │   └── api/index.php     … API の入り口。下の festival-api を読み込むだけ
 └── festival-api/         … API 本体（backend）。ブラウザからは直接見えない
-    ├── .env              … DB の接続情報（手で置く。GitHub には載せない。今の API は DB を使わない）
+    ├── .env              … DB の接続情報（手で置く。GitHub には載せない。来場者数の記録に使う）
     ├── storage/wallpapers/ … スマホ壁紙の画像（手で置く。GitHub には載せない）
     ├── public/index.php
     └── vendor/ …
@@ -27,8 +27,8 @@ Actions は API（festival-api）を先に置いてから、アプリ（public_h
 ## 最初の1回だけ、サーバーで手でやること
 
 1. **PHP のバージョン**：サーバーパネルの「PHP Ver.切替」で、`vantan-monhan-festival.com` が PHP 8.3 以上になっているか確認する（API は 8.3 以上が必要。今は 8.3.36）。
-2. **DB**（今の API は DB を使わないので、DB を使う機能を足すときだけ）：サーバーパネルで MySQL（MariaDB）の DB とユーザーを作り、ユーザーに DB へのアクセス権を付ける。テーブルは phpMyAdmin の「SQL」タブで `backend/database/schema.sql` の中身を実行して作る。
-3. **.env**（2 と同じく、DB を使うときだけ）：最初のデプロイで `festival-api/` ができたら、WebFTP でその中に `.env` を置く。
+2. **DB**：サーバーパネルで MySQL（MariaDB）の DB とユーザーを作り、ユーザーに DB へのアクセス権を付ける。テーブルは phpMyAdmin の「SQL」タブで `backend/database/schema.sql` の中身を実行して作る（何度実行しても、今あるデータは変わらない）。
+3. **.env**：最初のデプロイで `festival-api/` ができたら、WebFTP でその中に `.env` を置く。
 
    ```
    DB_DSN="mysql:host=localhost;dbname=DB名;charset=utf8mb4"
@@ -43,6 +43,40 @@ Actions は API（festival-api）を先に置いてから、アプリ（public_h
 
 - Xserver の「404 File Not Found」が出るときは、`.htaccess` か `api/index.php` が置かれていない。
 - `https://vantan-monhan-festival.com/api/wallpapers/1/preview` を開いて、壁紙の一覧用の画像が出れば OK。`{"error":"unknown wallpaper"}` が出るときは、画像が置かれていない（場所・ファイル名が違う）。
+- アプリを開いたあと、phpMyAdmin で `site_visits` に今日の行が増えていれば、来場者数の記録は OK。増えないときは、下の「来場者数（UU）の集計」を見る。
+
+## 来場者数（UU）の集計
+
+アプリを開くと、端末ごとのランダムな ID を API（`POST /api/visits`）に1日1回だけ送り、`site_visits` テーブルに「日付（日本時間）・ID・最初に開いた時刻」を1行残します。名前や IP など、個人につながる情報は送らず、残しません。
+
+- QR コードからクエストの画面に直接来た人も、開いた時点で数えます（トップページに限らない）。
+- 同じ端末・同じブラウザなら、同じ日に何度開いても1人です。別のブラウザ・シークレットウィンドウ・保存データを消したあとは、別の人として数えます。
+- ログインがないので、API にでたらめな ID を送れば数を増やせます（防いでいない）。
+
+### 当日までにやること
+
+1. phpMyAdmin の「SQL」タブで `backend/database/schema.sql` の中身を実行して、`site_visits` テーブルを作る（API をデプロイする前でも後でもよい。テーブルがない間に開いた人は、次に開いたときに送り直す）。
+2. `festival-api/.env` の DB の名前・ユーザー・パスワードが、サーバーパネルの MySQL の設定と合っているか確かめる。
+3. アプリを開いて、`site_visits` に今日の行が増えるか確かめる。
+
+`{"error":"database unavailable"}`（503）になるときは、DB につながっていないか、テーブルがない。詳しい原因はサーバーパネルの PHP のエラーログに出る。
+
+### 集計の SQL（phpMyAdmin の「SQL」タブで実行）
+
+```sql
+-- 11/14 の来場者数（UU）
+SELECT COUNT(*) AS uu FROM site_visits WHERE visit_date = '2026-11-14';
+
+-- 日ごとの来場者数
+SELECT visit_date, COUNT(*) AS uu FROM site_visits GROUP BY visit_date ORDER BY visit_date;
+
+-- 11/14 の時間帯ごとの、その日初めて開いた人の数
+SELECT HOUR(first_seen_at) AS hour, COUNT(*) AS new_visitors
+FROM site_visits WHERE visit_date = '2026-11-14'
+GROUP BY HOUR(first_seen_at) ORDER BY hour;
+```
+
+当日より前に試しで開いた分は、別の日付の行になるので、11/14 の数には入りません。
 
 ## スマホ壁紙の画像
 
