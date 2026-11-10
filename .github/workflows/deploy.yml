@@ -21,11 +21,11 @@ jobs:
     steps:
       # 1. GitHubリポジトリを取得
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # 2. Node.jsをセットアップ
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
 
@@ -57,7 +57,7 @@ jobs:
 
       # 6. API（backend）用の PHP をセットアップ（Xserver と同じ 8.3）
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: "8.3"
           tools: composer
@@ -114,7 +114,7 @@ jobs:
       #    DB の接続情報（.env）と壁紙の画像（storage/wallpapers/）はサーバーに手で置く。GitHub には載せない
       #    storage/ はフォルダごと対象から外す（デプロイの記録に入ると、手元から消えたときにサーバーの画像ごと消されるため）
       - name: Deploy API to Xserver
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -134,7 +134,7 @@ jobs:
 
       # 11. アプリをXserverへFTPでデプロイ
       - name: Deploy to Xserver
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
