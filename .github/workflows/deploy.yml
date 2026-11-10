@@ -114,7 +114,7 @@ jobs:
       #    DB の接続情報（.env）と壁紙の画像（storage/wallpapers/）はサーバーに手で置く。GitHub には載せない
       #    storage/ はフォルダごと対象から外す（デプロイの記録に入ると、手元から消えたときにサーバーの画像ごと消されるため）
       - name: Deploy API to Xserver
-        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -134,7 +134,7 @@ jobs:
 
       # 11. アプリをXserverへFTPでデプロイ
       - name: Deploy to Xserver
-        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
