@@ -76,7 +76,8 @@ jobs:
         uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
         with:
           authkey: ${{ secrets.TS_AUTHKEY }}
-          args: --login-server=https://headscale.sessapps.com --accept-routes
+          # サブネットルートを受ける --accept-routes は、このアクションが自分で付ける（二重に書くとエラーになる）
+          args: --login-server=https://headscale.sessapps.com
           hostname: github-actions-deploy
 
       # 9. FTP で一覧を取れるか確かめる
