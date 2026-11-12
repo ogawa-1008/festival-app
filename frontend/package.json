@@ -6,7 +6,9 @@
   "scripts": {
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/precompress.mjs",
+    "verify:gzip": "node scripts/verify-precompressed.mjs",
+    "check:prod": "node scripts/check-prod-compression.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
     "qr": "node --experimental-strip-types scripts/generate-quest-qr.mjs"
