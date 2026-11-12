@@ -50,5 +50,15 @@ npm run check:prod --workspace frontend
 - nginx: `gzip_static on;`
 - Apache: `.htaccess` で `mod_rewrite` + `mod_headers` を使い、`Accept-Encoding: gzip` のときに `.gz` を `Content-Encoding: gzip` で返す
 
-本番は Xserver の共用サーバーで nginx の設定は変更できないため、実際にどちらの経路で効くかは
-`.gz` をデプロイしたうえで `check:prod` で確認する。**設定を入れる前に必ず確認すること。**
+### 本番（Xserver 共用）での実測結果: **この方法では効かない**
+
+2026-11 に本番へ `.gz` をデプロイし、`.htaccess` の方式も検証用ディレクトリで試したが、
+**Xserver の共用サーバーでは事前圧縮を選ばせられなかった**。
+
+- 既存の静的ファイルは nginx が自分で返しており、Apache（`.htaccess`）を通らない
+- nginx 側の `gzip_static` は共有ホスティングのため変更できない
+- 結果、`.gz` を置いても毎回圧縮（`gzip_comp_level 1`）のまま。ETag も `W/"..."` で変わらない
+- 参考: 本番が返す JS は gzip で 268,932 B。`gzip -9` なら 227,944 B なので、**転送量も約 18% 多い**
+
+`.gz` の生成と検証はそのまま残してある（将来 CDN に移すときにそのまま使える）。
+Xserver のまま初回転送を軽くしたい場合は、**JS のコード分割でペイロード自体を減らす**のが本筋。
