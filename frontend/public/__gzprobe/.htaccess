@@ -1,0 +1,19 @@
+# 検証用: 事前圧縮した .gz を Content-Encoding: gzip で返せるかを確かめる。
+# 確認が終わったらこのディレクトリごと削除する。
+<IfModule mod_mime.c>
+  AddEncoding gzip .gz
+  AddType application/javascript .js.gz
+  AddType text/css .css.gz
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /__gzprobe/
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{REQUEST_FILENAME}.gz -f
+  RewriteRule ^(.+)$ $1.gz [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header append Vary Accept-Encoding
+</IfModule>

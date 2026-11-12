@@ -8,12 +8,13 @@
 //
 // 使い方: node scripts/precompress.mjs（npm run build の最後で自動実行される）
 import { gzipSync } from 'node:zlib'
-import { readdir, readFile, stat, writeFile } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { isTarget } from './gzip-targets.mjs'
 
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url))
+const PUBLIC_DIR = fileURLToPath(new URL('../public/', import.meta.url))
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true })
@@ -76,3 +77,27 @@ if (made === 0) {
 if (skipped > 0) {
   console.log(`  ${skipped} ファイルは元より大きくなるためスキップ`)
 }
+
+// Vite は public/ のファイルを dist/ にコピーするが、サブディレクトリのドットファイル
+// （ディレクトリ単位の .htaccess など）はコピーしない。取りこぼすと設定が効かないので写す。
+async function copyDotfiles(dir, base = dir) {
+  let entries
+  try {
+    entries = await readdir(dir, { withFileTypes: true })
+  } catch {
+    return
+  }
+  for (const entry of entries) {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      await copyDotfiles(path, base)
+    } else if (entry.isFile() && entry.name.startsWith('.')) {
+      const rel = relative(base, path)
+      await mkdir(dirname(join(DIST, rel)), { recursive: true })
+      await copyFile(path, join(DIST, rel))
+      console.log(`  ${rel} を dist/ にコピーしました`)
+    }
+  }
+}
+
+await copyDotfiles(PUBLIC_DIR)
