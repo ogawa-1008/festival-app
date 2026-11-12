@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: テスト
+        run: npm test --workspace frontend
+
+      # .gz の生成まで含めてビルドする（frontend の build スクリプトが最後に実行する）
+      - name: ビルド
+        run: npm run build
+
+      # .gz が欠けるとサイトは動くが、配信が「毎回圧縮」に落ちて 40 分の 1 の速度になる。
+      # デプロイ前にここで気付けるようにしておく。
+      - name: 事前圧縮の検証
+        run: npm run verify:gzip --workspace frontend
+
+      # 手動デプロイ用に、.gz 込みのビルド成果物を残す
+      - name: ビルド成果物を保存
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: frontend/dist
+          retention-days: 7
