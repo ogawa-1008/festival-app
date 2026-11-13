@@ -7,6 +7,9 @@
   RewriteBase /
   RewriteRule ^index\.html$ - [L]
 
+  # API は廃止した（アクセス計測は Cloudflare）。/api/ は 404 を返す
+  RewriteRule ^api/ - [L]
+
   # 存在しない画像・JS・CSS・フォントなどは 404 を返す。
   # index.html を返すと、Cloudflare がそのURLを画像としてキャッシュしてしまうため
   RewriteCond %{REQUEST_FILENAME} !-f
