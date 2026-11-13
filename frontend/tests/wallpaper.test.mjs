@@ -8,10 +8,10 @@ const IPAD_DESKTOP = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKi
 const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36";
 const LINE = `${IPHONE} Line/14.18.0`;
 
-test("wallpaper images come from the API, not the public folder", () => {
+test("wallpaper images are served as static files", () => {
   assert.deepEqual([...WALLPAPER_IDS], [1, 2, 3, 4, 5]);
-  assert.equal(getWallpaperUrl(3), "/api/wallpapers/3");
-  assert.equal(getWallpaperPreviewUrl(3), "/api/wallpapers/3/preview");
+  assert.equal(getWallpaperUrl(3), "/wallpapers/wallpaper-3.jpg");
+  assert.equal(getWallpaperPreviewUrl(3), "/wallpapers/wallpaper-3-preview.webp");
   assert.equal(getWallpaperFileName(3), "monhan-festival-wallpaper-3.jpg");
 });
 

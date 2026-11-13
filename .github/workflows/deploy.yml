@@ -55,19 +55,7 @@ jobs:
           echo "Build completed successfully."
           ls -la frontend/dist/
 
-      # 6. API（backend）用の PHP をセットアップ（Xserver と同じ 8.3）
-      - name: Setup PHP
-        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
-        with:
-          php-version: "8.3"
-          tools: composer
-
-      # 7. API の依存関係をインストール（本番で使うものだけ。vendor/ はリポジトリにないのでここで作る）
-      - name: Install API dependencies
-        working-directory: backend
-        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-      # 8. Tailscale につなぐ
+      # 6. Tailscale につなぐ
       #    Xserver の FTP は、踏み台サーバー（sarashiya）の IP からしか受け付けない。
       #    sessapps の headscale に参加して、踏み台経由（サブネットルート）で Xserver に届くようにする。
       #    TS_AUTHKEY は headscale の管理者が発行した、何度も使えて終わったら消える（reusable・ephemeral）キー
@@ -80,7 +68,7 @@ jobs:
           args: --login-server=https://headscale.sessapps.com
           hostname: github-actions-deploy
 
-      # 9. FTP で一覧を取れるか確かめる
+      # 7. FTP で一覧を取れるか確かめる
       #    踏み台を通っていないと、ログインできても一覧が空になる（IP 制限）。
       #    そのまま進むと、何も置けないか、失敗が分かりにくくなるため、ここで止める
       - name: Check FTP access
@@ -97,9 +85,9 @@ jobs:
           for attempt in 1 2 3 4 5; do
             if listing=$(curl --silent --show-error --ssl-reqd --list-only --max-time 30 \
                 --netrc-file "$netrc" "ftp://$FTP_HOST/vantan-monhan-festival.com/" | tr -d '\r') \
-              && grep -qx "public_html" <<<"$listing" && grep -qx "festival-api" <<<"$listing"; then
+              && grep -qx "public_html" <<<"$listing"; then
               rm -f "$netrc"
-              echo "FTP: public_html と festival-api が見えました"
+              echo "FTP: public_html が見えました"
               exit 0
             fi
             echo "FTP の一覧を取れませんでした（$attempt 回目）"
@@ -110,29 +98,7 @@ jobs:
           echo "::error::Xserver の FTP で一覧を取れません。Tailscale の接続（TS_AUTHKEY・サブネットルート）か、FTP のユーザー名・パスワードを確かめてください"
           exit 1
 
-      # 10. API を XserverへFTPでデプロイ（ブラウザから見えない public_html の外に置く）
-      #    DB の接続情報（.env）と壁紙の画像（storage/wallpapers/）はサーバーに手で置く。GitHub には載せない
-      #    storage/ はフォルダごと対象から外す（デプロイの記録に入ると、手元から消えたときにサーバーの画像ごと消されるため）
-      - name: Deploy API to Xserver
-        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          dry-run: ${{ inputs.dry_run == true }}
-          server-dir: /vantan-monhan-festival.com/festival-api/
-          local-dir: backend/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            .env
-            .env.example
-            README.md
-            storage/**
-
-      # 11. アプリをXserverへFTPでデプロイ
+      # 8. アプリをXserverへFTPでデプロイ
       - name: Deploy to Xserver
         uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
         with:

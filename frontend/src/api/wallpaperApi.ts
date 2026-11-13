@@ -1,16 +1,16 @@
-// ハンターランクの報酬（スマホ壁紙）の画像。公開フォルダには置かず、API から受け取る
-// （画像はサーバーの API のフォルダに手で置く。backend/public/index.php の /api/wallpapers）
-import { API_BASE_URL } from "./apiBase.ts";
+// ハンターランクの報酬（スマホ壁紙）。API は廃止して、静的ファイルとして配信する。
+// 保存用の原寸は JPEG、一覧のカードに敷く画像は軽い WebP を使う。
+// 画像は public/wallpapers/ に置く（ビルドで dist/wallpapers/ にコピーされる）
 
-// 壁紙の番号（サーバーの wallpaper-<番号>.jpg と合わせる）
+// 壁紙の番号（public/wallpapers/wallpaper-<番号>.jpg と合わせる）
 export const WALLPAPER_IDS = [1, 2, 3, 4, 5] as const;
 export type WallpaperId = (typeof WALLPAPER_IDS)[number];
 
 // 保存用の原寸（JPEG）
-export const getWallpaperUrl = (id: WallpaperId) => `${API_BASE_URL}/api/wallpapers/${id}`;
+export const getWallpaperUrl = (id: WallpaperId) => `/wallpapers/wallpaper-${id}.jpg`;
 
-// 一覧のカードに敷く画像
-export const getWallpaperPreviewUrl = (id: WallpaperId) => `${API_BASE_URL}/api/wallpapers/${id}/preview`;
+// 一覧のカードに敷く画像（WebP）
+export const getWallpaperPreviewUrl = (id: WallpaperId) => `/wallpapers/wallpaper-${id}-preview.webp`;
 
 // 保存したときのファイル名
 export const getWallpaperFileName = (id: WallpaperId) => `monhan-festival-wallpaper-${id}.jpg`;

@@ -8,7 +8,7 @@
   border: 1px solid #565353;
   border-radius: 2px;
   background: linear-gradient(rgb(247 237 211 / 90%), rgb(247 237 211 / 90%)),
-    url("/images/campus/parchment.png") center / cover;
+    url("/images/campus/parchment.webp") center / cover;
   color: #080606;
   font-family: var(--driver-popover-font-family);
   box-shadow: 0 8px 28px rgb(8 6 6 / 35%);
@@ -157,7 +157,7 @@
   border: 1px solid #8c714c;
   border-radius: 2px;
   background: linear-gradient(rgb(247 237 211 / 94%), rgb(247 237 211 / 94%)),
-    url("/images/campus/parchment.png") center / cover;
+    url("/images/campus/parchment.webp") center / cover;
   color: #080606;
   box-shadow: 0 8px 20px rgb(8 6 6 / 45%);
 }

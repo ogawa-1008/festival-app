@@ -47,47 +47,47 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
       description: "光っているボタンを実際に押して、モンスターとの勝負（狩猟）から、報酬のゼニー（お金）で武器を強化するところまで練習できます。<br><br>練習用のQRコードとゼニーを使うので、実際のカメラ・報酬・交換履歴には影響しません。×でいつでもいったん閉じられます。終了するときは、×で閉じてから「終了する」を押してください。",
       showButtons: ["next", "close"], nextBtnText: "練習を始める",
     } },
-    { id: "map", path: "/", action: "nav-map", element: '[data-tutorial="nav-map"]', popover: {
+    { id: "map", path: "/", action: "nav-map", element: '[data-tutorial="nav-map"]', waitForElement: 3000, popover: {
       title: "会場を確認しよう", description: `まずは${mapIcon}マップを押して、モンスターがいるフィールドを確認しましょう。`, side: "top",
     } },
-    { id: "field", path: "/map", action: "field-open", element: '[data-tutorial="map-field"]', popover: {
+    { id: "field", path: "/map", action: "field-open", element: '[data-tutorial="map-field"]', waitForElement: 3000, popover: {
       title: "フィールドを開く", description: "このフィールドを押してみましょう。場所やモンスターの情報が開きます。", side: "top",
     } },
-    { id: "map-home", path: "/map", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
+    { id: "map-home", path: "/map", action: "nav-home", element: '[data-tutorial="nav-home"]', waitForElement: 3000, popover: {
       title: "クエストへ向かおう", description: `フィールドの情報を確認できました。${homeIcon}ホームを押してクエストを選びましょう。`, side: "top",
     } },
-    { id: "quest", path: "/", action: "quest-open", element: `[data-tutorial-quest="${questId}"]`, popover: {
+    { id: "quest", path: "/", action: "quest-open", element: `[data-tutorial-quest="${questId}"]`, waitForElement: 3000, popover: {
       title: "クエストを選ぶ", description: "このクエストを押してください。QRコードの読み取り画面へ進みます。", side: "top",
     } },
-    { id: "camera", path: "/qr-scanner", action: "camera-start", element: '[data-tutorial="camera-start"]', popover: {
+    { id: "camera", path: "/qr-scanner", action: "camera-start", element: '[data-tutorial="camera-start"]', waitForElement: 3000, popover: {
       title: "カメラを起動する", description: "「カメラを起動」を押しましょう。今回は練習用の映像が開きます。本番ではカメラの使用を許可してください。", side: "top",
     } },
-    { id: "scan", path: "/qr-scanner", action: "qr-scanned", element: '[data-tutorial="practice-scan"]', popover: {
+    { id: "scan", path: "/qr-scanner", action: "qr-scanned", element: '[data-tutorial="practice-scan"]', waitForElement: 3000, popover: {
       title: "QRコードを読み取る", description: "練習用のQRコードを押して、読み取りを体験しましょう。本番では会場のQRコードを枠に合わせると自動で読み取ります。", side: "top",
     } },
-    { id: "loading", path: `/quest-loading/${questId}`, action: "battle-ready", element: '[data-tutorial="quest-confirm"]', popover: {
+    { id: "loading", path: `/quest-loading/${questId}`, action: "battle-ready", element: '[data-tutorial="quest-confirm"]', waitForElement: 3000, popover: {
       title: "クエストを確認", description: "QRコードを読み取れました。挑戦するクエストを確認して、「狩猟を始める」を押しましょう。準備が整うと押せるようになります。", side: "top",
     } },
-    { id: "battle", path: `/battle/${questId}`, action: "battle-finished", element: '[data-tutorial="battle-hands"]', popover: {
+    { id: "battle", path: `/battle/${questId}`, action: "battle-finished", element: '[data-tutorial="battle-hands"]', waitForElement: 3000, popover: {
       title: "手を選んで狩猟しよう", description: `${JANKEN_RULE_TEXT}手を押して、モンスターの体力を0にしよう。`, side: "top",
       popoverClass: "festival-tour festival-ui festival-tour--battle",
     } },
-    { id: "reward", path: `/result/${questId}`, action: "reward-claimed", element: '[data-tutorial="claim-reward"]', popover: {
+    { id: "reward", path: `/result/${questId}`, action: "reward-claimed", element: '[data-tutorial="claim-reward"]', waitForElement: 3000, popover: {
       title: "討伐成功！", description: "もらえるゼニーを確認して「報酬を受け取る」を押しましょう。今回は練習用のゼニーです。", side: "top",
     } },
-    { id: "result-home", path: `/result/${questId}`, action: "result-home", element: '[data-tutorial="result-home"]', popover: {
+    { id: "result-home", path: `/result/${questId}`, action: "result-home", element: '[data-tutorial="result-home"]', waitForElement: 3000, popover: {
       title: "報酬を受け取りました", description: "「ホームへ戻る」を押してください。もらったゼニーで武器を強化してみましょう。", side: "top",
     } },
-    { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', popover: {
+    { id: "progress", path: "/", action: "nav-progress", element: '[data-tutorial="nav-progress"]', waitForElement: 3000, popover: {
       title: "進捗を確認", description: `${progressIcon}進捗を押すと、武器の強化やもらえる報酬を確認できます。`, side: "top",
     } },
-    { id: "progress-hub", path: "/progress", action: "weapons-open", element: '[data-tutorial="progress-weapons"]', popover: {
+    { id: "progress-hub", path: "/progress", action: "weapons-open", element: '[data-tutorial="progress-weapons"]', waitForElement: 3000, popover: {
       title: "「武器を強化する」を開く", description: "進捗では、武器・ステッカー・スマホ壁紙・スタンプの集まり具合を確認できます。「武器を強化する」を押しましょう。", side: "bottom",
     } },
-    { id: "craft", path: "/progress/weapons", action: "craft-open", element: '[data-tutorial="create-weapon"]', popover: {
+    { id: "craft", path: "/progress/weapons", action: "craft-open", element: '[data-tutorial="create-weapon"]', waitForElement: 3000, popover: {
       title: "ゼニーが貯まりました", description: "強化に必要なゼニーが貯まりました。「武器を強化する」を押して、強化の画面を開きましょう。", side: "top",
     } },
-    { id: "exchange", path: "/exchange/weapon", action: "exchange-open", element: '[data-tutorial="exchange-open"]', popover: {
+    { id: "exchange", path: "/exchange/weapon", action: "exchange-open", element: '[data-tutorial="exchange-open"]', waitForElement: 3000, popover: {
       title: "強化内容を確認", description: "必要なゼニーを確認して「武器を強化する」を押してください。確認ダイアログが開きます。", side: "top",
     } },
     { id: "confirm", path: "/exchange/weapon", action: "exchange-confirmed", element: '[data-tutorial="exchange-confirm"]', waitForElement: 2000, popover: {
@@ -96,7 +96,7 @@ export function createTutorialSteps(questId: string): TutorialStep[] {
     { id: "exchange-back", path: "/exchange/weapon", action: "exchange-back", element: '[data-tutorial="exchange-back"]', waitForElement: 2000, popover: {
       title: "武器を強化しました", description: "武器を強化すると攻撃力が上がり、モンスターに与えるダメージが増えます。確認できたら「武器詳細へ戻る」を押しましょう。", side: "top",
     } },
-    { id: "finish-home", path: "/progress/weapons", action: "nav-home", element: '[data-tutorial="nav-home"]', popover: {
+    { id: "finish-home", path: "/progress/weapons", action: "nav-home", element: '[data-tutorial="nav-home"]', waitForElement: 3000, popover: {
       title: "ホームへ戻ろう", description: `${homeIcon}ホームを押して、練習を終えましょう。ここまでが狩猟から武器の強化までの流れです。`, side: "top",
     } },
     { id: "complete", path: "/", popover: {

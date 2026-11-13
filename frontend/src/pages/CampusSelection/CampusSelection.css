@@ -10,7 +10,7 @@
 .campus-list { display: grid; gap: 16px; margin-top: 20px; }
 .campus-paper {
   background: linear-gradient(rgb(247 237 211 / 70%), rgb(247 237 211 / 70%)),
-    url("/images/campus/parchment.png") center / cover;
+    url("/images/campus/parchment.webp") center / cover;
   border: 1px solid var(--festival-surface);
   border-radius: 2px;
   box-shadow: 0 5px 12px rgb(5 3 0 / 35%);

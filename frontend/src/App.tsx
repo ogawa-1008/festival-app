@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -8,25 +8,27 @@ import {
   useLocation,
 } from "react-router-dom";
 
+// 最初に開く画面だけ先に読み込み、残りはその画面を開いたときに読み込む（初回に落とすJSを小さくする）
 import Home from "./pages/Home/Home";
 import CampusSelection from "./pages/CampusSelection/CampusSelection";
 import Title from "./pages/Title/Title";
-import QuestLoading from "./pages/QuestLoading/QuestLoading";
-import QrEntry from "./pages/QrEntry/QrEntry";
 import GameTutorial from "./components/Tutorial/GameTutorial";
-import Map from "./pages/Map/Map";
-import Progress from "./pages/Progress/Progress";
-import ProgressWeapons from "./pages/Progress/ProgressWeapons";
-import ProgressStickers from "./pages/Progress/ProgressStickers";
-import ProgressWallpaper from "./pages/Progress/ProgressWallpaper";
-import ProgressWallpaperDetail from "./pages/Progress/ProgressWallpaperDetail";
-import ProgressFields from "./pages/Progress/ProgressFields";
-import QRScanner from "./pages/QRScanner/QRScanner.tsx";
-import Battle from "./pages/Battle/Battle.tsx";
-import Result from "./pages/Result/Result.tsx";
-import Collection from "./pages/Collection/Collection.tsx";
-import Exchange from "./pages/Exchange/Exchange.tsx";
-import NoveltyRedeem from "./pages/NoveltyRedeem/NoveltyRedeem.tsx";
+
+const QuestLoading = lazy(() => import("./pages/QuestLoading/QuestLoading"));
+const QrEntry = lazy(() => import("./pages/QrEntry/QrEntry"));
+const Map = lazy(() => import("./pages/Map/Map"));
+const Progress = lazy(() => import("./pages/Progress/Progress"));
+const ProgressWeapons = lazy(() => import("./pages/Progress/ProgressWeapons"));
+const ProgressStickers = lazy(() => import("./pages/Progress/ProgressStickers"));
+const ProgressWallpaper = lazy(() => import("./pages/Progress/ProgressWallpaper"));
+const ProgressWallpaperDetail = lazy(() => import("./pages/Progress/ProgressWallpaperDetail"));
+const ProgressFields = lazy(() => import("./pages/Progress/ProgressFields"));
+const QRScanner = lazy(() => import("./pages/QRScanner/QRScanner.tsx"));
+const Battle = lazy(() => import("./pages/Battle/Battle.tsx"));
+const Result = lazy(() => import("./pages/Result/Result.tsx"));
+const Collection = lazy(() => import("./pages/Collection/Collection.tsx"));
+const Exchange = lazy(() => import("./pages/Exchange/Exchange.tsx"));
+const NoveltyRedeem = lazy(() => import("./pages/NoveltyRedeem/NoveltyRedeem.tsx"));
 import { GameProvider, useGame } from "./context/GameContext";
 import { BattleSessionProvider } from "./context/BattleSessionContext";
 import { QrNoticeProvider } from "./context/QrNoticeProvider";
@@ -34,6 +36,11 @@ import { QUEST_QR_PATH } from "./utils/questQr";
 import { preloadSounds, startBgm, stopBgm } from "./utils/sound";
 
 import "./App.css";
+
+// 画面を遅延読み込みしている間の下地（一瞬だけ別の色が出ないようにする）
+function RouteFallback() {
+  return <div className="route-fallback" aria-hidden="true" />;
+}
 
 // クエストが変わったら Battle を作り直し、表示メッセージなど画面内の状態を初期化する
 function BattleRoute() {
@@ -82,6 +89,7 @@ function App() {
           <div className="app">
             <QrNoticeProvider>
             <GameTutorial>
+              <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<HomeEntry />} />
                 <Route path="/title" element={<Title />} />
@@ -129,6 +137,7 @@ function App() {
                 <Route path="/exchange/weapon" element={<Exchange />} />
                 <Route path="/novelty/:fieldId" element={<NoveltyRedeem />} />
               </Routes>
+              </Suspense>
             </GameTutorial>
             </QrNoticeProvider>
           </div>

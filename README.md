@@ -8,8 +8,7 @@ npm workspaces を使ったモノレポ構成です。
 
 ```
 .
-├── frontend/   # フロントエンド（React + TypeScript + Vite）
-└── backend/    # API（今後実装予定）
+└── frontend/   # フロントエンド（React + TypeScript + Vite）
 ```
 
 ## アプリ概要
@@ -70,11 +69,7 @@ npm run dev
 
 `npm run dev` は `frontend` ワークスペースの開発サーバーを起動します。`npm run build` / `npm run lint` も同様にルートから frontend を対象に実行できます。
 
-frontend ディレクトリ直下で個別にコマンドを実行する場合は、事前にルートで `npm install` を済ませてから作業してください。
-
-### backend について
-
-`backend/` は今後追加するAPI用のワークスペースです。現時点では実装がないため、詳細は `backend/README.md` を参照してください。
+frontend ディレクトリ直下で個別にコマンドを実行する場合は、事前にルートで `npm install` を済ませてから実行してください。
 
 ## 利用時の注意
 

@@ -11,3 +11,10 @@
 
   background: var(--color-bg-app);
 }
+/* 画面を遅延読み込みしている間の下地（一瞬だけ別の色が出ないようにする） */
+.route-fallback {
+  position: fixed;
+  inset: 0;
+
+  background: var(--color-bg-app);
+}
